@@ -1,0 +1,360 @@
+/* ========================================
+   app
+   ======================================== */
+
+:root {
+    /* 背景：深い紺色から黒へのグラデーション用 */
+    --ff-bg-main: #121215;
+    --ff-bg-dark: #0a0a0c;
+    --ff-bg-light: #1d1d22;
+
+    /* 金枠：金属感のあるベージュ〜ゴールド */
+    --ff-border-gold: #b3a170;
+    --ff-border-gold-bright: #e5d098;
+    --ff-border-gold-dark: #7a6a42;
+
+    /* テキスト：純白ではなく、少し目に優しい色 */
+    --ff-text-main: #e2e2e2;
+    --ff-text-sub: #a5a5a5;
+    --ff-text-gold: #f3e5ab;
+
+    /* アクセント：選択中やボタンの光 */
+    --ff-accent-blue: #0066cc;
+    --ff-accent-glow: rgba(179, 161, 112, 0.3);
+
+    --inner-shadow: rgba(0, 0, 0, 0.9);
+
+    /*エフェクト*/
+    --shadow: 1px 1px 12px rgba(0, 0, 0, 0.8);
+    --gradation: linear-gradient(180deg, var(--ff-bg-light) 10%, var(--ff-bg-main) 90%);
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/*グローバルカラーとサイズ */
+
+
+
+/*基本設定・デフォルト使用削除*/
+.scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+button:hover {
+    background: linear-gradient(180deg, #555 0%, #333 100%);
+}
+
+details summary::marker {
+    content: '';
+}
+
+.material-symbols-rounded {
+    user-select: none;
+    font-weight: 40;
+}
+
+html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-size: cover;
+    font-family: 'Noto Sans JP', system-ui, sans-serif;
+    background: linear-gradient(180deg, var(--ff-bg-light) 0%, var(--ff-bg-main) 100%);
+    color: var(--ff-text-main);
+    box-sizing: border-box !important;
+}
+
+header {
+    position: sticky;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #161616;
+    box-shadow: var(--shadow);
+    top: 0;
+    width: 100%;
+    height: 48px;
+    z-index: 5000;
+}
+
+.site-header__logo--area {
+    display: flex;
+    gap: 8px;
+    height: 24px;
+    align-items: center;
+    justify-content: flex-start;
+    margin-left: 12px;
+}
+
+.site-header__logo {
+    height: 24px;
+}
+
+main {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 8px;
+    gap: 8px 4px;
+}
+
+section {
+    word-break: keep-all;
+    width: 374px;
+}
+
+/**************************************************************************/
+
+/*500px以下
+@media only screen and (width < 769px) {
+
+}
+
+501px以上
+@media only screen and (width > 768px) {
+    section {
+    width: 372px;
+}
+}
+*/
+
+
+/**************************************************************************/
+
+.button__header {
+    width: 48px;
+    height: 48px;
+}
+
+.button__header.material-symbols-rounded {
+    color: var(--ff-text-main);
+}
+
+.button__header--hubs {}
+
+.button__header--buffs {}
+
+.button__header--LB.material-symbols-rounded {
+    color: var(--ff-border-gold-bright);
+}
+
+.button__header--LB::after {
+    content: '';
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    z-index: -1;
+    right: 6px;
+    bottom: 6px;
+    border-radius: 4px;
+    background: orangered;
+    border: 2px solid var(--ff-border-gold-dark);
+    box-shadow: var(--shadow);
+}
+
+.section__header {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 32px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: var(--ff-text-main);
+    text-shadow: 1px 1px 2px #000;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 8px;
+    border: 2px solid var(--ff-border-gold);
+    outline: 1px solid var(--ff-border-gold-bright);
+    box-shadow: var(--shadow);
+}
+
+.section__header::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 28px;
+    z-index: 1;
+    top: -1px;
+    left: -1px;
+    border-radius: 3px;
+    background: none;
+    border: 1px solid var(--ff-border-gold-dark);
+    outline: 1px solid var(--inner-shadow);
+    outline-offset: -2px;
+}
+
+.section__header--title {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    line-height: 30px;
+}
+
+.section__header--buttons {
+    display: flex;
+}
+
+.section__header--MAIN {
+    background: palevioletred;
+}
+
+.section__header--SUB {
+    background: palegreen;
+}
+
+.section__header--INSTANT {
+    background: paleturquoise;
+}
+
+.section__header--COMMAND {
+    background: var(--gradation);
+}
+
+.ability-area {
+    display: flex;
+    flex-wrap: wrap;
+    height: 100%;
+    width: 100%;
+    margin-top: 4px;
+    grid-area: auto;
+    align-content: space-around;
+}
+
+.ability {
+    content: '';
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    outline: 2px solid black;
+    outline-offset: -2px;
+    background: var(--ff-border-gold);
+}
+
+.buff-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    height: 100%;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.buff {
+    content: '';
+    width: 28px;
+    height: 36px;
+    border-radius: 8px;
+    border: 2px solid rgba(0, 0, 0, 1);
+    background: var(--ff-border-gold);
+}
+
+.command-option {}
+
+.command-option__DH {}
+
+.command-option__CR {}
+
+.output-area {}
+
+.button__copy {}
+
+
+/* 出力ボックス */
+.output {
+    border: 1px solid var(--ff-border-gold);
+    border-radius: 4px;
+    padding: 10px;
+    position: relative;
+}
+
+.output__label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ff-border-gold);
+    margin-bottom: 6px;
+}
+
+.output__text {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ff-text-main);
+    word-break: break-all;
+    user-select: all;
+    padding-right: 70px;
+    min-height: 20px;
+}
+
+
+.output:hover .output__text,
+.output:hover .output__text span {
+    font-size: 16px;
+    font-weight: 800;
+}
+
+/* コピーボタン */
+.button--copy {
+    position: absolute;
+    top: 12px;
+    right: 8px;
+    background: var(--ff-accent-blue);
+    max-height: 40px;
+    color: var(--ff-bg-dark);
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.button--copy:hover {
+    filter: brightness(110%);
+}
+
+.button--copy.button--copied {
+    background: var(--color-green);
+    color: var(--color-background);
+}
+
+
+/* ========================================
+   ユーティリティクラス
+   ======================================== */
+
+.hull-width {
+    width: 100%;
+}
+
+.harf-width {
+    width: 50%;
+}
