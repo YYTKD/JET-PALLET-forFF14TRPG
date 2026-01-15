@@ -116,8 +116,8 @@
         <section>
             <div class="section__header section__header--BUFF">
                 <span class="section__header--title">
-                <h3>BUFFS</h3>
-                <h6>バフ・デバフ</h6>
+                    <h3>BUFFS</h3>
+                    <h6>バフ・デバフ</h6>
                 </span>
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded">settings</button>
@@ -125,14 +125,14 @@
                 </div>
             </div>
             <div class="section__body">
-            <div class="buff-area">
-                <div class="buff"></div>
-                <div class="buff"></div>
-                <div class="buff"></div>
-                <div class="buff"></div>
-                <div class="buff"></div>
-                <div class="buff"></div>
-            </div>
+                <div class="buff-area">
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                </div>
             </div>
         </section>
         <!--コマンド生成-->
@@ -144,154 +144,172 @@
                 </span>
             </div>
             <div class="section__body section__body--command">
-            <div class="command-option-area">
-                <label class="command-option command-option__DH">
-                    <input type="checkbox"><span class="material-symbols-rounded">check_box</span><h5>ダイレクトヒット</h5>
-                </label>
-                <label class="command-option command-option__CR">
-                    <input type="checkbox"><span class="material-symbols-rounded">check_box</span><h5>クリティカル</h5>
-                </label>
-            </div>
-            <div class="output">
-                <div class="output__label">コピペ用コマンド</div>
-                <div class="output__text" id="judgeOutput">判定を選択してください</div>
-                <button class="button button--copy" data-target="judgeOutput">コピー</button>
-            </div>
+                <div class="command-option-area">
+                    <label class="command-option command-option__DH">
+                        <input type="checkbox"><span class="material-symbols-rounded">check_box</span>
+                        <h5>ダイレクトヒット</h5>
+                    </label>
+                    <label class="command-option command-option__CR">
+                        <input type="checkbox"><span class="material-symbols-rounded">check_box</span>
+                        <h5>クリティカル</h5>
+                    </label>
+                </div>
+                <div class="output">
+                    <div class="output__label">コピペ用コマンド</div>
+                    <div class="output__text" id="judgeOutput">判定を選択してください</div>
+                    <button class="button button--copy" data-target="judgeOutput">コピー</button>
+                </div>
             </div>
         </section>
-<!--モーダル_アビリティ登録-->
-    <dialog class="dialog--AB" open closedby="any">
-        <div class="dialog__main">
-            <div class="dialog__header">
-                <div class="section__header--title">アビリティ登録</div>
-            </div>
-            <div class="dialog__body">
-                <div class="form__options">
-                    <select class="form__option--type">
-                        <option class="dammy">メイン</option>
-                        <option class="dammy">サブ</option>
-                        <option class="dammy">インスタント</option>
-                    </select>
-                    <label class="form__option--button right">
-                        <input type="checkbox">プレビューを表示</button>
-                    </label>
-                    <button class="form__option--button">関連付け</button>
-                    <button class="form__option--button">バフ管理</button>
+        <!--モーダル_アビリティ登録-->
+        <dialog class="dialog--AB" open closedby="any">
+            <div class="dialog__main">
+                <div class="dialog__header">
+                    <div class="section__header--title">アビリティ登録</div>
                 </div>
-        <!--アイコン-->
-                <div class="form__group">
-                    <span class="form__label">アイコン</span>
-                    <img id="iconpreview" class="AB__icon"/>
-                    <input type="file" class="form__input--icon">
-                </div>
-        <!--名前-->
-                <div class="form__group">
-                    <span class="form__label">アビリティ名</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--タグ-->
-                <div class="form__group">
-                    <span class="form__label">タグ</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--タイミング-->
-                <div class="form__group">
-                    <span class="form__label">タイミング</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--コスト-->
-                <div class="form__group">
-                    <span class="form__label">コスト</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--対象-->
-                <div class="form__group">
-                    <span class="form__label">対象</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--範囲-->
-                <div class="form__group">
-                    <span class="form__label">範囲</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--判定-->
-                <div class="form__group">
-                    <span class="form__label">判定</span>
-                    <div class="form__input--judge">
-                        <span class="form__label--stat">【STR】＋</span>
+                <div class="dialog__body">
+                    <div class="form__options">
+                        <select class="form__option--type">
+                            <option class="dammy">メイン</option>
+                            <option class="dammy">サブ</option>
+                            <option class="dammy">インスタント</option>
+                        </select>
+                        <label class="form__option--button right">
+                            <input type="checkbox" checked>プレビューを表示</button>
+                        </label>
+                        <button class="form__option--button">関連付け</button>
+                        <button class="form__option--button">バフ管理</button>
+                    </div>
+                    <!--アイコン-->
+                    <div class="form__group">
+                        <span class="form__label">アイコン</span>
+                        <img id="iconpreview" class="AB__icon" />
+                        <input type="file" class="form__input--icon">
+                    </div>
+                    <!--名前-->
+                    <div class="form__group">
+                        <span class="form__label">アビリティ名</span>
                         <input type="text" class="form__input--normal">
                     </div>
-                </div>
-        <!--基本効果-->
-                <div class="form__group">
-                    <span class="form__label">基本効果</span>
-                    <textarea class="form__input--description"></textarea>
-                </div>
-        <!--ダイレクトヒット-->
-                <div class="form__group">
-                    <span class="form__label">ダイレクトヒット</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--制限-->
-                <div class="form__group">
-                    <span class="form__label">制限</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-        <!--スタック数-->
-                <div class="form__group">
-                    <span class="form__label">スタック数</span>
-                    <input type="number" class="form__input--normal">
-                </div>
-        <!--登録ボタン-->
-                <button class="form__button--add">登録</button>
-            </div>
-        </div>
-<!--プレビュー-->
-        <div class="dialog__preview card card__preview--AB">
-            <div class="card__header">
-                <img class="card__icon" />
-                <div class="card__header--titles">
-                    <span class="card__name">WSコンボ(メイム)</span>
-                    <span class="card__tags">物理・メイン</span>
-                </div>
-<!--                <div class="card__subTitles"> -->
-                    <div class="card__group">
-                    <span class="card__label">タイミング：</span>
-                    <span class="card__value"></span>
+                    <!--タグ-->
+                    <div class="form__group">
+                        <span class="form__label">タグ</span>
+                        <input type="text" class="form__input--normal">
                     </div>
-                    <div class="card__group">
-                    <span class="card__label">コスト：</span>
-                    <span class="card__value"></span>
+                    <!--前提-->
+                    <div class="form__group">
+                        <span class="form__label">前提</span>
+                        <input type="text" class="form__input--normal">
                     </div>
-                    <div class="card__group">
-                    <span class="card__label">対象：</span>
-                    <span class="card__value">１体</span>
+                    <!--タイミング-->
+                    <div class="form__group">
+                        <span class="form__label">タイミング</span>
+                        <input type="text" class="form__input--normal">
                     </div>
-                    <div class="card__group">
-                    <span class="card__label">範囲：</span>
-                    <span class="card__value">１マス</span>
+                    <!--コスト-->
+                    <div class="form__group">
+                        <span class="form__label">コスト</span>
+                        <input type="text" class="form__input--normal">
                     </div>
-                
-                <!--            </div> -->
-                <div class="card__group">
-                    <span class="card__label">判定：</span>
-                    <span class="card__value">【STR】+d20</span>
-                </div>
-            </div>
-            <div class="card__body">
-                <span class="card__description"><span class="card__label">基本効果：</span>対象に２点のダメージと、君への敵視を与える。コンボ：《シュトルムヴィント》</span>
-                <div class="card__group">
-                <span class="card__label">ダイレクトヒット：</span>
-                <span class="card__value">+1d6点の追加ダメージ。</span>
-                </div>
-                <div class="card__group">
-                <span class="card__label">制限</span>
-                <span class="card__value">１フェーズに３回使用可能。</span>
+                    <!--対象-->
+                    <div class="form__group">
+                        <span class="form__label">対象</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--範囲-->
+                    <div class="form__group">
+                        <span class="form__label">範囲</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--判定-->
+                    <div class="form__group">
+                        <span class="form__label">判定</span>
+                        <div class="form__input--judge">
+                            <span class="form__label--stat">【STR】＋</span>
+                            <input type="text" class="form__input--normal">
+                        </div>
+                    </div>
+                    <!--基本効果-->
+                    <div class="form__group">
+                        <span class="form__label">基本効果</span>
+                        <textarea class="form__input--description"></textarea>
+                    </div>
+                    <!--ダイレクトヒット-->
+                    <div class="form__group">
+                        <span class="form__label">ダイレクトヒット</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--制限-->
+                    <div class="form__group">
+                        <span class="form__label">制限</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--スタック数-->
+                    <div class="form__group">
+                        <span class="form__label">スタック数</span>
+                        <input type="number" class="form__input--normal">
+                    </div>
+                    <!--登録ボタン-->
+                    <button class="form__button--add">登録</button>
                 </div>
             </div>
-        </div>
+            <!--プレビュー-->
+            <div class="dialog__preview card card__preview--AB">
+                <div class="card__header">
+                    <div class="card__icon">
+                        <div class="card__icon--image"></div>
+                    </div>
+                    <div class="card__title">
+                        <span class="card__name">WSコンボWSコンボWSコンボ<span class="card__tags">物理・メイン</span></span>
+                    </div>
+                    <div class="card__trigger">
+                        <div class="card__stat">
+                            <span class="card__label">前提：</span>
+                            <span class="card__value">敵が詠唱のアビリティを使用したか、詠唱のアビリティによる予兆を発生させている敵から1マス以内に君がいる</span>
+                        </div>
+                    </div>
+                    <div class="card__trigger">
+                        <div class="card__stat">
+                            <span class="card__label">タイミング：</span>
+                            <span class="card__value"></span>
+                        </div>
+                    </div>
+                    <div class="card__meta">
+                        <div class="card__stat">
+                            <span class="card__label">コスト：</span>
+                            <span class="card__value"></span>
+                        </div>
+                        <div class="card__stat">
+                            <span class="card__label">対象：</span>
+                            <span class="card__value">範囲内のすべての敵</span>
+                        </div>
+                        <div class="card__stat">
+                            <span class="card__label">範囲：</span>
+                            <span class="card__value">君を中心とした３×３マス</span>
+                        </div>
+                    </div>
+                    <div class="card__stat--judge">
+                        <span class="card__label">判定：</span>
+                        <span class="card__value">【STR】+d20<span class="bold">　VS　</span>物理</span>
+                    </div>
+                </div>
+                <div class="card__body">
+                    <div class="card__stat">
+                        <span class="card__label">基本効果：</span>
+                        <span class="card__value">対象に２点のダメージと、君への敵視を与える。コンボ：《シュトルムヴィント》</span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__label">ダイレクトヒット：</span>
+                        <span class="card__value">+1d6点の追加ダメージ。</span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__label">制限：</span>
+                        <span class="card__value">１フェーズに３回使用可能。</span>
+                    </div>
+                </div>
+            </div>
 
-    </dialog>
+        </dialog>
 
     </main>
 </body>

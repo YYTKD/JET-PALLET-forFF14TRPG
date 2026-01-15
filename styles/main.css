@@ -34,6 +34,8 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /*グローバルカラーとサイズ */
@@ -54,7 +56,12 @@ input[type="checkbox"] {
     display: none;
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     user-select: none;
 }
 
@@ -87,8 +94,8 @@ html {
     padding: 0;
     background-size: cover;
     background-attachment: fixed;
-    background: linear-gradient(180deg, var(--bg-light) 0%, 
-                var(--bg-main) 100%);
+    background: linear-gradient(180deg, var(--bg-light) 0%,
+            var(--bg-main) 100%);
 
 }
 
@@ -156,7 +163,7 @@ section {
         height: 100%;
         z-index: 5000;
         background: linear-gradient(90deg, var(--bg-light) 100%, var(--bg-main) 0%);
-}
+    }
 
     main {
         margin-left: 48px;
@@ -169,7 +176,7 @@ section {
     body {
         flex-direction: column;
     }
-        
+
     header {
         flex-direction: row;
         top: 0;
@@ -177,7 +184,8 @@ section {
         height: 48px;
         z-index: 5000;
         background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg-main) 100%);
-}
+    }
+
     main {
         margin-top: 48px;
     }
@@ -238,7 +246,7 @@ section {
     border: 1px solid var(--border-gold);
     outline: 1px solid var(--border-gold-bright);
     box-shadow: var(--shadow),
-    inset 0 0 1px 1px rgba(0, 0, 0, .9);
+        inset 0 0 1px 1px rgba(0, 0, 0, .9);
 }
 
 .section__header::after {
@@ -341,7 +349,7 @@ section {
 .command-option-area {
     display: flex;
     width: 100%;
-    gap:8px;
+    gap: 8px;
 }
 
 .command-option {
@@ -440,7 +448,7 @@ section {
     モーダル--アビリティ
    ======================================== */
 dialog[open] {
-    position:fixed;
+    position: fixed;
     height: calc(100vh - 48px);
     width: calc(100vw - 96px);
     left: 48px;
@@ -460,20 +468,23 @@ dialog[open] {
     height: 50vh;
 
     border: 1px solid var(--border-gold-dark);
-    outline: 1px solid var(--border-gold); /* 2重枠の表現 */
+    outline: 1px solid var(--border-gold);
+    /* 2重枠の表現 */
     outline-offset: -3px;
     border-radius: 8px;
 
     color: var(--text-main);
-    box-shadow: 
-        0 4px 15px rgba(0, 0, 0, 0.8), /* 外側の影 */
-        inset 0 0 10px rgba(0, 0, 0, 0.5); /* 内側の奥行き */
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.8),
+        /* 外側の影 */
+        inset 0 0 10px rgba(0, 0, 0, 0.5);
+    /* 内側の奥行き */
 
-    overflow:scroll;
+    overflow: scroll;
 }
 
-.dialog__header{
-    position:sticky;
+.dialog__header {
+    position: sticky;
     top: 0;
     z-index: 10;
     background: var(--gradation);
@@ -483,9 +494,10 @@ dialog[open] {
     text-shadow: 1px 1px 2px #000;
     padding: 8px;
 }
-.dialog__header--title{
-}
-.dialog__body{
+
+.dialog__header--title {}
+
+.dialog__body {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -494,17 +506,15 @@ dialog[open] {
     padding: 16px;
 }
 
-.form__options{
+.form__options {
     display: flex;
     flex-direction: row;
     height: 32px;
-    justify-content:space-between;
+    justify-content: space-between;
     gap: 4px;
 }
 
-.form__option--type {
-
-}
+.form__option--type {}
 
 .form__option--button {
     background: var(--gradation);
@@ -524,12 +534,13 @@ dialog[open] {
     font-style: italic;
 }
 
-.form__group{
+.form__group {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
-.form__label{
+
+.form__label {
     font-size: 12px;
     font-weight: 600;
 }
@@ -538,23 +549,24 @@ dialog[open] {
     height: 32px;
     font-size: 16px;
 }
+
 /*============================
 #iconpreview.AB__icon
 ============================*/
-.AB__icon{
+.AB__icon {
     width: 48px;
     height: 48px;
 }
-.form__input--icon{
-}
-.form__input--judge{
-}
-.form__label--stat{
-}
-.form__input--description{
-}
-.form__button--add{
-}
+
+.form__input--icon {}
+
+.form__input--judge {}
+
+.form__label--stat {}
+
+.form__input--description {}
+
+.form__button--add {}
 
 /* ========================================
     モーダル--プレビュー
@@ -562,118 +574,143 @@ dialog[open] {
 
 .dialog__preview {
     display: none;
-    order: -1;
 }
 
-.dialog__main:has(input[type="checkbox"]:checked) ~ .dialog__preview {
-    display:flex;
+.dialog__main:has(input[type="checkbox"]:checked)~.dialog__preview {
+    display: flex;
 }
 
 /* ========================================
     カード--アビリティ
    ======================================== */
 
-.card{
+.card {
     position: relative;
-    flex-direction:column;
+    flex-direction: column;
     gap: 2px;
 
     width: 368px;
-    background: var(--text-main);
+    background: white;
     color: var(--bg-dark);
     border-radius: 8px;
-    border: 4px solid var(--border-gold-dark);
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 1.1rem;
-        letter-spacing: -0.8px;
+    border: 3px solid #A2876D;
+    font-size: 0;
+
+    line-height: 1rem;
 
     overflow: hidden;
     box-shadow: var(--shadow);
 }
 
-.card__header{
-    display: grid;
-    grid-template-columns: ;
-    background: linear-gradient(to top, var(--border-gold) 90%, var(--text-main) 100%);
+.card__header {
+    background: linear-gradient(to top, #E0DAC9 90%, #fff 100%);
     padding: 4px 4px 2px;
+    overflow: auto;
+}
 
-}
-.card__header::after {
-    content: "";
-    display: grid;
-    clear: both;
-}
 
 
 .card__icon {
     float: left;
-    content: '';
-    color: whitesmoke;
-    background: none;
     width: 40px;
     height: 40px;
-    border-radius: 8px;
     padding: 3px;
-    box-shadow: var(--shadow);
 }
 
-.card__header--titles {
-    display: flex;
-    flex-direction: row;
-    padding: 0 2px 2px;
-    margin-bottom: 1px;
-    justify-content: space-between;
-    width: calc(100% - 40px);
-    height: fit-content;
+.card__icon--image {
+    content: '';
+    width: 100%;
+    height: 100%;
+    background: whitesmoke;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px 2px #000;
+}
+
+.card__title {
+    padding-bottom: 2px;
+    width: calc(100% - 48px);
+    margin-left: 44px;
+    padding-bottom: 2px;
+    margin-bottom: 5px;
     border-bottom: 3px solid var(--border-gold-dark);
+    overflow: hidden;
 }
 
-.card__name{
-    margin-left: 4px;
-    font-size: 18px;
+
+.card__name {
+    display: block;
+    font-size: 16px;
     font-weight: 800;
-    line-height: 1rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: keep-all;
+    line-height: 1;
 }
-.card__tags{
-    font-style:italic;
+
+
+.card__tags {
+    float: right;
+    font-size: 12px;
+    font-weight: 500;
+    font-style: italic;
+    padding-top: 2px;
+    white-space: nowrap;
 }
-/*
-.card__subTitles{
+
+.card__trigger {
+    width: 100%;
+}
+
+.card__meta {
     display: flex;
-    flex-direction: row;
     flex-wrap: wrap;
-    gap: 0 8px;
+    gap: 0 0.5rem;
+    width: 100%;
 }
-    */
 
-.card__group{
-    display:flex;
+.card__stat {
+    min-width: 0;
     width: fit-content;
-    margin: 0 4px;
+    line-height: 0.6rem;
+    padding: 0 2px;
 }
-.card__label {
-    color: var(--border-gold-dark);
-    font-weight: 600;
 
+
+.card__label {
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--border-gold-dark);
+    font-weight: 700;
 }
-.card__value{
+
+.card__value {
+    font-size: 12px;
+    min-width: 0;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.card__stat--judge {
+    display: flex;
+    padding: 0 2px;
+    line-height: 0.6rem;
 }
 
 .card__body {
     display: flex;
-    flex-direction:column;
+    flex-direction: column;
     gap: 2px;
-    padding: 0 4px 4px;
+    padding: 2px 4px 2px;
 }
 
-    .card__description{
-}
+.card__description {}
 
 /* ========================================
     ユーティリティクラス
    ======================================== */
 
-.hull-width { width: 100%; }
+.full-width { width: 100%; }
 .harf-width { width: 50%; }
 .right { margin-left: auto; }
+.bold { font-weight: 800; }
