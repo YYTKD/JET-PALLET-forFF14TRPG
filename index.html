@@ -13,17 +13,34 @@
 </head>
 
 <body>
-    <header>
-        <div class="site-header__logo--area">
-            <img class="site-header__logo" src="assets/logos/logo.svg" />
-        </div>
-        <div>
-            <button class="button__header button__header--hubs material-symbols-rounded">note_stack_add</button>
-            <button class="button__header button__header--buffs material-symbols-rounded">add_home</button>
-            <button class="button__header button__header--LB material-symbols-rounded">swords</button>
-        </div>
-
-    </header>
+    <nav>
+<!--バフデバフ表示-->
+        <header>
+                <div class="buff-area">
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                    <div class="buff"></div>
+                </div>
+                <div class="section__header--buttons">
+                    <button class="material-symbols-rounded">settings</button>
+                    <button class="material-symbols-rounded">add</button>
+                </div>
+            </div>
+        </header>
+        <footer>
+            <div class="footer__logo--area">
+                <img class="footer__logo" src="assets/logos/logo.svg" />
+            </div>
+            <div>
+                <button class="button__footer button__footer--hubs material-symbols-rounded">note_stack_add</button>
+                <button class="button__footer button__footer--buffs material-symbols-rounded">add_home</button>
+                <button class="button__footer button__footer--LB material-symbols-rounded">swords</button>
+            </div>
+        </footer>
+    </nav>
 
     <main>
         <!--メインアクション-->
@@ -112,29 +129,6 @@
                 </div>
             </div>
         </section>
-        <!--バフデバフ表示-->
-        <section>
-            <div class="section__header section__header--BUFF">
-                <span class="section__header--title">
-                    <h3>BUFFS</h3>
-                    <h6>バフ・デバフ</h6>
-                </span>
-                <div class="section__header--buttons">
-                    <button class="material-symbols-rounded">settings</button>
-                    <button class="material-symbols-rounded">add</button>
-                </div>
-            </div>
-            <div class="section__body">
-                <div class="buff-area">
-                    <div class="buff"></div>
-                    <div class="buff"></div>
-                    <div class="buff"></div>
-                    <div class="buff"></div>
-                    <div class="buff"></div>
-                    <div class="buff"></div>
-                </div>
-            </div>
-        </section>
         <!--コマンド生成-->
         <section>
             <div class="section__header section__header--COMMAND">
@@ -175,7 +169,7 @@
                             <option class="dammy">インスタント</option>
                         </select>
                         <label class="form__option--button right">
-                            <input type="checkbox" checked>プレビューを表示</button>
+                            <input class="form__option--checkbox" type="checkbox" checked>プレビューを表示</button>
                         </label>
                         <button class="form__option--button">関連付け</button>
                         <button class="form__option--button">バフ管理</button>

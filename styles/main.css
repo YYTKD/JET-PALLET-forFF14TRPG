@@ -56,6 +56,44 @@ input[type="checkbox"] {
     display: none;
 }
 
+input[type="text"],
+input[type="number"],
+textarea {
+    background: var(--bg-dark);
+    border: none;
+    color: var(--text-main);
+    padding: 2px;
+}
+
+input[type="text"],
+input[type="number"] {
+    font-size: 16px;
+    height: 30px;
+}
+
+textarea {
+    font-size: 14px;
+    min-height: 74px;
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover,
+textarea:hover {
+    outline: 2px solid var(--border-gold-dark);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+    outline: 2px solid var(--border-gold-bright);
+}
+
+.form__group:has(input[type="text"]:focus) .form__label,
+.form__group:has(input[type="number"]:focus) .form__label,
+.form__group:has(textarea:focus) .form__label {
+    color: var(--border-gold-bright);
+}
+
 h1,
 h2,
 h3,
@@ -65,17 +103,27 @@ h6 {
     user-select: none;
 }
 
+
 button {
-    background: none;
-    border: none;
     cursor: pointer;
     outline: none;
+
+    align-items: center;
+    color: var(--text-main);
+    background: var(--gradation);
+    border: 2px solid var(--border-gold-bright);
+    border-radius: 6px;
+    padding: 2px;
+    z-index: 100;
+    max-height: min-content;
+
     -webkit-appearance: none;
     -moz-appearance: none;
 }
 
 button:hover {
     background: linear-gradient(180deg, #555 0%, #333 100%);
+    cursor: pointer;
 }
 
 details summary::marker {
@@ -111,26 +159,40 @@ body {
 header {
     position: fixed;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: #161616;
     box-shadow: var(--shadow);
+    top: 0;
+    width: 100%;
+    height: 48px;
     z-index: 5000;
+    opacity: 0.95;
+    background: linear-gradient(90deg, var(--bg-light) 100%, var(--bg-main) 0%);
 }
 
-.site-header__logo--area {
+footer {
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+    bottom: 0;
+    width: 100%;
+    height: 48px;
+    z-index: 5000;
+    background: linear-gradient(90deg, var(--bg-light) 100%, var(--bg-main) 0%);
+}
+
+.footer__logo--area {
     display: flex;
     gap: 8px;
     height: 32px;
-    width: 32px;
     align-items: center;
     justify-content: flex-start;
     margin: 8px;
 }
 
-.site-header__logo {
+.footer__logo {
     height: 32px;
-    width: 32px;
 }
 
 main {
@@ -138,7 +200,7 @@ main {
     flex-wrap: wrap;
     justify-content: flex-start;
     width: 100%;
-    padding: 8px;
+    padding: 56px 8px 8px;
     gap: 8px 4px;
 }
 
@@ -147,72 +209,28 @@ section {
     width: 374px;
 }
 
-/**************************************************************************/
 
-/*500px以下*/
-@media only screen and (width < 769px) {
-
-    body {
-        flex-direction: row;
-    }
-
-    header {
-        flex-direction: column;
-        left: 0;
-        width: 48px;
-        height: 100%;
-        z-index: 5000;
-        background: linear-gradient(90deg, var(--bg-light) 100%, var(--bg-main) 0%);
-    }
-
-    main {
-        margin-left: 48px;
-    }
-}
-
-/*501px以上*/
-@media only screen and (width > 768px) {
-
-    body {
-        flex-direction: column;
-    }
-
-    header {
-        flex-direction: row;
-        top: 0;
-        width: 100%;
-        height: 48px;
-        z-index: 5000;
-        background: linear-gradient(180deg, var(--bg-light) 0%, var(--bg-main) 100%);
-    }
-
-    main {
-        margin-top: 48px;
-    }
-}
-
-
-
-/**************************************************************************/
-
-.button__header {
+.button__footer {
     width: 48px;
     height: 48px;
+    border: none;
+    background: none;
+    border-radius: 0;
 }
 
-.button__header.material-symbols-rounded {
+.button__footer.material-symbols-rounded {
     color: var(--text-main);
 }
 
-.button__header--hubs {}
+.button__footer--hubs {}
 
-.button__header--buffs {}
+.button__footer--buffs {}
 
-.button__header--LB.material-symbols-rounded {
+.button__footer--LB.material-symbols-rounded {
     color: var(--border-gold-bright);
 }
 
-.button__header--LB::after {
+.button__footer--LB::after {
     content: '';
     position: absolute;
     width: 32px;
@@ -226,7 +244,7 @@ section {
     box-shadow: var(--shadow);
 }
 
-.button__header--LB:hover {
+.button__footer--LB:hover {
     background: none;
 
 }
@@ -285,10 +303,6 @@ section {
     background: paleturquoise;
 }
 
-.section__header--BUFF {
-    background: var(--gradation);
-}
-
 .section__header--COMMAND {
     background: var(--gradation);
 }
@@ -325,10 +339,12 @@ section {
 .buff-area {
     display: flex;
     flex-direction: row;
+    align-items: center;
     flex-wrap: wrap;
     gap: 2px;
     height: 100%;
     width: 100%;
+    padding-left: 8px;
 }
 
 .buff {
@@ -451,7 +467,7 @@ dialog[open] {
     position: fixed;
     height: calc(100vh - 48px);
     width: calc(100vw - 96px);
-    left: 48px;
+    justify-self: center;
     z-index: 9999;
     background: none;
     border: none;
@@ -517,14 +533,16 @@ dialog[open] {
 .form__option--type {}
 
 .form__option--button {
-    background: var(--gradation);
-    border: 2px solid var(--border-gold);
-    border-radius: 4px;
-    padding: 4px;
-    height: 100%;
-    color: var(--text-main);
     font-size: 12px;
-    align-self: center;
+    align-items: center;
+    background: var(--gradation);
+    border: 2px solid var(--border-gold-bright);
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.form__option--checkbox {
+    cursor: pointer;
 }
 
 .form__option--button:has(:checked) {
@@ -604,7 +622,7 @@ dialog[open] {
 
 .card__header {
     background: linear-gradient(to top, #E0DAC9 90%, #fff 100%);
-    padding: 4px 4px 2px;
+    padding: 4px;
     overflow: auto;
 }
 
@@ -686,7 +704,7 @@ dialog[open] {
 .card__value {
     font-size: 12px;
     min-width: 0;
-    font-weight: 500;
+    font-weight: 600;
     overflow-wrap: anywhere;
     word-break: normal;
 }
@@ -710,7 +728,18 @@ dialog[open] {
     ユーティリティクラス
    ======================================== */
 
-.full-width { width: 100%; }
-.harf-width { width: 50%; }
-.right { margin-left: auto; }
-.bold { font-weight: 800; }
+.full-width {
+    width: 100%;
+}
+
+.harf-width {
+    width: 50%;
+}
+
+.right {
+    margin-left: auto;
+}
+
+.bold {
+    font-weight: 800;
+}
