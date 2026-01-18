@@ -399,11 +399,18 @@ section {
     position: relative;
     width: 56px;
     height: 56px;
+    cursor: pointer;
+    z-index: 100;
 
     anchor-name: --ability-anchor;
     anchor-scope: --ability-anchor;
     position-try-boundary: display-target;
 }
+
+.ability:hover > img {
+  filter: drop-shadow(0 0 4px var(--border-gold-bright));
+ }
+
 
 .ability svg {
     position: absolute;
@@ -791,6 +798,7 @@ dialog[open] {
     line-height: 1rem;
     overflow: hidden;
     box-shadow: var(--shadow);
+    z-index: 9000;
 }
 
 .card__header {
