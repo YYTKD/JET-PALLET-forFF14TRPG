@@ -330,7 +330,7 @@
                 </div>
             </div>
         </section>
-        <!--モーダル_アビリティ登録-->
+<!--モーダル_アビリティ登録-->
         <dialog class="dialog--AB" id="addAbilityModal" closedby="any">
             <div class="dialog__main">
                 <div class="dialog__header">
@@ -481,22 +481,17 @@
         </dialog>
 
 <!--モーダル_バフ登録-->
-        <dialog class="dialog--AB" id="addAbilityModal" open closedby="any">
+        <dialog class="dialog--BUFF" id="addAbilityModal" closedby="any">
             <div class="dialog__main">
                 <div class="dialog__header">
-                    <div class="section__header--title">バフ・特性管理</div>
+                    <div class="section__header--title">バフ・デバフ登録</div>
                 </div>
                 <div class="dialog__body">
                     <div class="form__options">
                         <select class="form__option--type">
-                            <option class="dammy">メイン</option>
-                            <option class="dammy">サブ</option>
-                            <option class="dammy">インスタント</option>
+                            <option class="dammy">バフ</option>
+                            <option class="dammy">デバフ</option>
                         </select>
-                        <label class="form__option--button right">
-                            <input class="form__option--checkbox" type="checkbox" checked>プレビューを表示</button>
-                        </label>
-                        <button class="form__option--button">関連付け</button>
                         <button class="form__option--button">バフ管理</button>
                     </div>
                     <!--アイコン-->
@@ -507,27 +502,12 @@
                     </div>
                     <!--名前-->
                     <div class="form__group">
-                        <span class="form__label">アビリティ名</span>
+                        <span class="form__label">バフ・デバフ名</span>
                         <input type="text" class="form__input--normal">
                     </div>
-                    <!--タグ-->
+                    <!--効果説明-->
                     <div class="form__group">
-                        <span class="form__label">タグ</span>
-                        <input type="text" class="form__input--normal">
-                    </div>
-                    <!--前提-->
-                    <div class="form__group">
-                        <span class="form__label">前提</span>
-                        <input type="text" class="form__input--normal">
-                    </div>
-                    <!--タイミング-->
-                    <div class="form__group">
-                        <span class="form__label">タイミング</span>
-                        <input type="text" class="form__input--normal">
-                    </div>
-                    <!--コスト-->
-                    <div class="form__group">
-                        <span class="form__label">コスト</span>
+                        <span class="form__label">効果説明</span>
                         <input type="text" class="form__input--normal">
                     </div>
                     <!--対象-->
@@ -535,42 +515,64 @@
                         <span class="form__label">対象</span>
                         <input type="text" class="form__input--normal">
                     </div>
-                    <!--範囲-->
+                    <!--コマンド-->
                     <div class="form__group">
-                        <span class="form__label">範囲</span>
-                        <input type="text" class="form__input--normal">
-                    </div>
-                    <!--判定-->
-                    <div class="form__group">
-                        <span class="form__label">判定</span>
-                        <div class="form__input--judge">
-                            <span class="form__label--stat">【STR】＋</span>
-                            <input type="text" class="form__input--normal">
-                        </div>
-                    </div>
-                    <!--基本効果-->
-                    <div class="form__group">
-                        <span class="form__label">基本効果</span>
-                        <textarea class="form__input--description"></textarea>
-                    </div>
-                    <!--ダイレクトヒット-->
-                    <div class="form__group">
-                        <span class="form__label">ダイレクトヒット</span>
-                        <input type="text" class="form__input--normal">
-                    </div>
-                    <!--制限-->
-                    <div class="form__group">
-                        <span class="form__label">制限</span>
-                        <input type="text" class="form__input--normal">
-                    </div>
-                    <!--スタック数-->
-                    <div class="form__group">
-                        <span class="form__label">スタック数</span>
+                        <span class="form__label">コマンド</span>
                         <input type="number" class="form__input--normal">
+                    </div>
+                    <!--継続時間-->
+                    <div class="form__group">
+                        <span class="form__label">継続時間</span>
+                        <select class="form__option--type">
+                            <option class="dammy">永続</option>
+                            <option class="dammy">ターン終了まで</option>
+                            <option class="dammy">フェーズ終了まで</option>
+                        </select>
+                    </div>
+                    <!--登録ボタン-->
+                    <button class="form__button--add">登録</button>
+
+                    <!--一括登録-->
+                    <div class="form__group">
+                        <span class="form__label">一括登録</span>
+                        <textarea class="form__input--description"></textarea>
                     </div>
                     <!--登録ボタン-->
                     <button class="form__button--add">登録</button>
                 </div>
+            </div>
+        </dialog>
+
+        <!--モーダル_バフ登録-->
+        <dialog class="dialog--BUFF" id="addAbilityModal" open closedby="any">
+            <div class="dialog__main">
+                <div class="dialog__header">
+                    <div class="section__header--title">バフ・デバフ管理</div>
+                </div>
+                <div class="dialog__body">
+                    <div class="form__options">
+                        <button class="form__option--button">新規バフ登録</button>
+                    </div>
+                    <!--バフ表-->
+                    <table border="1">
+                        <tr>
+                            <th>アイコン</th>
+                            <th>名前</th>
+                            <th></th>
+                        </tr>
+                        <tr>
+                            <td><img src="assets/circle_of_scorn.png" class="buff-icon-small" style="width: 32px; height: 32px;" /></td>
+                            <td>オーバーパワー</td>
+                            <td><button class="material-symbols-rounded">edit</button><button
+                                    class="material-symbols-rounded">delete</button></td>
+                        </tr>
+                        <tr>
+                            <td><img src="assets/circle_of_scorn.png" class="buff-icon-small" style="width: 32px; height: 32px;" /></td>
+                            <td>オーバーパワー</td>
+                            <td><button class="material-symbols-rounded">edit</button><button
+                                    class="material-symbols-rounded">delete</button></td>
+                        </tr>
+                    </table>
             </div>
         </dialog>
 
