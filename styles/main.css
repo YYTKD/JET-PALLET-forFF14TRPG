@@ -178,8 +178,8 @@ nav {
         flex-direction: column;
         justify-content: space-between;
     }
-}
 
+}
 @media screen and (width > 600px) {
     nav {
         flex-direction: row;
@@ -225,15 +225,27 @@ footer {
 main {
     position: relative;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
     width: 100vw;
-    height: (100vh - 56px);
+    height: 100vh;
     padding: 56px 8px 56px;
-    gap: 8px 4px;
+    gap: 4px;
     overflow-y: auto;
     overflow-x: clip;
 }
+
+.ability-block {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    width: calc(100vw - 150px);
+    height: fit-content;
+}
+
+.trait-block {
+    position: relative;
+        height: fit-content;
+}
+
 
 section {
     position: relative;
@@ -284,6 +296,7 @@ section {
 .section__header {
     position: relative;
     display: flex;
+    flex-wrap: wrap;
     width: 100%;
     height: 32px;
     border-radius: 4px;
@@ -292,7 +305,6 @@ section {
     text-shadow: 1px 1px 2px #000;
     justify-content: space-between;
     align-items: center;
-    padding: 0px 8px;
     border: 1px solid var(--border-gold);
     outline: 1px solid var(--border-gold-bright);
     box-shadow: var(--shadow),
@@ -312,11 +324,15 @@ section {
     outline: 1px solid var(--border-gold-dark);
 }
 
+
 .section__header--title {
     display: flex;
     align-items: baseline;
-    gap: 4px;
     line-height: 30px;
+}
+
+.section__header--title h3 {
+    transform: scale(0.8, 1.2);
 }
 
 .section__header--buttons {
@@ -339,12 +355,20 @@ section {
     background: var(--gradation);
 }
 
+.section--TRAIT {
+    position: fixed;
+    top: 56px;
+    right: 8px;
+    width: 140px;
+    height: fit-content;
+}
+
 .section__body {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 8px 0;
-    gap: 16px;
+    gap: 8px;
 }
 
 .ability-area {
@@ -352,11 +376,24 @@ section {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 0;
-    height: 100%;
+    height: fit-content;
+    min-height: 56px;
     width: 100%;
     grid-area: auto;
     align-content: space-around;
+    background-image: url("../assets/Frame_255.png");
 }
+
+.ability-area--other {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.2);
+}
+
 
 .ability {
     position: relative;
@@ -435,12 +472,8 @@ section {
 }
 
 .buff {
-    content: '';
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    border: 2px solid rgba(0, 0, 0, 1);
-    background: var(--border-gold);
+    width: 30px;
+    height: 40px;
 }
 
 .section__body--command {
@@ -669,6 +702,59 @@ dialog[open] {
 .form__input--description {}
 
 .form__button--add {}
+
+/* ========================================
+    リソース
+   ======================================== */
+
+.resource {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.resource__group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resource__label {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.resource--stack {
+    display: flex;
+    flex-direction: row;
+}
+
+.resource__icon--stack {
+    width: 24px;
+    height: 24px;
+    margin-right: -6px;
+}
+
+.resource--gauge {
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+}
+.resource__icon--gauge {
+    width: 112px;
+    height: 16px;
+}
+
+.resource__icon--gauge-value {
+    position: absolute;
+    right: 12px;
+    bottom: -12px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    text-shadow: 1px 1px 2px #000;
+}
+
 
 /* ========================================
     モーダル--プレビュー
