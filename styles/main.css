@@ -114,7 +114,7 @@ button {
     border: 2px solid var(--border-gold-bright);
     border-radius: 6px;
     padding: 2px;
-    z-index: 100;
+
     max-height: min-content;
 
     -webkit-appearance: none;
@@ -153,7 +153,7 @@ html {
 
 body {
     height: 100%;
-    width: 100vw;
+    width: 100dvw;
     display: flex;
     font-family: 'Noto Sans JP', system-ui, sans-serif;
     color: var(--text-main);
@@ -167,8 +167,8 @@ body {
 nav {
     position: fixed;
     display: flex;
-    height: 100vh;
-    width: 100vw;
+    height: 100dvh;
+    width: 100dvw;
     z-index: 5000;
     pointer-events: none;
 }
@@ -225,8 +225,8 @@ footer {
 main {
     position: relative;
     display: flex;
-    width: 100vw;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
     padding: 56px 8px 56px;
     gap: 4px;
     overflow-y: auto;
@@ -237,7 +237,7 @@ main {
     position: relative;
     display: flex;
     flex-wrap: wrap;
-    width: calc(100vw - 150px);
+    width: calc(100dvw - 150px);
     height: fit-content;
 }
 
@@ -253,14 +253,12 @@ section {
     width: 336px;
 }
 
-
-.button__footer {
-    width: 48px;
-    height: 48px;
-    border: none;
-    background: none;
-    border-radius: 0;
+.button__area--footer {
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
+
 
 .button__footer.material-symbols-rounded {
     color: var(--text-main);
@@ -386,7 +384,7 @@ section {
 
 .ability-area--other {
     width: 100%;
-    height: 80px;
+    height: fit-content;
     display: flex;
     flex-direction: column;
     background: rgba(0, 0, 0, 0.2);
@@ -440,7 +438,7 @@ section {
     }
 }
 
-.ability img {
+.ability > img {
     width: 56px;
     height: 56px;
     z-index: 1;
@@ -479,8 +477,19 @@ section {
 }
 
 .buff {
+    position:relative;
     width: 30px;
     height: 40px;
+}
+
+.buff__limit {
+    position: absolute;
+    bottom: -12px;
+    left: 6px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-main);
+    text-shadow: 1px 1px 2px #000;
 }
 
 .section__body--command {
@@ -592,8 +601,8 @@ section {
    ======================================== */
 dialog[open] {
     position: fixed;
-    height: calc(100vh - 48px);
-    width: calc(100vw - 96px);
+    height: calc(100dvh - 48px);
+    width: calc(100dvw - 96px);
     justify-self: center;
     z-index: 9999;
     background: none;
@@ -608,7 +617,7 @@ dialog[open] {
 
 .dialog__main {
     width: 450px;
-    max-height: calc(95vh - 96px);
+    max-height: calc(95dvh - 96px);
     border: 1px solid var(--border-gold-dark);
     outline: 1px solid var(--border-gold);
     outline-offset: -3px;
@@ -654,6 +663,12 @@ dialog[open] {
     gap: 4px;
 }
 
+.form__row {
+    display:flex;
+    align-items:end;
+    gap: 8px;
+}
+
 .form__option--type {}
 
 .form__option--button {
@@ -682,6 +697,14 @@ dialog[open] {
     gap: 2px;
 }
 
+.form__group 
+    input,
+    select {
+    height: 32px;
+    width: 100%;
+}
+
+
 .form__label {
     font-size: 12px;
     font-weight: 600;
@@ -691,6 +714,30 @@ dialog[open] {
     height: 32px;
     font-size: 16px;
 }
+
+.condition__block {
+    color: var(--bg-dark);
+    display: flex;
+    align-items: flex-start;
+    padding: 8px;
+    background: var(--text-main);
+    border-radius: 4px;
+    outline: 1px solid var(--bg-dark);
+    border-left: 4px solid var(--accent-blue);
+}
+
+.condition__block input,
+.condition__block select {
+    width: 64px;
+    height: 24px;
+}
+
+.condition__block 
+select {
+        -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
 
 /*============================
 #iconpreview.AB__icon
@@ -714,16 +761,18 @@ dialog[open] {
     リソース
    ======================================== */
 
-.resource {
+.trait-area {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    width: 100%;
 }
 
 .resource__group {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 2px;
+    align-items: center;
 }
 
 .resource__label {
@@ -736,7 +785,7 @@ dialog[open] {
     flex-direction: row;
 }
 
-.resource__icon--stack {
+.resource__icon--arrow {
     width: 24px;
     height: 24px;
     margin-right: -6px;
@@ -748,8 +797,8 @@ dialog[open] {
     height: fit-content;
 }
 .resource__icon--gauge {
-    width: 112px;
-    height: 16px;
+    width: 140px;
+    height: 20px;
 }
 
 .resource__icon--gauge-value {
@@ -776,7 +825,7 @@ dialog[open] {
 }
 
 .dialog--AB:has(input[type="checkbox"]:checked) .dialog__main {
-    max-height: calc(60vh - 96px);
+    max-height: calc(60dvh - 96px);
 }
 
 /* ========================================
@@ -813,16 +862,11 @@ dialog[open] {
     float: left;
     width: 40px;
     height: 40px;
-    padding: 3px;
 }
 
 .card__icon--image {
-    content: '';
-    width: 100%;
-    height: 100%;
-    background: whitesmoke;
-    border-radius: 6px;
-    box-shadow: 0 1px 4px 2px #000;
+    height: 40px;
+    width: 40px;
 }
 
 .card__title {
@@ -849,7 +893,7 @@ dialog[open] {
 
 .card__tags {
     float: right;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     font-style: italic;
     padding-top: 2px;
