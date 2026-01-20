@@ -27,12 +27,13 @@
         </div>
         <div class="section__header--buttons">
             <button class="material-symbols-rounded">settings</button>
-            <button class="material-symbols-rounded">add</button>
+            <button class="material-symbols-rounded" command="show-modal" commandfor="addBuffModal">add</button>
         </div>
         </div>
     </header>
     <footer>
-        <button class="character__banner">
+        <button class="character__banner" command="show-modal"
+                        commandfor="characterSettingModal">
             <span class="character__job">モンク</span>
             <span class="character__level">Lv50</span>
         </button>
@@ -56,7 +57,8 @@
         <section>
             <div class="section__header--buttons">
                 <button class="material-symbols-rounded" onclick="modal">settings</button>
-                <button class="material-symbols-rounded">add</button>
+                <button class="material-symbols-rounded" command="show-modal"
+                        commandfor="addAbilityModal">add</button>
             </div>
             <div class="section__body">
                 <div class="ability-area"></div>
@@ -71,7 +73,8 @@
                 </span>
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded">settings</button>
-                    <button class="material-symbols-rounded">add</button>
+                    <button class="material-symbols-rounded" command="show-modal"
+                        commandfor="addAbilityModal">add</button>
                 </div>
             </div>
             <div class="section__body">
@@ -166,7 +169,8 @@
                 </span>
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded">settings</button>
-                    <button class="material-symbols-rounded">add</button>
+                    <button class="material-symbols-rounded" command="show-modal"
+                        commandfor="addAbilityModal">add</button>
                 </div>
             </div>
             <div class="section__body">
@@ -252,7 +256,7 @@
                 </span>
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded" onclick="modal">settings</button>
-                    <button class="material-symbols-rounded">add</button>
+                    <button class="material-symbols-rounded" command="show-modal" commandfor="addAbilityModal">add</button>
                 </div>
             </div>
             <div class="section__body">
@@ -372,8 +376,8 @@
                     <h6>特性</h6>
                 </span>
                 <div class="section__header--buttons">
-                    <button class="material-symbols-rounded">settings</button>
-                    <button class="material-symbols-rounded">add</button>
+                    <button class="material-symbols-rounded" command="show-modal"
+                        commandfor="addTRAITModal">add</button>
                 </div>
             </div>
             <div class="section__body section__body--TRAIT">
@@ -396,7 +400,7 @@
                         </div>
                     </div>
                     <div class="resource__group">
-                        <span class="resource__label">壱</span>
+                        <span class="resource__label">🤔</span>
                         <div class="resource--stack">
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                         </div>
@@ -419,13 +423,19 @@
     </div>
     </div>
     <!--モーダル_アビリティ登録-->
-    <dialog class="dialog--AB" id="addAbilityModal" open closedby="any">
+    <dialog class="dialog--AB" id="addAbilityModal" closedby="any">
         <div class="dialog__main">
             <div class="dialog__header">
                 <div class="section__header--title">アビリティ登録</div>
-                <button class="material-symbols-rounded">close</button>
+                <button class="material-symbols-rounded" command="close" commandfor="addAbilityModal">close</button>
             </div>
             <div class="dialog__body">
+                <div class="form__options">
+                    <label class="form__option--button">
+                        <input type="checkbox">
+                        <h5>プレビューを表示</h5>
+                    </label>
+                </div>
                 <h3>基本情報</h3>
                 <div class="form__row">
                     <!--アイコン-->
@@ -470,10 +480,6 @@
                         <button>追加</button>
                     </div>
                 </div>
-
-
-
-
                 <h3>選択情報</h3>
                 <div class="form__row">
                     <!--前提-->
@@ -510,10 +516,7 @@
                         <span class="form__label">範囲</span>
                         <input type="text" class="form__input--normal">
                     </div>
-
                 </div>
-
-
                 <h3>判定・ダメージ</h3>
                 <div class="form__row">
                     <!--判定-->
@@ -547,37 +550,11 @@
                     <span class="form__label">効果の説明</span>
                     <textarea class="form__input--description"></textarea>
                 </div>
-
-                <div class="form__group">
-                    <span class="form__label">実行処理</span>
-                    <div class="condition__block form__group">
-                        <select>
-                            <option class="dammy">付与</option>
-                            <option class="dammy">消費</option>
-                            <option class="dammy">追加ダメージ</option>
-                            <option class="dammy">追加テキスト</option>
-                            <option class="dammy">選択肢を表示</option>
-                        </select>
-                        <div class="form__row">
-                            <input type="text">
-
-                            <input type="number">
-                            <select>
-                                <option class="dammy">ある</option>
-                                <option class="dammy">ない</option>
-                            </select>
-                            <button class="material-symbols-rounded">close</button>
-                        </div>
-                    </div>
-                    <button>＋条件を追加</button>
-                </div>
-
-
-
-
-
-                <!--登録ボタン-->
+            </div>
+            <div class="dialog__footer">
                 <button class="form__button--add">登録</button>
+                <button class="form__button--macro" command="show-modal"
+                        commandfor="abilityMacroModal">マクロを設定</button>
             </div>
         </div>
         <!--プレビュー-->
@@ -637,13 +614,140 @@
         </div>
 
     </dialog>
+        <!--モーダル_アビリティマクロ登録-->
+    <dialog class="dialog--AB" id="abilityMacroModal" closedby="any">
+        <div class="dialog__main">
+            <div class="dialog__header">
+                <div class="section__header--title">アビリティ登録</div>
+                <button class="material-symbols-rounded" command="close" commandfor="abilityMacroModal">close</button>
+            </div>
+            <div class="dialog__body">
+                <h3>基本情報</h3>
+                <div class="form__row">
+                    <!--アイコン-->
+                    <div class="form__group">
+                        <span class="form__label">アイコン</span>
+                        <div class="form__row">
+                            <img id="iconpreview" class="card__icon--image" src="assets/dummy_icon.png" />
+                            <input type="file" class="form__input--icon">
+                        </div>
+                    </div>
+                    <div class="form__group">
+                        <span class="form__label">種別</span>
+                        <select class="form__option--type">
+                            <option class="dammy">メイン</option>
+                            <option class="dammy">サブ</option>
+                            <option class="dammy">インスタント</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form__row">
+                    <!--名前-->
+                    <div class="form__group">
+                        <span class="form__label">アビリティ名</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--スタック数-->
+                    <div class="form__group">
+                        <span class="form__label">スタック数</span>
+                        <input type="number" class="form__input--normal">
+                    </div>
+                </div>
+                <!--タグ-->
+                <div class="form__group">
+                    <span class="form__label">タグ</span>
+                    <div class="form__row">
+                        <span class="tag">物理<span type="button">x</span></span>
+                        <span class="tag">メイン<span type="button">x</span></span>
+                        <span class="tag">連射<span type="button">x</span></span>
+                    </div>
+                    <div class="form__row">
+                        <input type="text" class="form__input--normal" placeholder="タグを入力してEnter">
+                        <button>追加</button>
+                    </div>
+                </div>
+                <h3>選択情報</h3>
+                <div class="form__row">
+                    <!--前提-->
+                    <div class="form__group">
+                        <span class="form__label">前提</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--タイミング-->
+                    <div class="form__group">
+                        <span class="form__label">タイミング</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                </div>
+                <div class="form__row">
+                    <!--コスト-->
+                    <div class="form__group">
+                        <span class="form__label">コスト</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--制限-->
+                    <div class="form__group">
+                        <span class="form__label">制限</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                </div>
+                <div class="form__row">
+                    <!--対象-->
+                    <div class="form__group">
+                        <span class="form__label">対象</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--範囲-->
+                    <div class="form__group">
+                        <span class="form__label">範囲</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                </div>
+                <h3>判定・ダメージ</h3>
+                <div class="form__row">
+                    <!--判定-->
+                    <div class="form__group">
+                        <span class="form__label">判定</span>
+                        <div class="form__row">
+                            <input type="text" class="form__input--normal">
+                            <select>
+                                <option>+{STR}</option>
+                                <option>なし</option>
+                            </select>
+                        </div>
+                    </div>
 
+                </div>
+                <div class="form__row">
+                    <!--基本ダメージ-->
+                    <div class="form__group">
+                        <span class="form__label">基本ダメージ</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--ダイレクトヒット-->
+                    <div class="form__group">
+                        <span class="form__label">ダイレクトヒット</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                </div>
+                <h3>基本効果</h3>
+                <!--基本効果-->
+                <div class="form__group">
+                    <span class="form__label">効果の説明</span>
+                    <textarea class="form__input--description"></textarea>
+                </div>
+            </div>
+            <div class="dialog__footer">
+                <button class="form__button--add">アビリティに反映</button>
+            </div>
+        </div>
+    </dialog>
     <!--モーダル_バフ登録-->
-    <dialog class="dialog--BUFF" id="addAbilityModal" closedby="any">
+    <dialog class="dialog--BUFF" id="addBuffModal" closedby="any">
         <div class="dialog__main">
             <div class="dialog__header">
                 <div class="section__header--title">バフ・デバフ登録</div>
-                <button class="material-symbols-rounded">close</button>
+                <button class="material-symbols-rounded" command="close" commandfor="addBuffModal">close</button>
             </div>
             <div class="dialog__body">
                 <div class="form__options">
@@ -651,7 +755,8 @@
                         <option class="dammy">バフ</option>
                         <option class="dammy">デバフ</option>
                     </select>
-                    <button class="form__option--button">バフ管理</button>
+                    <button class="form__option--button" command="show-modal"
+                        commandfor="BuffLibraryModal">バフ管理</button>
                 </div>
                 <!--アイコン-->
                 <div class="form__group">
@@ -707,7 +812,7 @@
         <div class="dialog__main">
             <div class="dialog__header">
                 <div class="section__header--title">バフ・デバフ管理</div>
-                <button class="material-symbols-rounded">close</button>
+                <button class="material-symbols-rounded" command="close" commandfor="BuffLibraryModal">close</button>
             </div>
             <div class="dialog__body">
                 <div class="form__options">
@@ -750,10 +855,10 @@
         <div class="dialog__main">
             <div class="dialog__header">
                 <div class="section__header--title">特性・リソース管理</div>
-                <button class="material-symbols-rounded">close</button>
+                <button class="material-symbols-rounded" command="close" commandfor="addTRAITModal">close</button>
             </div>
             <div class="dialog__body">
-                <div class="resource__group">
+                <div class="resource__group resource__preview">
                     <span class="resource__label">登録済みリソース：リソース名</span>
                     <div class="resource--stack">
                         <img class="resource__icon--arrow" src="assets/resource--stack.png" />
@@ -763,48 +868,52 @@
                         <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                     </div>
                 </div>
-                <div class="resource__group">
+                <div class="resource__group resource__preview">
                     <span class="resource__label">登録済みリソース：リソース名</span>
                     <div class="resource--gauge">
                         <img class="resource__icon--gauge" src="assets/resource--gauge.png" />
                         <span class="resource__icon--gauge-value">2</span>
                     </div>
-                </div>
-                <div class="form__options">
-                    <select class="form__option--type">
-                        <option class="dammy">スタック</option>
-                        <option class="dammy">ゲージ</option>
-                    </select>
-                    <select class="form__option--color">
-                        <option class="dammy">red</option>
-                        <option class="dammy">blue</option>
-                        <option class="dammy">yellow</option>
-                        <option class="dammy">green</option>
-                        <option class="dammy">purple</option>
-                    </select>
-                    <select class="form__option--shape">
-                        <option class="dammy">round</option>
-                        <option class="dammy">square</option>
-                        <option class="dammy">arrow</option>
-                    </select>
-                </div>
-                <!--名前-->
-                <div class="form__group">
-                    <span class="form__label">リソース名</span>
-                    <input type="text" class="form__input--normal">
-                </div>
-                <!--現在値-->
-                <div class="form__group">
-                    <span class="form__label">現在値</span>
-                    <input type="number" class="form__input--normal">
-                </div>
-                <!--最大値-->
-                <div class="form__group">
-                    <span class="form__label">最大値</span>
-                    <input type="number" class="form__input--normal">
+                    <div class="resource__options">
+                        <div class="form__row">
+                        <select class="form__option--type">
+                            <option class="dammy">スタック</option>
+                            <option class="dammy">ゲージ</option>
+                        </select>
+                        <select class="form__option--color">
+                            <option class="dammy">red</option>
+                            <option class="dammy">blue</option>
+                            <option class="dammy">yellow</option>
+                            <option class="dammy">green</option>
+                            <option class="dammy">purple</option>
+                        </select>
+                        <select class="form__option--shape">
+                            <option class="dammy">round</option>
+                            <option class="dammy">square</option>
+                            <option class="dammy">arrow</option>
+                        </select>
+                        </div>
+                    <div class="form__row">
+                    <!--名前-->
+                    <div class="form__group">
+                        <span class="form__label">リソース名</span>
+                        <input type="text" class="form__input--normal">
+                    </div>
+                    <!--現在値-->
+                    <div class="form__group">
+                        <span class="form__label">現在値</span>
+                        <input type="number" class="form__input--normal">
+                    </div>
+                    <!--最大値-->
+                    <div class="form__group">
+                        <span class="form__label">最大値</span>
+                        <input type="number" class="form__input--normal">
+                    </div>
+                    </div>
+                    </div>
                 </div>
                 <!--登録ボタン-->
-                <button class="material-symbols-rounded">add</button>
+                <button>リソースを追加する</button>
             </div>
         </div>
     </dialog>
@@ -814,7 +923,8 @@
         <div class="dialog__main">
             <div class="dialog__header">
                 <div class="section__header--title">キャラクター設定</div>
-                <button class="material-symbols-rounded">close</button>
+                <button class="material-symbols-rounded" command="close"
+                        commandfor="characterSettingModal">close</button>
             </div>
             <div class="dialog__body">
                 <div class="form__row">
