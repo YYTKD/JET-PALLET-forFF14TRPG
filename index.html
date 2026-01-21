@@ -19,11 +19,66 @@
             <div class="buff">
                 <span class="buff__limit">1t</span>
                 <img src="assets/dummy_icon-buff.png" />
+                <div class="tooltip  card card--tooltip">
+                            <div class="card__header">
+                                <div class="card__icon">
+                                    <img class="card__icon--image" src="assets/dummy_icon-buff.png" />
+                                </div>
+                                <div class="card__title">
+                                    <span class="card__name">WSコンボ<span
+                                            class="card__tags">バフ</span></span>
+                                </div>
+                            </div>
+                            <div class="card__body">
+                                <div class="card__stat">
+                                    <span class="card__label">詳細：</span>
+                                    <span class="card__value"><i>メイン・物理</i>のアビリティを使用できる状態</span>
+                                </div>
+                            </div>
+                        </div>
             </div>
-            <div class="buff"><img src="assets/dummy_icon-buff.png" /></div>
-            <div class="buff"><img src="assets/dummy_icon-buff.png" /></div>
-            <div class="buff"><img src="assets/dummy_icon-buff.png" /></div>
-
+            <div class="buff">
+                <span class="buff__limit">1f</span>
+                <img src="assets/dummy_icon-buff.png" />
+                <div class="tooltip  card card--tooltip">
+                            <div class="card__header">
+                                <div class="card__icon">
+                                    <img class="card__icon--image" src="assets/dummy_icon-buff.png" />
+                                </div>
+                                <div class="card__title">
+                                    <span class="card__name">オーバーパワー<span
+                                            class="card__tags">バフ</span></span>
+                                </div>
+                            </div>
+                            <div class="card__body">
+                                <div class="card__stat">
+                                    <span class="card__label">詳細：</span>
+                                    <span class="card__value"><i>メイン</i>のアビリティで与えるダメージに+2点</span>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+            <div class="buff">
+                <span class="buff__limit"></span>
+                <img src="assets/dummy_icon-buff.png" />
+                <div class="tooltip  card card--tooltip">
+                            <div class="card__header">
+                                <div class="card__icon">
+                                    <img class="card__icon--image" src="assets/dummy_icon-buff.png" />
+                                </div>
+                                <div class="card__title">
+                                    <span class="card__name">WSコンボ<span
+                                            class="card__tags">バフ</span></span>
+                                </div>
+                            </div>
+                            <div class="card__body">
+                                <div class="card__stat">
+                                    <span class="card__label">詳細：</span>
+                                    <span class="card__value"><i>メイン・物理</i>のアビリティを使用できる状態</span>
+                                </div>
+                            </div>
+                        </div>
+            </div>
         </div>
         <div class="section__header--buttons">
             <button class="material-symbols-rounded">settings</button>
@@ -36,16 +91,9 @@
             <span class="character__job">モンク</span>
             <span class="character__level">Lv50</span>
         </button>
-        <div class="resource__group character__MP">
-            <span class="resource__label">MP</span>
-            <div class="resource--gauge">
-                <img class="resource__icon--gauge" src="assets/resource--gauge.png" />
-                <span class="resource__icon--gauge-value">2</span>
-            </div>
-        </div>
         <div class="button__area--footer">
-            <button class="button__footer button__footer--turn material-symbols-rounded">refresh</button>
-            <button class="button__footer button__footer--phase material-symbols-rounded">history</button>
+            <button class="button__footer button__footer--turn material-symbols-rounded">refresh<h6>ターン終了</h6></button>
+            <button class="button__footer button__footer--phase material-symbols-rounded">history<h6>フェイズ進行</h6></button>
         </div>
     </footer>
 </nav>
@@ -54,12 +102,61 @@
     <div class="ability-block">
         <!--その他アクション-->
         <section>
-            <div class="section__header--buttons">
-                <button class="material-symbols-rounded" onclick="modal">settings</button>
-                <button class="material-symbols-rounded" command="show-modal" commandfor="addAbilityModal">add</button>
+            <div class="section__header section__header--OTHER">
+                <span class="section__header--title">
+                    <h3>OTHER ACTION</h3>
+                    <h6>特殊アクション</h6>
+                </span>
+                <div class="section__header--buttons">
+                    <button class="material-symbols-rounded">settings</button>
+                    <button class="material-symbols-rounded" command="show-modal"
+                        commandfor="addAbilityModal">add</button>
+                </div>
             </div>
             <div class="section__body">
-                <div class="ability-area"></div>
+                <div class="ability-area">
+                                        <div class="ability" draggable="true">
+                        <svg viewBox="0 0 52 52" class="ability__proc-line" style="display: none;">
+                            <!-- 正方形を沿う経路（上→右→下→左） -->
+                            <path class="dashed-path" d="M 3 3 L 49 3 L 49 49 L 3 49 L 3 3" />
+                        </svg>
+                        <img src="assets/dummy_icon.png" />
+                        <div class="tooltip  card card--tooltip">
+                            <div class="card__header">
+                                <div class="card__icon">
+                                    <img class="card__icon--image" src="assets/dummy_icon.png" />
+                                </div>
+                                <div class="card__title">
+                                    <span class="card__name">リミットブレイク：サジタリウスアロー<span
+                                            class="card__tags">物理・リミットブレイク</span></span>
+                                </div>
+                                <div class="card__trigger">
+                                    <div class="card__stat">
+                                        <span class="card__label">タイミング：</span>
+                                        <span class="card__value">いつでも</span>
+                                    </div>
+                                </div>
+                                <div class="card__meta">
+                                    
+                                    <div class="card__stat">
+                                        <span class="card__label">対象：</span>
+                                        <span class="card__value">範囲内のすべての敵</span>
+                                    </div>
+                                    <div class="card__stat">
+                                        <span class="card__label">範囲：</span>
+                                        <span class="card__value">君に隣接する５マス幅の直線</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card__body">
+                                <div class="card__stat">
+                                    <span class="card__label">基本効果：</span>
+                                    <span class="card__value">対象に6d6点の頭割りダメージ（範囲内の敵の人数で6d6点を均等に割り振る（切り上げ））と、DOT4を与える。</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
         <!--メインアクション-->
@@ -140,50 +237,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="ability"><img src="assets/dummy_icon.png" /></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                </div>
-                <div class="ability-area--other">
-                    <h5 class="other-action-title">必殺技</h5>
-                    <div class="ability-area">
-                        <div class="ability"><img src="assets/dummy_icon.png" /></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <!--サブアクション-->
-        <section>
-            <div class="section__header section__header--SUB">
-                <span class="section__header--title">
-                    <h3>SUB ACTION</h3>
-                    <h6>サブアクション</h6>
-                </span>
-                <div class="section__header--buttons">
-                    <button class="material-symbols-rounded">settings</button>
-                    <button class="material-symbols-rounded" command="show-modal"
-                        commandfor="addAbilityModal">add</button>
-                </div>
-            </div>
-            <div class="section__body">
-                <div class="ability-area">
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability">
-                        <div class="tooltip   card card--tooltip">
+                    <div class="ability" draggable="true">
+                        <svg viewBox="0 0 52 52" class="ability__proc-line" style="display: none;">
+                            <!-- 正方形を沿う経路（上→右→下→左） -->
+                            <path class="dashed-path" d="M 3 3 L 49 3 L 49 49 L 3 49 L 3 3" />
+                        </svg>
+                        <img src="assets/dummy_icon.png" />
+                        <div class="tooltip  card card--tooltip">
                             <div class="card__header">
                                 <div class="card__icon">
-                                    <div class="card__icon--image"></div>
+                                    <img class="card__icon--image" src="assets/dummy_icon.png" />
                                 </div>
                                 <div class="card__title">
                                     <span class="card__name">WSコンボWSコンボWSコンボ<span
@@ -237,11 +300,156 @@
                             </div>
                         </div>
                     </div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
+
+                </div>
+                <div class="ability-area--other">
+                    <h5 class="other-action-title">必殺技</h5>
+                    <div class="ability-area">
+                        <div class="ability" draggable="true">
+                        <svg viewBox="0 0 52 52" class="ability__proc-line" style="display: none;">
+                            <!-- 正方形を沿う経路（上→右→下→左） -->
+                            <path class="dashed-path" d="M 3 3 L 49 3 L 49 49 L 3 49 L 3 3" />
+                        </svg>
+                        <img src="assets/dummy_icon.png" />
+                        <div class="tooltip  card card--tooltip">
+                            <div class="card__header">
+                                <div class="card__icon">
+                                    <img class="card__icon--image" src="assets/dummy_icon.png" />
+                                </div>
+                                <div class="card__title">
+                                    <span class="card__name">WSコンボWSコンボWSコンボ<span
+                                            class="card__tags">物理・メイン</span></span>
+                                </div>
+                                <div class="card__trigger">
+                                    <div class="card__stat">
+                                        <span class="card__label">前提：</span>
+                                        <span
+                                            class="card__value">敵が詠唱のアビリティを使用したか、詠唱のアビリティによる予兆を発生させている敵から1マス以内に君がいる</span>
+                                    </div>
+                                </div>
+                                <div class="card__trigger">
+                                    <div class="card__stat">
+                                        <span class="card__label">タイミング：</span>
+                                        <span class="card__value"></span>
+                                    </div>
+                                </div>
+                                <div class="card__meta">
+                                    <div class="card__stat">
+                                        <span class="card__label">コスト：</span>
+                                        <span class="card__value"></span>
+                                    </div>
+                                    <div class="card__stat">
+                                        <span class="card__label">対象：</span>
+                                        <span class="card__value">範囲内のすべての敵</span>
+                                    </div>
+                                    <div class="card__stat">
+                                        <span class="card__label">範囲：</span>
+                                        <span class="card__value">君を中心とした３×３マス</span>
+                                    </div>
+                                </div>
+                                <div class="card__stat--judge">
+                                    <span class="card__label">判定：</span>
+                                    <span class="card__value">【STR】+d20<span class="bold">　VS　</span>物理</span>
+                                </div>
+                            </div>
+                            <div class="card__body">
+                                <div class="card__stat">
+                                    <span class="card__label">基本効果：</span>
+                                    <span class="card__value">対象に２点のダメージと、君への敵視を与える。コンボ：《シュトルムヴィント》</span>
+                                </div>
+                                <div class="card__stat">
+                                    <span class="card__label">ダイレクトヒット：</span>
+                                    <span class="card__value">+1d6点の追加ダメージ。</span>
+                                </div>
+                                <div class="card__stat">
+                                    <span class="card__label">制限：</span>
+                                    <span class="card__value">１フェーズに３回使用可能。</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!--サブアクション-->
+        <section>
+            <div class="section__header section__header--SUB">
+                <span class="section__header--title">
+                    <h3>SUB ACTION</h3>
+                    <h6>サブアクション</h6>
+                </span>
+                <div class="section__header--buttons">
+                    <button class="material-symbols-rounded">settings</button>
+                    <button class="material-symbols-rounded" command="show-modal"
+                        commandfor="addAbilityModal">add</button>
+                </div>
+            </div>
+            <div class="section__body">
+                <div class="ability-area">
+                    <div class="ability" draggable="true">
+                        <svg viewBox="0 0 52 52" class="ability__proc-line">
+                            <!-- 正方形を沿う経路（上→右→下→左） -->
+                            <path class="dashed-path" d="M 3 3 L 49 3 L 49 49 L 3 49 L 3 3" />
+                        </svg>
+                        <img src="assets/dummy_icon.png" />
+                        <div class="tooltip  card card--tooltip">
+                            <div class="card__header">
+                                <div class="card__icon">
+                                    <img class="card__icon--image" src="assets/dummy_icon.png" />
+                                </div>
+                                <div class="card__title">
+                                    <span class="card__name">WSコンボWSコンボWSコンボ<span
+                                            class="card__tags">物理・メイン</span></span>
+                                </div>
+                                <div class="card__trigger">
+                                    <div class="card__stat">
+                                        <span class="card__label">前提：</span>
+                                        <span
+                                            class="card__value">敵が詠唱のアビリティを使用したか、詠唱のアビリティによる予兆を発生させている敵から1マス以内に君がいる</span>
+                                    </div>
+                                </div>
+                                <div class="card__trigger">
+                                    <div class="card__stat">
+                                        <span class="card__label">タイミング：</span>
+                                        <span class="card__value"></span>
+                                    </div>
+                                </div>
+                                <div class="card__meta">
+                                    <div class="card__stat">
+                                        <span class="card__label">コスト：</span>
+                                        <span class="card__value"></span>
+                                    </div>
+                                    <div class="card__stat">
+                                        <span class="card__label">対象：</span>
+                                        <span class="card__value">範囲内のすべての敵</span>
+                                    </div>
+                                    <div class="card__stat">
+                                        <span class="card__label">範囲：</span>
+                                        <span class="card__value">君を中心とした３×３マス</span>
+                                    </div>
+                                </div>
+                                <div class="card__stat--judge">
+                                    <span class="card__label">判定：</span>
+                                    <span class="card__value">【STR】+d20<span class="bold">　VS　</span>物理</span>
+                                </div>
+                            </div>
+                            <div class="card__body">
+                                <div class="card__stat">
+                                    <span class="card__label">基本効果：</span>
+                                    <span class="card__value">対象に２点のダメージと、君への敵視を与える。コンボ：《シュトルムヴィント》</span>
+                                </div>
+                                <div class="card__stat">
+                                    <span class="card__label">ダイレクトヒット：</span>
+                                    <span class="card__value">+1d6点の追加ダメージ。</span>
+                                </div>
+                                <div class="card__stat">
+                                    <span class="card__label">制限：</span>
+                                    <span class="card__value">１フェーズに３回使用可能。</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -260,22 +468,16 @@
             </div>
             <div class="section__body">
                 <div class="ability-area">
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability"></div>
-                    <div class="ability">
+                    <div class="ability" draggable="true">
+                        <svg viewBox="0 0 52 52" class="ability__proc-line">
+                            <!-- 正方形を沿う経路（上→右→下→左） -->
+                            <path class="dashed-path" d="M 3 3 L 49 3 L 49 49 L 3 49 L 3 3" />
+                        </svg>
+                        <img src="assets/dummy_icon.png" />
                         <div class="tooltip  card card--tooltip">
                             <div class="card__header">
                                 <div class="card__icon">
-                                    <div class="card__icon--image"></div>
+                                    <img class="card__icon--image" src="assets/dummy_icon.png" />
                                 </div>
                                 <div class="card__title">
                                     <span class="card__name">WSコンボWSコンボWSコンボ<span
@@ -381,39 +583,66 @@
             </div>
             <div class="section__body section__body--TRAIT">
                 <div class="trait-area">
-                    <div class="resource__group">
+<div class="resource__group" title="MP">
+            <span class="resource__label">MP</span>
+            <div class="resource--gauge">
+                <img class="resource__icon--gauge" src="assets/resource--gauge.png" />
+                <span class="resource__icon--gauge-value">2</span>
+            </div>
+        </div>
+                    <div class="resource__group" title="闘気">
                         <span class="resource__label">リソース名</span>
-                        <div class="resource--stack">
+                        <div class="resource--stack resource__icon">
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                         </div>
+                        <div class="resource__control">
+                            <button class="resource__btn">-</button>
+                            <button class="resource__btn">+</button>
+                        </div>
                     </div>
-                    <div class="resource__group">
+                    <div class="resource__group" title="波動">
                         <span class="resource__label">リソース名</span>
-                        <div class="resource--gauge">
+                        <div class="resource--gauge resource__icon">
                             <img class="resource__icon--gauge" src="assets/resource--gauge.png" />
                             <span class="resource__icon--gauge-value">2</span>
                         </div>
+                        <div class="resource__control">
+                            <button class="resource__btn">-</button>
+                            <button class="resource__btn">+</button>
+                        </div>
                     </div>
-                    <div class="resource__group">
+                    <div class="resource__group" title="壱の型">
                         <span class="resource__label">🤔</span>
-                        <div class="resource--stack">
+                        <div class="resource--stack resource__icon">
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                         </div>
+                        <div class="resource__control">
+                            <button class="resource__btn">-</button>
+                            <button class="resource__btn">+</button>
+                        </div>
                     </div>
-                    <div class="resource__group">
+                    <div class="resource__group" title="弐の型">
                         <span class="resource__label">弐</span>
-                        <div class="resource--stack">
+                        <div class="resource--stack resource__icon">
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
                         </div>
+                        <div class="resource__control">
+                            <button class="resource__btn">-</button>
+                            <button class="resource__btn">+</button>
+                        </div>
                     </div>
-                    <div class="resource__group">
+                    <div class="resource__group" title="参の型">
                         <span class="resource__label">参</span>
-                        <div class="resource--stack">
+                        <div class="resource--stack resource__icon">
                             <img class="resource__icon--arrow" src="assets/resource--stack.png" />
+                        </div>
+                        <div class="resource__control">
+                            <button class="resource__btn">-</button>
+                            <button class="resource__btn">+</button>
                         </div>
                     </div>
                 </div>
@@ -432,7 +661,7 @@
                 <div class="form__options">
                     <label class="form__option--button">
                         <input type="checkbox">
-                        <h5>プレビューを表示</h5>
+                        <h4>プレビューを表示</h4>
                     </label>
                 </div>
                 <h3>基本情報</h3>
@@ -442,7 +671,10 @@
                         <span class="form__label">アイコン</span>
                         <div class="form__row">
                             <img id="iconpreview" class="card__icon--image" src="assets/dummy_icon.png" />
+                            <label class="form__option--button">
                             <input type="file" class="form__input--icon">
+                            <h4>ファイルを選択</h4>
+                            </label>
                         </div>
                     </div>
                     <div class="form__group">
@@ -451,6 +683,7 @@
                             <option class="dammy">メイン</option>
                             <option class="dammy">サブ</option>
                             <option class="dammy">インスタント</option>
+                            <option class="dammy">特殊</option>
                         </select>
                     </div>
                 </div>
@@ -614,8 +847,8 @@
 
     </dialog>
     <!--モーダル_アビリティマクロ登録-->
-    <dialog class="dialog--MACRO" id="abilityMacroModal" open closedby="any">
-        <div class="dialog__main dialog--MACRO">
+    <dialog class="dialog--MACRO" id="abilityMacroModal" closedby="any">
+        <div class="dialog__main">
             <div class="dialog__header">
                 <div class="section__header--title">アビリティマクロ設定</div>
                 <button class="material-symbols-rounded" command="close" commandfor="abilityMacroModal">close</button>
@@ -635,14 +868,16 @@
                     <div class="block-builder">
                         <div class="block-list">
                             <!-- 条件ブロック1: (A AND B) -->
-                            <div class="block block--condition">
-                                <span class="block__drag-handle">⋮⋮</span>
-                                <div class="block__header">
+                            <details class="block block--condition">
+                                
+                                <summary class="block__header">
+                                    <span class="block__drag-handle">⋮⋮</span>
                                     <span class="block__type">条件グループ 1</span>
+                                    <span class="block__overview">([参の型]>=[1] または[零の型]>=[1])</span>
                                     <div class="block__controls">
                                         <button class="block__btn block__btn--danger">削除</button>
                                     </div>
-                                </div>
+                                </summary>
                                 <div class="block__content">
                                     <!-- 条件A -->
                                     <div class="block-item">
@@ -732,7 +967,7 @@
                                     <!-- グループ内条件追加ボタン -->
                                     <button class="add-condition-btn add-condition-btn--single">＋ 条件を追加</button>
                                 </div>
-                            </div>
+                            </details>
                             <!-- グループ間の論理演算子 -->
                             <div class="group-connector">
                                 <div class="connector-line"></div>
@@ -744,14 +979,15 @@
                             </div>
 
                             <!-- 条件ブロック2: C -->
-                            <div class="block block--condition">
-                                <span class="block__drag-handle">⋮⋮</span>
-                                <div class="block__header">
+                            <details class="block block--condition">
+                                <summary class="block__header">
+                                    <span class="block__drag-handle">⋮⋮</span>
                                     <span class="block__type">条件グループ 2</span>
+                                    <span class="block__overview">[WSコンボ]>=[1]</span>
                                     <div class="block__controls">
                                         <button class="block__btn block__btn--danger">削除</button>
                                     </div>
-                                </div>
+                                </summary>
                                 <div class="block__content">
                                     <!-- 条件C -->
                                     <div class="block-item">
@@ -792,7 +1028,7 @@
                                     <button class="add-condition-btn add-condition-btn--single">＋ 条件を追加</button>
                                 </div>
 
-                            </div>
+                            </details>
 
                         </div>
 
@@ -815,22 +1051,24 @@
                         <div class="block-list">
 
                             <!-- 通常のアクションブロック例 -->
-                            <div class="block block--action">
-                                <span class="block__drag-handle">⋮⋮</span>
-                                <div class="block__header">
+                            <details class="block block--action">
+                                
+                                <summary class="block__header">
+                                    <span class="block__drag-handle">⋮⋮</span>
                                     <span class="block__type">アクション</span>
+                                    <span class="block__overview">[参の型]-[1]</span>
                                     <div class="block__controls">
 
                                         <button class="block__btn block__btn--danger">削除</button>
                                     </div>
-                                </div>
+                                </summary>
                                 <div class="block__content">
                                     <div class="block__row">
                                         <select class="block__select">
                                             <option>増やす</option>
                                             <option>減らす</option>
-                                            <option>ダメージを追加</option>
-                                            <option>ダメージを変更</option>
+                                            <option>判定・ダメージを追加</option>
+                                            <option>判定・ダメージを変更</option>
                                             <option>効果テキストを追加</option>
                                             <option>選択肢を表示</option>
                                         </select>
@@ -860,24 +1098,26 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </details>
                             <!-- 通常のアクションブロック例 -->
-                            <div class="block block--action">
-                                <span class="block__drag-handle">⋮⋮</span>
-                                <div class="block__header">
+                            <details class="block block--action">
+                                
+                                <summary class="block__header">
+                                    <span class="block__drag-handle">⋮⋮</span>
                                     <span class="block__type">アクション</span>
+                                    <span class="block__overview">[零の型]-[1]</span>
                                     <div class="block__controls">
 
                                         <button class="block__btn block__btn--danger">削除</button>
                                     </div>
-                                </div>
+                                </summary>
                                 <div class="block__content">
                                     <div class="block__row">
                                         <select class="block__select">
                                             <option>増やす</option>
                                             <option>減らす</option>
-                                            <option>ダメージを追加</option>
-                                            <option>ダメージを変更</option>
+                                            <option>判定・判定・ダメージを追加</option>
+                                            <option>判定・ダメージを変更</option>
                                             <option>効果テキストを追加</option>
                                             <option>選択肢を表示</option>
                                         </select>
@@ -907,24 +1147,26 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </details>
                             <!-- 通常のアクションブロック例 -->
-                            <div class="block block--action">
-                                <span class="block__drag-handle">⋮⋮</span>
-                                <div class="block__header">
+                            <details class="block block--action">
+                                
+                                <summary class="block__header">
+                                    <span class="block__drag-handle">⋮⋮</span>
                                     <span class="block__type">アクション</span>
+                                    <span class="block__overview">[WSコンボ]-[1]</span>
                                     <div class="block__controls">
 
                                         <button class="block__btn block__btn--danger">削除</button>
                                     </div>
-                                </div>
+                                </summary>
                                 <div class="block__content">
                                     <div class="block__row">
                                         <select class="block__select">
                                             <option>増やす</option>
                                             <option>減らす</option>
-                                            <option>ダメージを追加</option>
-                                            <option>ダメージを変更</option>
+                                            <option>判定・ダメージを追加</option>
+                                            <option>判定・判定・ダメージを変更</option>
                                             <option>効果テキストを追加</option>
                                             <option>選択肢を表示</option>
                                         </select>
@@ -954,17 +1196,19 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </details>
 
                             <!-- 条件ブロック2: A -->
-                            <div class="block block--condition">
-                                <span class="block__drag-handle">⋮⋮</span>
-                                <div class="block__header">
+                            <details class="block block--condition">
+                                
+                                <summary class="block__header">
+                                    <span class="block__drag-handle">⋮⋮</span>
                                     <span class="block__type">条件グループ 2</span>
+                                    <span class="block__overview">[参の功力]>=[1]</span>
                                     <div class="block__controls">
                                         <button class="block__btn block__btn--danger">削除</button>
                                     </div>
-                                </div>
+                                </summary>
                                 <div class="block__content">
                                     <!-- 条件A -->
                                     <div class="block-item">
@@ -1005,7 +1249,7 @@
                                     <button class="add-condition-btn add-condition-btn--single">＋ 条件を追加</button>
                                 </div>
 
-                            </div>
+                            </details>
                             <!-- 成立時アクション接続 -->
                             <div class="action-connector">
                                 <div class="connector-line-vertical"></div>
@@ -1014,22 +1258,24 @@
                             </div>
 
                             <!-- ネストされたアクションブロック -->
-                            <div class="block block--action block--nested">
-                                <span class="block__drag-handle">⋮⋮</span>
-                                <div class="block__header">
+                            <details class="block block--action block--nested">
+                                
+                                <summary class="block__header">
+                                    <span class="block__drag-handle">⋮⋮</span>
                                     <span class="block__type">アクション</span>
+                                    <span class="block__overview">選択肢を表示</span>
                                     <div class="block__controls">
 
                                         <button class="block__btn block__btn--danger">削除</button>
                                     </div>
-                                </div>
+                                </summary>
                                 <div class="block__content">
                                     <div class="block__row">
                                         <select class="block__select">
                                             <option>増やす</option>
                                             <option>減らす</option>
-                                            <option>ダメージを追加</option>
-                                            <option>ダメージを変更</option>
+                                            <option>判定・ダメージを追加</option>
+                                            <option>判定・ダメージを変更</option>
                                             <option>効果テキストを追加</option>
                                             <option>選択肢を表示</option>
                                         </select>
@@ -1038,13 +1284,17 @@
                                         <div class="block__row">
                                             <span class="block__text">質問：</span>
                                             <input class="block__textbox">
+                                            <button class="block__btn" title="選択肢を追加">＋</button>
                                         </div>
                                     </div>
-                                    <div class="block__row">
+
+                                    
+                                <div class="block__option">
+                                <div class="block__row">
                                         <span class="block__text">選択肢1：</span>
                                         <input class="block__textbox">
+                                        <button class="block__btn" title="アクションを追加">＋</button>
                                     </div>
-                                </div>
                                 <div class="block__selected-action">
                                     <div class="block__header">
                                         <span class="block__type">アクション</span>
@@ -1058,8 +1308,8 @@
                                             <select class="block__select">
                                                 <option>増やす</option>
                                                 <option>減らす</option>
-                                                <option>ダメージを追加</option>
-                                                <option>ダメージを変更</option>
+                                                <option>判定・ダメージを追加</option>
+                                                <option>判定・ダメージを変更</option>
                                                 <option>効果テキストを追加</option>
                                                 <option>選択肢を表示</option>
                                             </select>
@@ -1090,65 +1340,23 @@
                                         </div>
                                     </div>
                                 </div>
+                                </div>
 
+                                <div class="block__option">
                                 <div class="block__row">
                                     <span class="block__text">選択肢2：</span>
                                     <input class="block__textbox">
+                                    <button class="block__btn" title="アクションを追加">＋</button>
+                                </div>
                                 </div>
 
-                                <div class="block__selected-action">
-                                    <div class="block__header">
-                                        <span class="block__type">アクション</span>
-                                        <div class="block__controls">
-
-                                            <button class="block__btn block__btn--danger">削除</button>
-                                        </div>
-                                    </div>
-                                    <div class="block__content">
-                                        <div class="block__row">
-                                            <select class="block__select">
-                                                <option>増やす</option>
-                                                <option>減らす</option>
-                                                <option>ダメージを追加</option>
-                                                <option>ダメージを変更</option>
-                                                <option>効果テキストを追加</option>
-                                                <option>選択肢を表示</option>
-                                            </select>
-                                        </div>
-                                        <div class="block-item">
-                                            <div class="block__row">
-                                                <span class="block__text">対象：</span>
-                                                <select class="block__select">
-                                                    <optgroup label="バフ">
-                                                        <option>すべてのバフ</option>
-                                                        <option>参の型</option>
-                                                        <option>参の功力</option>
-                                                        <option>WSコンボ</option>
-                                                        <option>零の型</option>
-                                                    </optgroup>
-                                                    <optgroup label="リソース">
-                                                        <option>すべてのリソース</option>
-                                                        <option>MP</option>
-                                                        <option>闘気</option>
-                                                    </optgroup>
-                                                    <optgroup label="アビリティ">
-                                                        <option>ブラッドレッター</option>
-                                                    </optgroup>
-                                                </select>
-                                                <input type="number" class="block__input" value="+1"
-                                                    style="max-width: 60px;">
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
-
-
                                 <!-- グループ内条件追加ボタン -->
                                 <button class="add-condition-btn add-condition-btn--single">＋ アクションを追加</button>
-                            </div>
+                            </details>
                         </div>
+                    
                     </div>
-
                     <!-- ブロック追加ボタン -->
                     <div class="add-block-area">
                         <button class="add-block-btn add-block-btn--condition">
@@ -1163,7 +1371,7 @@
                 </div>
 
                 <!-- プレビュー -->
-                <div class="form__group">
+                <div class="form__group macro__preview">
                     <label class="form__label">実行内容プレビュー</label>
                     <div class="preview">
                         <div class="preview__title">▶ スキル実行時の動作</div>
@@ -1202,6 +1410,47 @@
                 <button class="form__button--add">アビリティに反映</button>
             </div>
         </div>
+         <!-- 外部表示プレビュー -->
+        <div class="dialog__preview--macro">
+           
+            <div class="dialog__header">
+                <div class="section__header--title">実行内容プレビュー</div>
+            </div>
+                <div class="form__group">
+                    
+                    <div class="preview">
+                        <div class="preview__title">▶ スキル実行時の動作</div>
+                        <pre class="preview__code">
+使用条件: 
+もし以下の条件を満たすなら
+    ([参の型]>=[1]
+    または
+    [零の型]>=[1])
+    かつ
+    ([WSコンボ]>=[1])
+
+アクション：
+1.アクションを実行
+    ([参の型]-[1])
+    ([零の型]-[1])
+    ([WSコンボ]-[1])
+    ([壱の型]+[1])
+
+2. もし以下の条件を満たすなら
+    ([参の功力]>=[1])
+    
+    アクションを実行
+    1.選択肢を表示
+    [参の功力を消費しますか？]
+    -[消費する(+2d6)]
+        アクションを実行
+        ([参の功力]-[1])
+        ([ダメージ]+[+2d6])
+    -[消費しない]
+</pre>
+                    </div>
+                </div>
+        </div>
     </dialog>
     <!--モーダル_バフ登録-->
     <dialog class="dialog--BUFF" id="addBuffModal" closedby="any">
@@ -1222,8 +1471,13 @@
                 <!--アイコン-->
                 <div class="form__group">
                     <span class="form__label">アイコン</span>
+                    <div class="form__row">
                     <img id="iconpreview" class="AB__icon" />
-                    <input type="file" class="form__input--icon">
+                    <label class="form__option--button">
+                            <input type="file" class="form__input--icon">
+                            <h4>ファイルを選択</h4>
+                            </label>
+                    </div>
                 </div>
                 <!--名前-->
                 <div class="form__group">
@@ -1238,11 +1492,20 @@
                 <!--対象-->
                 <div class="form__group">
                     <span class="form__label">対象</span>
-                    <input type="text" class="form__input--normal">
+                    <select class="form__option--type">
+                        <option class="dammy">---</option>
+                        <option class="dammy">判定</option>
+                        <option class="dammy">コマンド</option>
+                    </select>
                 </div>
                 <!--コマンド-->
                 <div class="form__group">
                     <span class="form__label">コマンド</span>
+                    <input type="number" class="form__input--normal">
+                </div>
+                <!--追加テキスト-->
+                <div class="form__group">
+                    <span class="form__label">追加テキスト</span>
                     <input type="number" class="form__input--normal">
                 </div>
                 <!--継続時間-->
@@ -1254,16 +1517,15 @@
                         <option class="dammy">フェーズ終了まで</option>
                     </select>
                 </div>
-                <!--登録ボタン-->
-                <button class="form__button--add">登録</button>
 
                 <!--一括登録-->
                 <div class="form__group">
                     <span class="form__label">一括登録</span>
                     <textarea class="form__input--description"></textarea>
                 </div>
-                <!--登録ボタン-->
-                <button class="form__button--add">登録</button>
+            </div>
+            <div class="dialog__footer">
+                <button class="dialog__footer__button form__button--add">登録</button>
             </div>
         </div>
     </dialog>
@@ -1336,24 +1598,7 @@
                         <span class="resource__icon--gauge-value">2</span>
                     </div>
                     <div class="resource__options">
-                        <div class="form__row">
-                            <select class="form__option--type">
-                                <option class="dammy">スタック</option>
-                                <option class="dammy">ゲージ</option>
-                            </select>
-                            <select class="form__option--color">
-                                <option class="dammy">red</option>
-                                <option class="dammy">blue</option>
-                                <option class="dammy">yellow</option>
-                                <option class="dammy">green</option>
-                                <option class="dammy">purple</option>
-                            </select>
-                            <select class="form__option--shape">
-                                <option class="dammy">round</option>
-                                <option class="dammy">square</option>
-                                <option class="dammy">arrow</option>
-                            </select>
-                        </div>
+                        
                         <div class="form__row">
                             <!--名前-->
                             <div class="form__group">
@@ -1370,6 +1615,24 @@
                                 <span class="form__label">最大値</span>
                                 <input type="number" class="form__input--normal">
                             </div>
+                        </div>
+                        <div class="form__group">
+                            <span class="form__label">形状</span>
+                        <div class="form__row">
+                            <select class="form__option--type">
+                                <option class="dammy">ゲージ</option>
+                                <option class="dammy">スタック（▷）</option>
+                                <option class="dammy">スタック（○）</option>
+                                <option class="dammy">スタック（□）</option>
+                            </select>
+                            <select class="form__option--color">
+                                <option class="dammy">red</option>
+                                <option class="dammy">blue</option>
+                                <option class="dammy">yellow</option>
+                                <option class="dammy">green</option>
+                                <option class="dammy">purple</option>
+                            </select>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -1388,6 +1651,19 @@
                     commandfor="characterSettingModal">close</button>
             </div>
             <div class="dialog__body">
+                <div class="form__group">
+                    <span class="form__label">操作モード</span>
+                    <div class="form__row">
+                        <label class="form__option--button">
+                        <input type="radio" name="mode-select" value="simple" checked>
+                        <h4>シンプル</h4>
+                        </label>
+                        <label class="form__option--button">
+                        <input type="radio" name="mode-select" value="custom" >
+                        <h4>カスタム</h4>
+                        </label>
+                    </div>
+                </div>
                 <div class="form__row">
                     <!--ジョブ-->
                     <div class="form__group">
@@ -1405,6 +1681,27 @@
                         </select>
                     </div>
                 </div>
+                <button class="dialog__footer__button form__button--add">更新</button>
+                <h3>データ管理</h3>
+                        <div class="form__group">
+                            <label class="form__label">クリップボードから貼り付けて読み込み:</label>
+                                <textarea id="importText" placeholder='.txtまたは.jsonファイルを直接ドロップしても読み込めます'></textarea>
+                        </div>
+                        <div class="form__row">
+                            <button id="importConfirm">
+                                <span class="material-symbols-rounded">download</span>
+                                <span>このデータを読み込み</span>
+                            </button>
+                            <button id="exportToClipboard">
+                                <span class="material-symbols-rounded">content_copy</span>
+                                <span>現在の設定をクリップボードにコピー</span>
+                            </button>
+                        </div>
+                            <button id="resetBtn">
+                                <span class="material-symbols-rounded">delete_forever</span>
+                                <span>すべて初期化</span>
+                            </button>
+                        
             </div>
         </div>
     </dialog>
