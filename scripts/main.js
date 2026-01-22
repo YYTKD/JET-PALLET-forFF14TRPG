@@ -1,6 +1,6 @@
 /**
  * Main Application Entry Point
- * Phase 1 実装：シンプルモード
+ * Phase 2: リソース管理
  */
 
 import { StateManager } from './core/state-manager.js';
@@ -8,6 +8,7 @@ import { defaultData } from './data/default-data.js';
 import { AbilityArea } from './ui/ability-area.js';
 import { CommandGenerator } from './ui/command-generator.js';
 import { BuffArea } from './ui/buff-area.js';
+import { ResourceDisplay } from './ui/resource-display.js';
 
 /**
  * アプリケーション初期化
@@ -32,6 +33,10 @@ function initializeApp() {
         {
             buffLibrary: defaultData.activeBuffs || [],
         }
+    );
+    const resourceDisplay = new ResourceDisplay(
+        '.trait-area',
+        stateManager
     );
 
     // ゲーム操作ボタンのイベント登録

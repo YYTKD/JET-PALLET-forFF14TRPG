@@ -355,3 +355,123 @@ index.html                          ✅ マークアップ追加
 ---
 
 **最終更新**: 2025年1月22日（Phase 1 実装完了）
+
+---
+
+## **Phase 2: リソース管理**
+**目標**: MP・カスタムリソースの実装
+
+### **実装完了:**
+✅ **リソース表示コンポーネント**
+- `scripts/ui/resource-display.js` - リソース管理コンポーネント
+  - `ResourceDisplay` クラス: リソース表示・操作管理
+  - `#createResourceElement()`: リソース要素生成
+  - `#createGaugeDisplay()`: ゲージ表示（MP等）
+  - `#createStackDisplay()`: スタック表示（闘気等）
+  - `#createControlButtons()`: +/-ボタン生成
+  - `#updateResource()`: リソース値更新
+  - リアルタイム更新機能
+
+✅ **HTML更新**
+- `index.html` - `.trait-area` コンテナ整備
+  - ダミーリソース要素をすべて削除
+  - JavaScriptで動的生成するように変更
+
+✅ **メイン統合**
+- `scripts/main.js` - ResourceDisplay統合
+  - `ResourceDisplay` インポート追加
+  - initializeApp()内で ResourceDisplay 初期化
+  - `.trait-area` セレクタでマウント
+
+✅ **CSS確認**
+- `styles/main.css` - リソーススタイル既存
+  - `.resource__group`, `.resource__label`
+  - `.resource--gauge`, `.resource--stack`
+  - `.resource__control`, `.resource__btn`
+  - `.resource__icon--gauge`, `.resource__icon--arrow`
+
+### **検証ポイント:**
+- ✅ MP がゲージ表示される
+- ✅ 闘気がスタック表示される
+- ✅ +/-ボタンでリソース値が変動する
+- ✅ 値が 0 ≤ value ≤ max の範囲内に制限される
+- ✅ リソース情報がlocalStorageに保存される
+
+### **ファイル一覧:**
+
+#### 新規作成:
+```
+scripts/ui/
+└── resource-display.js       ✅ 完成
+```
+
+#### 更新:
+```
+index.html                     ✅ HTML更新
+scripts/main.js                ✅ 統合完成
+```
+
+### **実装の詳細:**
+
+#### ResourceDisplay の機能
+1. **リソース表示**:
+   - type が 'gauge' の場合: ゲージ + 値表示
+   - type が 'stack' の場合: 複数の画像要素で表現
+
+2. **インタラクション**:
+   - +/-ボタンでリソース値を変更
+   - 値の自動制限 (0 ≤ value ≤ max)
+
+3. **状態管理との連携**:
+   - StateManager に購読登録
+   - リソース更新時は setState() を使用
+   - localStorage に自動保存
+
+#### デフォルトリソース (`default-data.js`)
+```javascript
+resources: [
+  {
+    id: 'resource-001',
+    name: 'MP',
+    current: 50,
+    max: 100,
+    type: 'gauge',
+    color: '#4a9eff',
+  },
+  {
+    id: 'resource-002',
+    name: '闘気',
+    current: 3,
+    max: 5,
+    type: 'stack',
+    color: '#ff6b6b',
+  },
+]
+```
+
+### **次フェーズ（Phase 3）への引き継ぎ:**
+
+#### 実装予定項目
+1. **データ永続化** (Phase 3)
+   - localStorage完全動作確認
+   - JSON エクスポート機能
+   - データインポート機能
+
+2. **アビリティ登録UI** (Phase 4)
+   - ユーザーが自由にアビリティを作成
+   - リアルタイムプレビュー
+   - 編集・削除機能
+
+3. **高度な機能** (Phase 5以降)
+   - マクロシステム実装
+   - ダイレクトヒット・クリティカル管理
+   - カスタムリソース追加UI
+
+#### 既知の制限事項
+- リソース追加/削除UIはまだ未実装
+- リソースのドラッグ&ドロップ並び替えは未実装
+- カスタムリソース作成UIは未実装
+
+---
+
+**最終更新**: 2026年1月22日（Phase 2 実装完了）
