@@ -31,4 +31,16 @@
     --color-f-cyan: #0081D6;
     --color-f-purple: #815CD6;
 
+    /* App surface tokens */
+    --app-bg: var(--color-bg-darker);
+    --app-surface: var(--color-bg-dark);
+    --app-surface-muted: var(--color-bg-light);
+    --app-border: var(--color-selection);
+    --app-text: var(--color-foreground);
+    --app-text-muted: #b7b6c9;
+    --app-accent: var(--color-purple);
+    --app-accent-strong: #a079ff;
+    --app-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    --app-gradient: linear-gradient(135deg, rgba(98, 114, 164, 0.2), rgba(255, 121, 198, 0.12));
+
 }

@@ -5,6 +5,7 @@
     <link rel="icon" href="assets/logos/jet_dice.png">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" />
     <link rel="stylesheet" href="styles/theme-dracula.css">
+    <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/main.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,34 @@
 
 </head>
 
-<nav>
+<body>
+    <div class="app-shell">
+        <header class="app-header">
+            <div class="app-header__brand">
+                <img class="app-header__logo" src="assets/logos/jet_dice.png" alt="JET-PALLET logo">
+                <div>
+                    <p class="app-header__title">JET-PALLET</p>
+                    <span class="app-header__subtitle">for EORZER UI Kit</span>
+                </div>
+            </div>
+            <div class="app-header__status">
+                <span class="badge">Prototype</span>
+            </div>
+        </header>
+        <div class="app-layout">
+            <aside class="app-sidebar">
+                <div class="panel panel--accent">
+                    <h2 class="panel__title">サイドパネル</h2>
+                    <p class="panel__lead">基本構造のダミーセクションです。後でナビや設定を配置できます。</p>
+                    <ul class="panel__list">
+                        <li>概要</li>
+                        <li>ショートカット</li>
+                        <li>最新ログ</li>
+                    </ul>
+                </div>
+            </aside>
+            <main class="app-main">
+                <nav>
     <!--バフデバフ表示-->
     <header>
         <div class="buff-area">
@@ -97,7 +125,7 @@
     </footer>
 </nav>
 
-<main>
+                <div class="app-content">
     <div class="ability-block">
         <!--その他アクション-->
         <section>
@@ -1706,7 +1734,10 @@
         </div>
     </dialog>
 
-</main>
+</div>
+            </main>
+        </div>
+    </div>
 </body>
 
 </html>
