@@ -4,7 +4,11 @@ export class StateManager {
     #storageKey = 'jetpallet_state';
 
     constructor(initialState = {}) {
-        this.#state = this.#loadFromStorage() || structuredClone(initialState);
+        const storedState = this.#loadFromStorage();
+        const defaultState = structuredClone(initialState);
+        this.#state = storedState
+            ? this.#mergeState(defaultState, storedState)
+            : defaultState;
         this.#listeners = new Set();
     }
 
@@ -142,6 +146,46 @@ export class StateManager {
      */
     #generateId() {
         return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    /**
+     * デフォルトと保存状態をマージ
+     * @param {Object} defaultState
+     * @param {Object} storedState
+     */
+    #mergeState(defaultState, storedState) {
+        if (!this.#isPlainObject(defaultState)) {
+            return this.#mergeValue(defaultState, storedState);
+        }
+
+        const merged = { ...defaultState };
+        Object.keys(storedState || {}).forEach(key => {
+            merged[key] = this.#mergeValue(defaultState[key], storedState[key]);
+        });
+        return merged;
+    }
+
+    #mergeValue(defaultValue, storedValue) {
+        if (storedValue === undefined || storedValue === null) {
+            return structuredClone(defaultValue);
+        }
+
+        if (Array.isArray(storedValue)) {
+            if (storedValue.length === 0 && Array.isArray(defaultValue)) {
+                return structuredClone(defaultValue);
+            }
+            return structuredClone(storedValue);
+        }
+
+        if (this.#isPlainObject(storedValue) && this.#isPlainObject(defaultValue)) {
+            return this.#mergeState(defaultValue, storedValue);
+        }
+
+        return structuredClone(storedValue);
+    }
+
+    #isPlainObject(value) {
+        return Boolean(value) && value.constructor === Object;
     }
 
     /**
