@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const durationSelect = buffModal.querySelector("[data-buff-duration]");
     const bulkInput = buffModal.querySelector("[data-buff-bulk]");
     const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon-buff.png";
+    let currentIconSrc = defaultIconSrc;
 
     const buffTypeLabels = {
         buff: "バフ",
@@ -42,19 +43,26 @@ document.addEventListener("DOMContentLoaded", () => {
             reader.readAsDataURL(file);
         });
 
-    const resolveIconSource = async () => {
-        const file = iconInput?.files?.[0];
-        if (file) {
-            return readFileAsDataURL(file);
+    const setIconPreview = (src) => {
+        const nextSrc = src || defaultIconSrc;
+        currentIconSrc = nextSrc;
+        if (iconPreview) {
+            iconPreview.src = nextSrc;
         }
-
-        const previewSrc = iconPreview?.getAttribute("src") ?? iconPreview?.src;
-        if (previewSrc) {
-            return previewSrc;
-        }
-
-        return defaultIconSrc;
     };
+
+    const handleIconInputChange = async () => {
+        const file = iconInput?.files?.[0];
+        if (!file) {
+            setIconPreview(defaultIconSrc);
+            return;
+        }
+
+        const dataUrl = await readFileAsDataURL(file);
+        setIconPreview(dataUrl);
+    };
+
+    const resolveIconSource = () => currentIconSrc || defaultIconSrc;
 
     const createBuffElement = ({ iconSrc, limit, name, tag, description }) => {
         const buff = document.createElement("div");
@@ -86,9 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (iconInput) {
             iconInput.value = "";
         }
-        if (iconPreview) {
-            iconPreview.src = defaultIconSrc;
-        }
+        setIconPreview(defaultIconSrc);
         if (typeSelect) {
             typeSelect.selectedIndex = 0;
         }
@@ -115,10 +121,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    submitButton.addEventListener("click", async (event) => {
+    submitButton.addEventListener("click", (event) => {
         event.preventDefault();
 
-        const iconSrc = await resolveIconSource();
+        const iconSrc = resolveIconSource();
         const name = nameInput?.value?.trim() || "名称未設定";
         const description = descriptionInput?.value?.trim() || "詳細未設定";
         const typeValue = typeSelect?.value ?? "buff";
@@ -140,4 +146,12 @@ document.addEventListener("DOMContentLoaded", () => {
             buffModal.close();
         }
     });
+
+    iconInput?.addEventListener("change", () => {
+        void handleIconInputChange();
+    });
+
+    if (!iconPreview) {
+        currentIconSrc = defaultIconSrc;
+    }
 });
