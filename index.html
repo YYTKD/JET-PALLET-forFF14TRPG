@@ -671,10 +671,15 @@
                         <span class="form__label">アイコン</span>
                         <div class="form__row">
                             <img id="iconpreview" class="card__icon--image" src="assets/dummy_icon.png" />
-                            <label class="form__option--button">
-                                <input type="file" class="form__input--icon" data-ability-icon-input>
-                                <h4>ファイルを選択</h4>
-                            </label>
+                            <div class="form__row">
+                                <select class="form__option--type" data-ability-icon-select>
+                                    <option value="">アイコンを選択</option>
+                                </select>
+                                <label class="form__option--button">
+                                    <input type="file" class="form__input--icon" data-ability-icon-input>
+                                    <h4>ファイルを選択</h4>
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="form__group">

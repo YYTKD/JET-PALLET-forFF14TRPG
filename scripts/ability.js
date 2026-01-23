@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const iconInput = abilityModal.querySelector("[data-ability-icon-input]");
     const iconPreview = abilityModal.querySelector("#iconpreview");
+    const iconSelect = abilityModal.querySelector("[data-ability-icon-select]");
     const typeSelect = abilityModal.querySelector("[data-ability-type]");
     const nameInput = abilityModal.querySelector("[data-ability-name]");
     const stackInput = abilityModal.querySelector("[data-ability-stack]");
@@ -26,6 +27,57 @@ document.addEventListener("DOMContentLoaded", () => {
     const directHitInput = abilityModal.querySelector("[data-ability-direct-hit]");
     const descriptionInput = abilityModal.querySelector("[data-ability-description]");
     const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon.png";
+    let currentIconSrc = defaultIconSrc;
+
+    const setIconPreview = (src) => {
+        if (!src) {
+            return;
+        }
+        currentIconSrc = src;
+        if (iconPreview) {
+            iconPreview.src = src;
+        }
+    };
+
+    if (iconSelect) {
+        iconSelect.addEventListener("change", () => {
+            const selectedSrc = iconSelect.value;
+            if (!selectedSrc) {
+                setIconPreview(defaultIconSrc);
+                return;
+            }
+            setIconPreview(selectedSrc);
+            if (iconInput) {
+                iconInput.value = "";
+            }
+        });
+    }
+
+    if (iconInput) {
+        iconInput.addEventListener("change", () => {
+            const file = iconInput.files?.[0];
+            if (!file) {
+                const fallbackSrc = iconSelect?.value || defaultIconSrc;
+                setIconPreview(fallbackSrc);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.addEventListener("load", () => {
+                const result = typeof reader.result === "string" ? reader.result : defaultIconSrc;
+                setIconPreview(result);
+                if (iconSelect) {
+                    const uploadedOption = document.createElement("option");
+                    uploadedOption.value = result;
+                    uploadedOption.textContent = file.name;
+                    uploadedOption.dataset.uploaded = "true";
+                    iconSelect.appendChild(uploadedOption);
+                    iconSelect.value = result;
+                }
+            });
+            reader.readAsDataURL(file);
+        });
+    }
 
     const createStatBlock = (label, value) => {
         if (!value) {
@@ -180,17 +232,21 @@ document.addEventListener("DOMContentLoaded", () => {
             iconInput.value = "";
         }
 
-        if (iconPreview) {
-            iconPreview.src = defaultIconSrc;
+        if (iconSelect) {
+            iconSelect.querySelectorAll('option[data-uploaded="true"]').forEach((option) => {
+                option.remove();
+            });
+            iconSelect.selectedIndex = 0;
         }
+
+        setIconPreview(defaultIconSrc);
     };
 
     addButton.addEventListener("click", (event) => {
         event.preventDefault();
 
         const typeLabel = typeSelect?.selectedOptions?.[0]?.textContent?.trim() ?? "";
-        const iconFile = iconInput?.files?.[0];
-        const iconSrc = iconFile ? URL.createObjectURL(iconFile) : iconPreview?.src ?? defaultIconSrc;
+        const iconSrc = currentIconSrc || iconPreview?.src || defaultIconSrc;
         const data = {
             iconSrc,
             name: nameInput?.value?.trim() ?? "",
