@@ -166,16 +166,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return tagTexts.join("・");
     };
 
+    const formatJudgeAttribute = (value) => {
+        if (!value || value === "なし") {
+            return "";
+        }
+        if (value.startsWith("【") && value.endsWith("】")) {
+            return value;
+        }
+        const match = value.match(/\{([^}]+)\}/);
+        if (match) {
+            return `【${match[1]}】`;
+        }
+        return value;
+    };
+
+    const formatJudgeValue = (value) => {
+        if (!value) {
+            return "";
+        }
+        return /^[+-]/.test(value) ? value : `+${value}`;
+    };
+
     const buildJudgeText = () => {
         const judgeValue = judgeInput?.value?.trim();
         const attributeValue = judgeAttributeSelect?.value?.trim();
+        const attributeText = formatJudgeAttribute(attributeValue);
 
-        if (!judgeValue && (!attributeValue || attributeValue === "なし")) {
+        if (!judgeValue || !attributeText) {
             return "";
         }
 
-        const attributeText = attributeValue && attributeValue !== "なし" ? attributeValue : "";
-        return `${attributeText} ${judgeValue ?? ""}`.trim();
+        return `${attributeText}${formatJudgeValue(judgeValue)}`;
     };
 
     const createAbilityElement = (data) => {
