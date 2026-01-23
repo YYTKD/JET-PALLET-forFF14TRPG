@@ -37,8 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const durationLabels = {
         permanent: "永続",
-        "until-turn-end": "1t",
-        "until-next-turn-start": "2t",
+        "until-turn-end": "0t",
+        "until-next-turn-start": "1t",
     };
 
     const placeholderText = "未設定";
@@ -94,9 +94,13 @@ document.addEventListener("DOMContentLoaded", () => {
         command,
         extraText,
         target,
+        durationValue,
     }) => {
         const buff = document.createElement("div");
         buff.className = "buff";
+        if (durationValue) {
+            buff.dataset.buffDuration = durationValue;
+        }
         buff.innerHTML = `
             <span class="buff__limit" data-buff-limit></span>
             <img src="${iconSrc}" alt="" />
@@ -312,6 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
             command,
             extraText,
             target,
+            durationValue,
         });
         buffArea.appendChild(buffElement);
 
@@ -344,5 +349,49 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     extraTextInput?.addEventListener("input", () => {
         validateNumberRange(extraTextInput, "extraText", "追加テキスト");
+    });
+
+    const turnButtons = {
+        start: document.querySelector("[data-turn-action=\"start\"]"),
+        end: document.querySelector("[data-turn-action=\"end\"]"),
+        phase: document.querySelector("[data-turn-action=\"phase\"]"),
+    };
+
+    const durationFromLabel = (label) => {
+        const text = label?.trim();
+        switch (text) {
+            case "永続":
+                return "permanent";
+            case "0t":
+                return "until-turn-end";
+            case "1t":
+            case "2t":
+                return "until-next-turn-start";
+            default:
+                return "";
+        }
+    };
+
+    const removeBuffsByDuration = (durationKey) => {
+        buffArea.querySelectorAll(".buff").forEach((buff) => {
+            const currentDuration =
+                buff.dataset.buffDuration ||
+                durationFromLabel(buff.querySelector("[data-buff-limit]")?.textContent);
+            if (currentDuration === durationKey) {
+                buff.remove();
+            }
+        });
+    };
+
+    turnButtons.start?.addEventListener("click", () => {
+        removeBuffsByDuration("until-next-turn-start");
+    });
+
+    turnButtons.end?.addEventListener("click", () => {
+        removeBuffsByDuration("until-turn-end");
+    });
+
+    turnButtons.phase?.addEventListener("click", () => {
+        removeBuffsByDuration("permanent");
     });
 });

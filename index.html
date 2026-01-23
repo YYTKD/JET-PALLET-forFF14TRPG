@@ -16,8 +16,8 @@
     <!--バフデバフ表示-->
     <header>
         <div class="buff-area">
-            <div class="buff">
-                <span class="buff__limit">1t</span>
+            <div class="buff" data-buff-duration="until-turn-end">
+                <span class="buff__limit">0t</span>
                 <img src="assets/dummy_icon-buff.png" />
                 <div class="tooltip  card card--tooltip">
                     <div class="card__header">
@@ -39,7 +39,7 @@
                         </div>
                         <div class="card__stat">
                             <span class="card__label">残りターン：</span>
-                            <span class="card__value">1t</span>
+                            <span class="card__value">0t</span>
                         </div>
                         <div class="card__stat">
                             <span class="card__label">コマンド：</span>
@@ -56,7 +56,7 @@
                     </div>
                 </div>
             </div>
-            <div class="buff">
+            <div class="buff" data-buff-duration="until-next-turn-start">
                 <span class="buff__limit">1t</span>
                 <img src="assets/dummy_icon-buff.png" />
                 <div class="tooltip  card card--tooltip">
@@ -96,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            <div class="buff">
+            <div class="buff" data-buff-duration="permanent">
                 <span class="buff__limit">永続</span>
                 <img src="assets/dummy_icon-buff.png" />
                 <div class="tooltip  card card--tooltip">
@@ -149,10 +149,10 @@
             <span class="character__level">Lv50</span>
         </button>
         <div class="button__area--footer">
-            <button class="button__footer button__footer--turn material-symbols-rounded">hourglass_top<h6>ターン開始</h6></button>
-            <button class="button__footer button__footer--turn material-symbols-rounded">hourglass_empty<h6>ターン終了</h6></button>
+            <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="start">hourglass_top<h6>ターン開始</h6></button>
+            <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="end">hourglass_empty<h6>ターン終了</h6></button>
             <button class="button__footer button__footer--turn material-symbols-rounded">refresh<h6>ラウンド終了</h6></button>
-            <button class="button__footer button__footer--turn material-symbols-rounded">calendar_clock<h6>フェイズ更新</h6></button>
+            <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="phase">calendar_clock<h6>フェイズ更新</h6></button>
         </div>
     </footer>
 </nav>
