@@ -26,6 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const baseDamageInput = abilityModal.querySelector("[data-ability-base-damage]");
     const directHitInput = abilityModal.querySelector("[data-ability-direct-hit]");
     const descriptionInput = abilityModal.querySelector("[data-ability-description]");
+    const tagInput = abilityModal.querySelector("[data-ability-tag-input]");
+    const tagAddButton = abilityModal.querySelector("[data-ability-tag-add]");
+    const tagGroup = tagInput?.closest(".form__group");
+    const tagContainer = tagGroup?.querySelector(".form__row");
     const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon.png";
     let currentIconSrc = defaultIconSrc;
 
@@ -105,12 +109,53 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     };
 
+    const getTagLabel = (tagElement) => {
+        const rawText = tagElement.childNodes[0]?.textContent ?? tagElement.textContent ?? "";
+        return rawText.replace(/x$/i, "").trim();
+    };
+
+    const createTagElement = (label) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = label;
+
+        const removeButton = document.createElement("span");
+        removeButton.setAttribute("type", "button");
+        removeButton.dataset.tagRemove = "true";
+        removeButton.textContent = "x";
+        tag.appendChild(removeButton);
+
+        return tag;
+    };
+
+    const addTagFromInput = () => {
+        if (!tagInput || !tagContainer) {
+            return;
+        }
+
+        const rawValue = tagInput.value?.trim() ?? "";
+        if (!rawValue) {
+            return;
+        }
+
+        const existingTags = Array.from(tagContainer.querySelectorAll(".tag")).map((tag) =>
+            getTagLabel(tag),
+        );
+
+        if (existingTags.includes(rawValue)) {
+            tagInput.value = "";
+            return;
+        }
+
+        tagContainer.appendChild(createTagElement(rawValue));
+        tagInput.value = "";
+    };
+
     const buildTagText = (typeLabel) => {
         const tagElements = Array.from(abilityModal.querySelectorAll(".tag"));
         const tagTexts = tagElements
             .map((tag) => {
-                const rawText = tag.childNodes[0]?.textContent ?? tag.textContent;
-                return rawText.replace(/x$/i, "").trim();
+                return getTagLabel(tag);
             })
             .filter(Boolean);
 
@@ -214,6 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
             baseDamageInput,
             directHitInput,
             descriptionInput,
+            tagInput,
         ].forEach((input) => {
             if (input) {
                 input.value = "";
@@ -241,6 +287,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setIconPreview(defaultIconSrc);
     };
+
+    if (tagAddButton) {
+        tagAddButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            addTagFromInput();
+        });
+    }
+
+    if (tagInput) {
+        tagInput.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") {
+                return;
+            }
+            event.preventDefault();
+            addTagFromInput();
+        });
+    }
+
+    if (tagContainer) {
+        tagContainer.addEventListener("click", (event) => {
+            const target = event.target;
+            if (!(target instanceof HTMLElement)) {
+                return;
+            }
+            if (!target.matches("[data-tag-remove], .tag [data-tag-remove], .tag [type='button']")) {
+                return;
+            }
+
+            const tagElement = target.closest(".tag");
+            if (tagElement) {
+                tagElement.remove();
+            }
+        });
+    }
 
     addButton.addEventListener("click", (event) => {
         event.preventDefault();
