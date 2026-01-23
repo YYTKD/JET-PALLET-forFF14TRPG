@@ -1,0 +1,230 @@
+document.addEventListener("DOMContentLoaded", () => {
+    const abilityModal = document.getElementById("addAbilityModal");
+    if (!abilityModal) {
+        return;
+    }
+
+    const addButton = abilityModal.querySelector(".form__button--add");
+    if (!addButton) {
+        return;
+    }
+
+    const iconInput = abilityModal.querySelector("[data-ability-icon-input]");
+    const iconPreview = abilityModal.querySelector("#iconpreview");
+    const typeSelect = abilityModal.querySelector("[data-ability-type]");
+    const nameInput = abilityModal.querySelector("[data-ability-name]");
+    const stackInput = abilityModal.querySelector("[data-ability-stack]");
+    const prerequisiteInput = abilityModal.querySelector("[data-ability-prerequisite]");
+    const timingInput = abilityModal.querySelector("[data-ability-timing]");
+    const costInput = abilityModal.querySelector("[data-ability-cost]");
+    const limitInput = abilityModal.querySelector("[data-ability-limit]");
+    const targetInput = abilityModal.querySelector("[data-ability-target]");
+    const rangeInput = abilityModal.querySelector("[data-ability-range]");
+    const judgeInput = abilityModal.querySelector("[data-ability-judge]");
+    const judgeAttributeSelect = abilityModal.querySelector("[data-ability-judge-attribute]");
+    const baseDamageInput = abilityModal.querySelector("[data-ability-base-damage]");
+    const directHitInput = abilityModal.querySelector("[data-ability-direct-hit]");
+    const descriptionInput = abilityModal.querySelector("[data-ability-description]");
+    const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon.png";
+
+    const createStatBlock = (label, value) => {
+        if (!value) {
+            return "";
+        }
+        return `
+            <div class="card__stat">
+                <span class="card__label">${label}</span>
+                <span class="card__value">${value}</span>
+            </div>
+        `;
+    };
+
+    const createTriggerBlock = (label, value) => {
+        if (!value) {
+            return "";
+        }
+        return `
+            <div class="card__trigger">
+                <div class="card__stat">
+                    <span class="card__label">${label}</span>
+                    <span class="card__value">${value}</span>
+                </div>
+            </div>
+        `;
+    };
+
+    const buildTagText = (typeLabel) => {
+        const tagElements = Array.from(abilityModal.querySelectorAll(".tag"));
+        const tagTexts = tagElements
+            .map((tag) => {
+                const rawText = tag.childNodes[0]?.textContent ?? tag.textContent;
+                return rawText.replace(/x$/i, "").trim();
+            })
+            .filter(Boolean);
+
+        if (typeLabel && !tagTexts.includes(typeLabel)) {
+            tagTexts.push(typeLabel);
+        }
+
+        return tagTexts.join("・");
+    };
+
+    const buildJudgeText = () => {
+        const judgeValue = judgeInput?.value?.trim();
+        const attributeValue = judgeAttributeSelect?.value?.trim();
+
+        if (!judgeValue && (!attributeValue || attributeValue === "なし")) {
+            return "";
+        }
+
+        const attributeText = attributeValue && attributeValue !== "なし" ? attributeValue : "";
+        return `${attributeText} ${judgeValue ?? ""}`.trim();
+    };
+
+    const createAbilityElement = (data) => {
+        const abilityElement = document.createElement("div");
+        abilityElement.className = "ability";
+        abilityElement.setAttribute("draggable", "true");
+
+        const tagText = data.tags ?? "";
+        const metaBlocks = [
+            createStatBlock("コスト：", data.cost),
+            createStatBlock("対象：", data.target),
+            createStatBlock("範囲：", data.range),
+        ]
+            .filter(Boolean)
+            .join("");
+
+        const metaSection = metaBlocks
+            ? `
+                <div class="card__meta">
+                    ${metaBlocks}
+                </div>
+            `
+            : "";
+
+        const judgeSection = data.judge
+            ? `
+                <div class="card__stat--judge">
+                    <span class="card__label">判定：</span>
+                    <span class="card__value">${data.judge}</span>
+                </div>
+            `
+            : "";
+
+        const bodyBlocks = [
+            createStatBlock("基本効果：", data.description),
+            createStatBlock("基本ダメージ：", data.baseDamage),
+            createStatBlock("ダイレクトヒット：", data.directHit),
+            createStatBlock("制限：", data.limit),
+        ]
+            .filter(Boolean)
+            .join("");
+
+        abilityElement.innerHTML = `
+            <svg viewBox="0 0 52 52" class="ability__proc-line" style="display: none;">
+                <path class="dashed-path" d="M 3 3 L 49 3 L 49 49 L 3 49 L 3 3" />
+            </svg>
+            <img src="${data.iconSrc}" />
+            <div class="tooltip card card--tooltip">
+                <div class="card__header">
+                    <div class="card__icon">
+                        <img class="card__icon--image" src="${data.iconSrc}" />
+                    </div>
+                    <div class="card__title">
+                        <span class="card__name">${data.name}<span class="card__tags">${tagText}</span></span>
+                    </div>
+                    ${createTriggerBlock("前提：", data.prerequisite)}
+                    ${createTriggerBlock("タイミング：", data.timing)}
+                    ${metaSection}
+                    ${judgeSection}
+                </div>
+                <div class="card__body">
+                    ${bodyBlocks}
+                </div>
+            </div>
+        `;
+
+        return abilityElement;
+    };
+
+    const resetAbilityForm = () => {
+        [
+            nameInput,
+            stackInput,
+            prerequisiteInput,
+            timingInput,
+            costInput,
+            limitInput,
+            targetInput,
+            rangeInput,
+            judgeInput,
+            baseDamageInput,
+            directHitInput,
+            descriptionInput,
+        ].forEach((input) => {
+            if (input) {
+                input.value = "";
+            }
+        });
+
+        if (typeSelect) {
+            typeSelect.selectedIndex = 0;
+        }
+
+        if (judgeAttributeSelect) {
+            judgeAttributeSelect.selectedIndex = 0;
+        }
+
+        if (iconInput) {
+            iconInput.value = "";
+        }
+
+        if (iconPreview) {
+            iconPreview.src = defaultIconSrc;
+        }
+    };
+
+    addButton.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        const typeLabel = typeSelect?.selectedOptions?.[0]?.textContent?.trim() ?? "";
+        const iconFile = iconInput?.files?.[0];
+        const iconSrc = iconFile ? URL.createObjectURL(iconFile) : iconPreview?.src ?? defaultIconSrc;
+        const data = {
+            iconSrc,
+            name: nameInput?.value?.trim() ?? "",
+            tags: buildTagText(typeLabel),
+            prerequisite: prerequisiteInput?.value?.trim() ?? "",
+            timing: timingInput?.value?.trim() ?? "",
+            cost: costInput?.value?.trim() ?? "",
+            limit: limitInput?.value?.trim() ?? "",
+            target: targetInput?.value?.trim() ?? "",
+            range: rangeInput?.value?.trim() ?? "",
+            judge: buildJudgeText(),
+            baseDamage: baseDamageInput?.value?.trim() ?? "",
+            directHit: directHitInput?.value?.trim() ?? "",
+            description: descriptionInput?.value?.trim() ?? "",
+        };
+
+        if (!data.description) {
+            data.description = "（未入力）";
+        }
+
+        const targetArea = abilityModal.dataset.targetArea || typeSelect?.value || "main";
+        const abilityArea =
+            document.querySelector(`.ability-area[data-ability-area="${targetArea}"]`) ||
+            document.querySelector('.ability-area[data-ability-area="main"]');
+
+        if (!abilityArea) {
+            return;
+        }
+
+        abilityArea.appendChild(createAbilityElement(data));
+        resetAbilityForm();
+
+        if (typeof abilityModal.close === "function") {
+            abilityModal.close();
+        }
+    });
+});
