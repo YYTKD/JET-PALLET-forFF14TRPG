@@ -799,54 +799,58 @@
         <div class="dialog__preview card card__preview--AB">
             <div class="card__header">
                 <div class="card__icon">
-                    <img class="card__icon--image" src="assets/dummy_icon.png" />
+                    <img class="card__icon--image" src="assets/dummy_icon.png" data-ability-preview-icon />
                 </div>
                 <div class="card__title">
-                    <span class="card__name">シールドブロック<span class="card__tags">物理・メイン</span></span>
+                    <span class="card__name" data-ability-preview-name>シールドブロック<span class="card__tags"
+                            data-ability-preview-tags>物理・メイン</span></span>
                 </div>
                 <div class="card__trigger">
                     <div class="card__stat">
                         <span class="card__label">前提：</span>
-                        <span class="card__value">敵が詠唱のアビリティを使用したか、詠唱のアビリティによる予兆を発生させている敵から1マス以内に君がいる</span>
+                        <span class="card__value"
+                            data-ability-preview-prerequisite>敵が詠唱のアビリティを使用したか、詠唱のアビリティによる予兆を発生させている敵から1マス以内に君がいる</span>
                     </div>
                 </div>
                 <div class="card__trigger">
                     <div class="card__stat">
                         <span class="card__label">タイミング：</span>
-                        <span class="card__value"></span>
+                        <span class="card__value" data-ability-preview-timing></span>
                     </div>
                 </div>
                 <div class="card__meta">
                     <div class="card__stat">
                         <span class="card__label">コスト：</span>
-                        <span class="card__value"></span>
+                        <span class="card__value" data-ability-preview-cost></span>
                     </div>
                     <div class="card__stat">
                         <span class="card__label">対象：</span>
-                        <span class="card__value">範囲内のすべての敵</span>
+                        <span class="card__value" data-ability-preview-target>範囲内のすべての敵</span>
                     </div>
                     <div class="card__stat">
                         <span class="card__label">範囲：</span>
-                        <span class="card__value">君を中心とした３×３マス</span>
+                        <span class="card__value" data-ability-preview-range>君を中心とした３×３マス</span>
                     </div>
                 </div>
                 <div class="card__stat--judge">
                     <span class="card__label">判定：</span>
-                    <span class="card__value">【STR】+d20<span class="bold">　VS　</span>物理</span>
+                    <span class="card__value"
+                        data-ability-preview-judge>【STR】+d20<span class="bold">　VS　</span>物理</span>
                 </div>
             </div>
             <div class="card__body">
                 <div class="card__stat">
                     <span class="card__label">基本効果：</span>
-                    <span class="card__value">対象に２点のダメージと、君への敵視を与える。コンボ：《シュトルムヴィント》</span>
+                    <span class="card__value"
+                        data-ability-preview-effect>対象に２点のダメージと、君への敵視を与える。コンボ：《シュトルムヴィント》</span>
                 </div>
                 <div class="card__stat">
                     <span class="card__label">ダイレクトヒット：</span>
-                    <span class="card__value">+1d6点の追加ダメージ。</span>
+                    <span class="card__value" data-ability-preview-direct-hit>+1d6点の追加ダメージ。</span>
                 </div>
                 <div class="card__stat">
                     <span class="card__label">制限：</span>
-                    <span class="card__value">１フェーズに３回使用可能。</span>
+                    <span class="card__value" data-ability-preview-limit>１フェーズに３回使用可能。</span>
                 </div>
             </div>
         </div>
