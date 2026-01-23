@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const iconInput = abilityModal.querySelector("[data-ability-icon-input]");
     const iconPreview = abilityModal.querySelector("#iconpreview");
     const iconSelect = abilityModal.querySelector("[data-ability-icon-select]");
+    const previewIcon = abilityModal.querySelector("[data-ability-preview-icon]");
     const typeSelect = abilityModal.querySelector("[data-ability-type]");
     const nameInput = abilityModal.querySelector("[data-ability-name]");
     const stackInput = abilityModal.querySelector("[data-ability-stack]");
@@ -30,7 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const tagAddButton = abilityModal.querySelector("[data-ability-tag-add]");
     const tagGroup = tagInput?.closest(".form__group");
     const tagContainer = tagGroup?.querySelector(".form__row");
-    const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon.png";
+    const defaultIconSrc =
+        iconPreview?.getAttribute("src") ??
+        previewIcon?.getAttribute("src") ??
+        "assets/dummy_icon.png";
     let currentIconSrc = defaultIconSrc;
 
     const setIconPreview = (src) => {
@@ -40,6 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
         currentIconSrc = src;
         if (iconPreview) {
             iconPreview.src = src;
+        }
+        if (previewIcon) {
+            previewIcon.src = src;
         }
     };
 
@@ -61,8 +68,10 @@ document.addEventListener("DOMContentLoaded", () => {
         iconInput.addEventListener("change", () => {
             const file = iconInput.files?.[0];
             if (!file) {
-                const fallbackSrc = iconSelect?.value || defaultIconSrc;
-                setIconPreview(fallbackSrc);
+                setIconPreview(defaultIconSrc);
+                if (iconSelect) {
+                    iconSelect.value = "";
+                }
                 return;
             }
 
