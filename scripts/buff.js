@@ -38,6 +38,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
     const inlineErrorsEnabled = false;
+    const defaultSubmitLabel = submitButton.textContent || "登録";
+    const buffModalTitle = buffModal.querySelector(".section__header--title");
+    const defaultModalTitle = buffModalTitle?.textContent || "バフ・デバフ登録";
+
+    const createBuffId = () => {
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+            return crypto.randomUUID();
+        }
+        return `buff-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
 
     const buffTypeLabels = {
         buff: "バフ",
@@ -194,6 +204,92 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const buffLibraryModal = document.getElementById("BuffLibraryModal");
     const buffLibraryTableBody = buffLibraryModal?.querySelector("[data-buff-library-body]");
+    const editingState = {
+        id: null,
+    };
+
+    const resetEditingState = () => {
+        editingState.id = null;
+        submitButton.textContent = defaultSubmitLabel;
+        if (buffModalTitle) {
+            buffModalTitle.textContent = defaultModalTitle;
+        }
+    };
+
+    const getStoredLibraryBuffs = () => {
+        const storedBuffs = loadStoredBuffs(BUFF_LIBRARY_KEY);
+        let hasChanges = false;
+        const normalized = storedBuffs.map((buff) => {
+            if (!buff) {
+                return buff;
+            }
+            if (!buff.id) {
+                hasChanges = true;
+                return { ...buff, id: createBuffId() };
+            }
+            return buff;
+        });
+        if (hasChanges) {
+            saveStoredBuffs(BUFF_LIBRARY_KEY, normalized);
+        }
+        return normalized;
+    };
+
+    const openBuffEditor = (buffId) => {
+        if (!buffId) {
+            return;
+        }
+        const storedBuffs = getStoredLibraryBuffs();
+        const target = storedBuffs.find((buff) => buff?.id === buffId);
+        if (!target) {
+            showToast("対象のバフ・デバフが見つかりませんでした。", "error");
+            return;
+        }
+        editingState.id = buffId;
+        submitButton.textContent = "更新";
+        if (buffModalTitle) {
+            buffModalTitle.textContent = "バフ・デバフ編集";
+        }
+        setIconPreview(target.iconSrc || defaultIconSrc);
+        if (typeSelect) {
+            const resolvedType =
+                target.typeValue ||
+                (target.tag === buffTypeLabels.debuff ? "debuff" : "buff");
+            typeSelect.value = resolvedType;
+        }
+        if (nameInput) {
+            nameInput.value = target.name || "";
+        }
+        if (descriptionInput) {
+            descriptionInput.value = target.description || "";
+        }
+        if (commandInput) {
+            commandInput.value = target.command ?? "";
+        }
+        if (extraTextInput) {
+            extraTextInput.value = target.extraText ?? "";
+        }
+        if (targetSelect) {
+            const resolvedTargetValue = target.targetValue
+                || (target.target === "判定" ? "judge" : target.target === "ダメージ" ? "damage" : "");
+            targetSelect.value = resolvedTargetValue;
+        }
+        if (durationSelect) {
+            durationSelect.value = target.durationValue || "permanent";
+        }
+        if (bulkInput) {
+            bulkInput.value = "";
+        }
+        clearErrors();
+        if (buffLibraryModal?.open) {
+            buffLibraryModal.close();
+        }
+        if (!buffModal.open) {
+            buffModal.showModal();
+        }
+    };
+
+    window.openBuffEditor = openBuffEditor;
 
     const persistActiveBuffElements = () => {
         const entries = Array.from(buffArea.querySelectorAll(".buff[data-user-created='true']"))
@@ -244,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!buffLibraryTableBody) {
             return;
         }
-        const storedBuffs = loadStoredBuffs(BUFF_LIBRARY_KEY);
+        const storedBuffs = getStoredLibraryBuffs();
         buffLibraryTableBody.innerHTML = "";
         if (storedBuffs.length === 0) {
             const emptyRow = document.createElement("tr");
@@ -262,21 +358,44 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     buffLibraryTableBody?.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-buff-library-add]");
-        if (!button) {
-            return;
-        }
-        const row = button.closest("tr");
+        const addButton = event.target.closest("[data-buff-library-add]");
+        const editButton = event.target.closest("[data-buff-library-edit]");
+        const deleteButton = event.target.closest("[data-buff-library-delete]");
+        const row = event.target.closest("tr");
         const raw = row?.dataset.buffStorage;
         if (!raw) {
             return;
         }
-        try {
-            const data = JSON.parse(raw);
-            addActiveBuff(data);
-            showToast("バフ・デバフを追加しました。", "success");
-        } catch (error) {
-            console.warn("Failed to parse buff entry.", error);
+        if (addButton) {
+            try {
+                const data = JSON.parse(raw);
+                addActiveBuff(data);
+                showToast("バフ・デバフを追加しました。", "success");
+            } catch (error) {
+                console.warn("Failed to parse buff entry.", error);
+            }
+            return;
+        }
+        if (editButton) {
+            try {
+                const data = JSON.parse(raw);
+                openBuffEditor(data.id);
+            } catch (error) {
+                console.warn("Failed to parse buff entry.", error);
+            }
+            return;
+        }
+        if (deleteButton) {
+            try {
+                const data = JSON.parse(raw);
+                const storedBuffs = getStoredLibraryBuffs();
+                const nextBuffs = storedBuffs.filter((buff) => buff?.id !== data.id);
+                saveStoredBuffs(BUFF_LIBRARY_KEY, nextBuffs);
+                renderStoredBuffs();
+                showToast("バフ・デバフを削除しました。", "success");
+            } catch (error) {
+                console.warn("Failed to parse buff entry.", error);
+            }
         }
     });
 
@@ -317,6 +436,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bulkInput.value = "";
         }
         clearErrors();
+        resetEditingState();
     };
 
     const setFieldError = (field, message) => {
@@ -467,21 +587,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const target = targetValue ? targetLabel : "";
         const limit = duration;
 
+        const isEditing = Boolean(editingState.id);
         const buffData = {
+            id: editingState.id ?? createBuffId(),
             iconSrc,
             limit,
             name,
             tag,
             description,
             duration,
+            typeValue,
             command,
             extraText,
             target,
+            targetValue,
             durationValue,
         };
-        const storedBuffs = loadStoredBuffs(BUFF_LIBRARY_KEY);
-        storedBuffs.push(buffData);
-        saveStoredBuffs(BUFF_LIBRARY_KEY, storedBuffs);
+        const storedBuffs = getStoredLibraryBuffs();
+        if (isEditing) {
+            const updatedBuffs = storedBuffs.map((buff) =>
+                buff?.id === editingState.id ? buffData : buff
+            );
+            saveStoredBuffs(BUFF_LIBRARY_KEY, updatedBuffs);
+        } else {
+            storedBuffs.push(buffData);
+            saveStoredBuffs(BUFF_LIBRARY_KEY, storedBuffs);
+        }
         renderStoredBuffs();
 
         resetForm();
@@ -489,7 +620,7 @@ document.addEventListener("DOMContentLoaded", () => {
             buffModal.close();
         }
 
-        showToast("バフ・デバフを登録しました。", "success");
+        showToast(isEditing ? "バフ・デバフを更新しました。" : "バフ・デバフを登録しました。", "success");
     });
 
     buffModal.addEventListener("close", () => {
