@@ -29,10 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const durationLabels = {
-        permanent: "",
+        permanent: "永続",
         "until-turn-end": "1t",
         "until-next-turn-start": "2t",
     };
+
+    const placeholderText = "未設定";
 
     const readFileAsDataURL = (file) =>
         new Promise((resolve) => {
@@ -64,11 +66,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const resolveIconSource = () => currentIconSrc || defaultIconSrc;
 
-    const createBuffElement = ({ iconSrc, limit, name, tag, description }) => {
+    const applyText = (element, value, fallback = placeholderText) => {
+        if (!element) {
+            return;
+        }
+        const raw = typeof value === "string" ? value.trim() : value;
+        const hasValue = raw !== undefined && raw !== null && raw !== "";
+        const text = hasValue ? String(raw) : fallback;
+        element.textContent = text;
+        element.classList.toggle("is-placeholder", !hasValue);
+    };
+
+    const createBuffElement = ({
+        iconSrc,
+        limit,
+        name,
+        tag,
+        description,
+        duration,
+        command,
+        extraText,
+        target,
+    }) => {
         const buff = document.createElement("div");
         buff.className = "buff";
         buff.innerHTML = `
-            <span class="buff__limit">${limit}</span>
+            <span class="buff__limit" data-buff-limit></span>
             <img src="${iconSrc}" alt="" />
             <div class="tooltip card card--tooltip">
                 <div class="card__header">
@@ -76,17 +99,46 @@ document.addEventListener("DOMContentLoaded", () => {
                         <img class="card__icon--image" src="${iconSrc}" alt="" />
                     </div>
                     <div class="card__title">
-                        <span class="card__name">${name}<span class="card__tags">${tag}</span></span>
+                        <span class="card__name"><span data-buff-name></span><span class="card__tags" data-buff-tag></span></span>
                     </div>
                 </div>
                 <div class="card__body">
                     <div class="card__stat">
                         <span class="card__label">詳細：</span>
-                        <span class="card__value">${description}</span>
+                        <span class="card__value" data-buff-description></span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__label">種別：</span>
+                        <span class="card__value" data-buff-type></span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__label">残りターン：</span>
+                        <span class="card__value" data-buff-duration></span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__label">コマンド：</span>
+                        <span class="card__value" data-buff-command></span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__label">追加テキスト：</span>
+                        <span class="card__value" data-buff-extra-text></span>
+                    </div>
+                    <div class="card__stat">
+                        <span class="card__label">対象：</span>
+                        <span class="card__value" data-buff-target></span>
                     </div>
                 </div>
             </div>
         `;
+        applyText(buff.querySelector("[data-buff-limit]"), limit);
+        applyText(buff.querySelector("[data-buff-name]"), name);
+        applyText(buff.querySelector("[data-buff-tag]"), tag);
+        applyText(buff.querySelector("[data-buff-description]"), description);
+        applyText(buff.querySelector("[data-buff-type]"), tag);
+        applyText(buff.querySelector("[data-buff-duration]"), duration);
+        applyText(buff.querySelector("[data-buff-command]"), command);
+        applyText(buff.querySelector("[data-buff-extra-text]"), extraText);
+        applyText(buff.querySelector("[data-buff-target]"), target);
         return buff;
     };
 
@@ -125,12 +177,18 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
 
         const iconSrc = resolveIconSource();
-        const name = nameInput?.value?.trim() || "名称未設定";
-        const description = descriptionInput?.value?.trim() || "詳細未設定";
+        const name = nameInput?.value ?? "";
+        const description = descriptionInput?.value ?? "";
         const typeValue = typeSelect?.value ?? "buff";
-        const tag = buffTypeLabels[typeValue] ?? buffTypeLabels.buff;
+        const tag = buffTypeLabels[typeValue] ?? "";
         const durationValue = durationSelect?.value ?? "permanent";
-        const limit = durationLabels[durationValue] ?? "";
+        const duration = durationLabels[durationValue] ?? "";
+        const command = commandInput?.value ?? "";
+        const extraText = extraTextInput?.value ?? "";
+        const targetValue = targetSelect?.value ?? "";
+        const targetLabel = targetSelect?.selectedOptions?.[0]?.textContent?.trim() ?? "";
+        const target = targetValue ? targetLabel : "";
+        const limit = duration;
 
         const buffElement = createBuffElement({
             iconSrc,
@@ -138,6 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
             name,
             tag,
             description,
+            duration,
+            command,
+            extraText,
+            target,
         });
         buffArea.appendChild(buffElement);
 

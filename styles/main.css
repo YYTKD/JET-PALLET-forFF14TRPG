@@ -1581,6 +1581,11 @@ details:not([open]) summary {
     font-weight: 800;
 }
 
+.is-placeholder {
+    opacity: 0.6;
+    font-style: italic;
+}
+
 
 
 /* 時計回りフル探索（20通り） */
