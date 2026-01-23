@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    const STORAGE_KEY = "jet-pallet-abilities";
+
     const addButton = abilityModal.querySelector(".form__button--add");
     if (!addButton) {
         return;
@@ -275,6 +277,49 @@ document.addEventListener("DOMContentLoaded", () => {
         return abilityElement;
     };
 
+    const loadStoredAbilities = () => {
+        if (!window.localStorage) {
+            return [];
+        }
+        try {
+            const raw = window.localStorage.getItem(STORAGE_KEY);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn("Failed to parse stored abilities.", error);
+            return [];
+        }
+    };
+
+    const saveStoredAbilities = (abilities) => {
+        if (!window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(abilities));
+        } catch (error) {
+            console.warn("Failed to save abilities.", error);
+        }
+    };
+
+    const renderStoredAbilities = () => {
+        const storedAbilities = loadStoredAbilities();
+        storedAbilities.forEach((entry) => {
+            if (!entry || !entry.data) {
+                return;
+            }
+            const abilityArea =
+                document.querySelector(`.ability-area[data-ability-area="${entry.area}"]`) ||
+                document.querySelector('.ability-area[data-ability-area="main"]');
+            if (!abilityArea) {
+                return;
+            }
+            const abilityElement = createAbilityElement(entry.data);
+            abilityElement.dataset.userCreated = "true";
+            abilityArea.appendChild(abilityElement);
+        });
+    };
+
     const resetAbilityForm = () => {
         [
             nameInput,
@@ -317,6 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setIconPreview(defaultIconSrc);
     };
+
+    renderStoredAbilities();
 
     if (tagAddButton) {
         tagAddButton.addEventListener("click", (event) => {
@@ -386,7 +433,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        abilityArea.appendChild(createAbilityElement(data));
+        const abilityElement = createAbilityElement(data);
+        abilityElement.dataset.userCreated = "true";
+        abilityArea.appendChild(abilityElement);
+        const storedAbilities = loadStoredAbilities();
+        storedAbilities.push({ area: targetArea, data });
+        saveStoredAbilities(storedAbilities);
         resetAbilityForm();
 
         if (typeof abilityModal.close === "function") {
