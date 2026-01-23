@@ -178,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (bulkInput) {
             bulkInput.value = "";
         }
+        clearErrors();
     };
 
     const setFieldError = (field, message) => {
@@ -318,6 +319,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (buffModal.open) {
             buffModal.close();
         }
+    });
+
+    buffModal.addEventListener("close", () => {
+        resetForm();
     });
 
     iconInput?.addEventListener("change", () => {
