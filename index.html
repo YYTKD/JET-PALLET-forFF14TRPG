@@ -109,7 +109,7 @@
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded">settings</button>
                     <button class="material-symbols-rounded" command="show-modal"
-                        commandfor="addAbilityModal">add</button>
+                        commandfor="addAbilityModal" data-target-area="other-action">add</button>
                 </div>
             </div>
             <div class="section__body">
@@ -169,7 +169,7 @@
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded">settings</button>
                     <button class="material-symbols-rounded" command="show-modal"
-                        commandfor="addAbilityModal">add</button>
+                        commandfor="addAbilityModal" data-target-area="main-action">add</button>
                 </div>
             </div>
             <div class="section__body">
@@ -382,7 +382,7 @@
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded">settings</button>
                     <button class="material-symbols-rounded" command="show-modal"
-                        commandfor="addAbilityModal">add</button>
+                        commandfor="addAbilityModal" data-target-area="sub-action">add</button>
                 </div>
             </div>
             <div class="section__body">
@@ -463,7 +463,7 @@
                 <div class="section__header--buttons">
                     <button class="material-symbols-rounded" onclick="modal">settings</button>
                     <button class="material-symbols-rounded" command="show-modal"
-                        commandfor="addAbilityModal">add</button>
+                        commandfor="addAbilityModal" data-target-area="instant-action">add</button>
                 </div>
             </div>
             <div class="section__body">
@@ -660,7 +660,7 @@
             <div class="dialog__body">
                 <div class="form__options">
                     <label class="form__option--button">
-                        <input type="checkbox">
+                        <input type="checkbox" data-ability-preview-toggle>
                         <h4>プレビューを表示</h4>
                     </label>
                 </div>
@@ -672,14 +672,14 @@
                         <div class="form__row">
                             <img id="iconpreview" class="card__icon--image" src="assets/dummy_icon.png" />
                             <label class="form__option--button">
-                                <input type="file" class="form__input--icon">
+                                <input type="file" class="form__input--icon" data-ability-icon-input>
                                 <h4>ファイルを選択</h4>
                             </label>
                         </div>
                     </div>
                     <div class="form__group">
                         <span class="form__label">種別</span>
-                        <select class="form__option--type">
+                        <select class="form__option--type" data-ability-type>
                             <option class="dammy">メイン</option>
                             <option class="dammy">サブ</option>
                             <option class="dammy">インスタント</option>
@@ -691,12 +691,12 @@
                     <!--名前-->
                     <div class="form__group">
                         <span class="form__label">アビリティ名</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-name>
                     </div>
                     <!--スタック数-->
                     <div class="form__group">
                         <span class="form__label">スタック数</span>
-                        <input type="number" class="form__input--normal">
+                        <input type="number" class="form__input--normal" data-ability-stack>
                     </div>
                 </div>
                 <!--タグ-->
@@ -708,8 +708,9 @@
                         <span class="tag">連射<span type="button">x</span></span>
                     </div>
                     <div class="form__row">
-                        <input type="text" class="form__input--normal" placeholder="タグを入力してEnter">
-                        <button class="form__button">追加</button>
+                        <input type="text" class="form__input--normal" placeholder="タグを入力してEnter"
+                            data-ability-tag-input>
+                        <button class="form__button" data-ability-tag-add>追加</button>
                     </div>
                 </div>
                 <h3>選択情報</h3>
@@ -717,36 +718,36 @@
                     <!--前提-->
                     <div class="form__group">
                         <span class="form__label">前提</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-prerequisite>
                     </div>
                     <!--タイミング-->
                     <div class="form__group">
                         <span class="form__label">タイミング</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-timing>
                     </div>
                 </div>
                 <div class="form__row">
                     <!--コスト-->
                     <div class="form__group">
                         <span class="form__label">コスト</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-cost>
                     </div>
                     <!--制限-->
                     <div class="form__group">
                         <span class="form__label">制限</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-limit>
                     </div>
                 </div>
                 <div class="form__row">
                     <!--対象-->
                     <div class="form__group">
                         <span class="form__label">対象</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-target>
                     </div>
                     <!--範囲-->
                     <div class="form__group">
                         <span class="form__label">範囲</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-range>
                     </div>
                 </div>
                 <h3>判定・ダメージ</h3>
@@ -755,8 +756,8 @@
                     <div class="form__group">
                         <span class="form__label">判定</span>
                         <div class="form__row">
-                            <input type="text" class="form__input--normal">
-                            <select>
+                            <input type="text" class="form__input--normal" data-ability-judge>
+                            <select data-ability-judge-attribute>
                                 <option>+{STR}</option>
                                 <option>なし</option>
                             </select>
@@ -768,19 +769,19 @@
                     <!--基本ダメージ-->
                     <div class="form__group">
                         <span class="form__label">基本ダメージ</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-base-damage>
                     </div>
                     <!--ダイレクトヒット-->
                     <div class="form__group">
                         <span class="form__label">ダイレクトヒット</span>
-                        <input type="text" class="form__input--normal">
+                        <input type="text" class="form__input--normal" data-ability-direct-hit>
                     </div>
                 </div>
                 <h3>基本効果</h3>
                 <!--基本効果-->
                 <div class="form__group">
                     <span class="form__label">効果の説明</span>
-                    <textarea class="form__input--description"></textarea>
+                    <textarea class="form__input--description" data-ability-description></textarea>
                 </div>
             </div>
             <div class="dialog__footer">
