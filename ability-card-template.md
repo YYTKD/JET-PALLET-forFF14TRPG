@@ -11,6 +11,10 @@
   - `.card__name` のテキスト
 - **タグ**
   - `.card__tags`（名称右側のインラインタグ）
+- **基本効果**
+  - `.card__body .card__label` = `基本効果：` の `.card__value`
+
+### 任意（入力がある場合に表示）
 - **前提**
   - `.card__trigger .card__label` = `前提：` の `.card__value`
 - **タイミング**
@@ -19,10 +23,6 @@
   - `.card__meta .card__label` = `対象：` の `.card__value`
 - **範囲**
   - `.card__meta .card__label` = `範囲：` の `.card__value`
-- **基本効果**
-  - `.card__body .card__label` = `基本効果：` の `.card__value`
-
-### 任意（入力がある場合に表示）
 - **コスト**
   - `.card__meta .card__label` = `コスト：` の `.card__value`
 - **判定**
