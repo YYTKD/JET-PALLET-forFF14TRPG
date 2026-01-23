@@ -48,6 +48,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const defaultIconSrc = previewElements.icon?.getAttribute("src") ?? "";
+    const tagContainer = inputElements.tagInput?.closest(".form__group")?.querySelector(".form__row");
+    const tagState = {
+        list: [],
+    };
 
     const normalizeValue = (value) => {
         const trimmed = value?.trim();
@@ -83,11 +87,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return rawText.replace(/x$/i, "").trim();
     };
 
-    const buildTagText = () => {
-        const tagElements = Array.from(abilityModal.querySelectorAll(".tag"));
-        const tagTexts = tagElements
+    const syncTagState = () => {
+        tagState.list = Array.from(tagContainer?.querySelectorAll(".tag") ?? [])
             .map((tag) => getTagLabel(tag))
             .filter(Boolean);
+    };
+
+    const buildTagText = () => {
+        const tagTexts = [...tagState.list];
 
         const typeValue = inputElements.type?.value;
         const typeLabel = typeValue ? typeLabelMap[typeValue] : null;
@@ -162,6 +169,13 @@ document.addEventListener("DOMContentLoaded", () => {
         setTextContent(previewElements.tags, buildTagText());
     };
 
+    const scheduleTagSync = () => {
+        requestAnimationFrame(() => {
+            syncTagState();
+            updatePreview();
+        });
+    };
+
     const handleTagInteraction = (event) => {
         if (event.type === "click") {
             const isAddButton = event.target === inputElements.tagAddButton;
@@ -172,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        updatePreview();
+        scheduleTagSync();
     };
 
     const monitoredInputs = [
@@ -202,7 +216,21 @@ document.addEventListener("DOMContentLoaded", () => {
     inputElements.iconInput?.addEventListener("change", updatePreview);
     inputElements.tagInput?.addEventListener("input", updatePreview);
     inputElements.tagAddButton?.addEventListener("click", handleTagInteraction);
+    inputElements.tagInput?.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") {
+            return;
+        }
+        scheduleTagSync();
+    });
     abilityModal.addEventListener("click", handleTagInteraction);
 
+    if (tagContainer) {
+        const tagObserver = new MutationObserver(() => {
+            scheduleTagSync();
+        });
+        tagObserver.observe(tagContainer, { childList: true });
+    }
+
+    syncTagState();
     updatePreview();
 });
