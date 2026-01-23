@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    const STORAGE_KEY = "jet-pallet-buffs";
+
     const submitButton = buffModal.querySelector("[data-buff-submit]");
     const buffArea = document.querySelector(".buff-area");
     if (!submitButton || !buffArea) {
@@ -151,6 +153,66 @@ document.addEventListener("DOMContentLoaded", () => {
         applyText(buff.querySelector("[data-buff-extra-text]"), extraText);
         applyText(buff.querySelector("[data-buff-target]"), target);
         return buff;
+    };
+
+    const loadStoredBuffs = () => {
+        if (!window.localStorage) {
+            return [];
+        }
+        try {
+            const raw = window.localStorage.getItem(STORAGE_KEY);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.warn("Failed to parse stored buffs.", error);
+            return [];
+        }
+    };
+
+    const saveStoredBuffs = (buffs) => {
+        if (!window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(buffs));
+        } catch (error) {
+            console.warn("Failed to save buffs.", error);
+        }
+    };
+
+    const markBuffAsUserCreated = (buffElement, data) => {
+        buffElement.dataset.userCreated = "true";
+        buffElement.dataset.buffStorage = JSON.stringify(data);
+    };
+
+    const persistBuffElements = () => {
+        const entries = Array.from(buffArea.querySelectorAll(".buff[data-user-created='true']"))
+            .map((buff) => {
+                const raw = buff.dataset.buffStorage;
+                if (!raw) {
+                    return null;
+                }
+                try {
+                    return JSON.parse(raw);
+                } catch (error) {
+                    console.warn("Failed to parse buff entry.", error);
+                    return null;
+                }
+            })
+            .filter(Boolean);
+        saveStoredBuffs(entries);
+    };
+
+    const renderStoredBuffs = () => {
+        const storedBuffs = loadStoredBuffs();
+        storedBuffs.forEach((data) => {
+            if (!data) {
+                return;
+            }
+            const buffElement = createBuffElement(data);
+            markBuffAsUserCreated(buffElement, data);
+            buffArea.appendChild(buffElement);
+        });
     };
 
     const resetForm = () => {
@@ -318,7 +380,20 @@ document.addEventListener("DOMContentLoaded", () => {
             target,
             durationValue,
         });
+        markBuffAsUserCreated(buffElement, {
+            iconSrc,
+            limit,
+            name,
+            tag,
+            description,
+            duration,
+            command,
+            extraText,
+            target,
+            durationValue,
+        });
         buffArea.appendChild(buffElement);
+        persistBuffElements();
 
         resetForm();
         if (buffModal.open) {
@@ -337,6 +412,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!iconPreview) {
         currentIconSrc = defaultIconSrc;
     }
+
+    renderStoredBuffs();
 
     nameInput?.addEventListener("input", () => {
         validateRequired(nameInput, "name", "バフ・デバフ名");
@@ -381,6 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 buff.remove();
             }
         });
+        persistBuffElements();
     };
 
     turnButtons.start?.addEventListener("click", () => {
