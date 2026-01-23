@@ -20,6 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetSelect = buffModal.querySelector("[data-buff-target]");
     const durationSelect = buffModal.querySelector("[data-buff-duration]");
     const bulkInput = buffModal.querySelector("[data-buff-bulk]");
+    const errorSummary = buffModal.querySelector("[data-buff-error-summary]");
+    const errorFields = {
+        name: buffModal.querySelector("[data-buff-error=\"name\"]"),
+        description: buffModal.querySelector("[data-buff-error=\"description\"]"),
+        command: buffModal.querySelector("[data-buff-error=\"command\"]"),
+        extraText: buffModal.querySelector("[data-buff-error=\"extraText\"]"),
+    };
     const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon-buff.png";
     let currentIconSrc = defaultIconSrc;
 
@@ -173,8 +180,112 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    const setFieldError = (field, message) => {
+        const target = errorFields[field];
+        if (!target) {
+            return;
+        }
+        target.textContent = message;
+    };
+
+    const clearFieldError = (field) => {
+        const target = errorFields[field];
+        if (!target) {
+            return;
+        }
+        target.textContent = "";
+    };
+
+    const markInvalid = (input) => {
+        if (!input) {
+            return;
+        }
+        input.classList.add("is-invalid");
+        input.setAttribute("aria-invalid", "true");
+    };
+
+    const clearInvalid = (input, field) => {
+        if (!input) {
+            return;
+        }
+        input.classList.remove("is-invalid");
+        input.removeAttribute("aria-invalid");
+        if (field) {
+            clearFieldError(field);
+        }
+    };
+
+    const clearErrors = () => {
+        Object.keys(errorFields).forEach((field) => {
+            clearFieldError(field);
+        });
+        [nameInput, descriptionInput, commandInput, extraTextInput].forEach((input) => {
+            clearInvalid(input);
+        });
+        if (errorSummary) {
+            errorSummary.textContent = "";
+        }
+    };
+
+    const validateRequired = (input, field, label) => {
+        const value = input?.value?.trim() ?? "";
+        if (!value) {
+            setFieldError(field, `${label}は必須項目です。`);
+            markInvalid(input);
+            return false;
+        }
+        clearInvalid(input, field);
+        return true;
+    };
+
+    const validateNumberRange = (input, field, label) => {
+        const raw = input?.value?.trim() ?? "";
+        if (!raw) {
+            clearInvalid(input, field);
+            return true;
+        }
+        const numericValue = Number(raw);
+        if (Number.isNaN(numericValue)) {
+            setFieldError(field, `${label}は数値で入力してください。`);
+            markInvalid(input);
+            return false;
+        }
+        const minValue = input?.min !== "" ? Number(input.min) : null;
+        const maxValue = input?.max !== "" ? Number(input.max) : null;
+        if (minValue !== null && numericValue < minValue) {
+            setFieldError(field, `${label}は${minValue}以上で入力してください。`);
+            markInvalid(input);
+            return false;
+        }
+        if (maxValue !== null && numericValue > maxValue) {
+            setFieldError(field, `${label}は${maxValue}以下で入力してください。`);
+            markInvalid(input);
+            return false;
+        }
+        clearInvalid(input, field);
+        return true;
+    };
+
+    const validateForm = () => {
+        clearErrors();
+        let isValid = true;
+        isValid = validateRequired(nameInput, "name", "バフ・デバフ名") && isValid;
+        isValid = validateRequired(descriptionInput, "description", "効果説明") && isValid;
+        isValid = validateNumberRange(commandInput, "command", "コマンド") && isValid;
+        isValid = validateNumberRange(extraTextInput, "extraText", "追加テキスト") && isValid;
+
+        if (!isValid && errorSummary) {
+            errorSummary.textContent = "入力内容を確認してください。";
+        }
+        return isValid;
+    };
+
     submitButton.addEventListener("click", (event) => {
         event.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
 
         const iconSrc = resolveIconSource();
         const name = nameInput?.value ?? "";
@@ -216,4 +327,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!iconPreview) {
         currentIconSrc = defaultIconSrc;
     }
+
+    nameInput?.addEventListener("input", () => {
+        validateRequired(nameInput, "name", "バフ・デバフ名");
+    });
+    descriptionInput?.addEventListener("input", () => {
+        validateRequired(descriptionInput, "description", "効果説明");
+    });
+    commandInput?.addEventListener("input", () => {
+        validateNumberRange(commandInput, "command", "コマンド");
+    });
+    extraTextInput?.addEventListener("input", () => {
+        validateNumberRange(extraTextInput, "extraText", "追加テキスト");
+    });
 });
