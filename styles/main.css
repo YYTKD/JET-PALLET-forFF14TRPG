@@ -199,6 +199,23 @@ nav {
         top: 0;
         right: 0;
     }
+
+    dialog[open] {
+        margin: 0;
+        gap: 8px;
+        max-height: 100dvh;
+        width: 100dvw;
+        align-items: stretch;
+    }
+
+    .dialog__main {
+        width: 100dvw;
+        min-width: 0;
+        max-width: 100dvw;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+    }
 }
 
 @media screen and (width > 600px) {
