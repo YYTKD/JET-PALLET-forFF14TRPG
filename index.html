@@ -1552,22 +1552,26 @@
                 <!--名前-->
                 <div class="form__group">
                     <span class="form__label">バフ・デバフ名</span>
-                    <input type="text" class="form__input--normal" data-buff-name>
+                    <input type="text" class="form__input--normal" data-buff-name required>
+                    <p class="form__error" data-buff-error="name"></p>
                 </div>
                 <!--効果説明-->
                 <div class="form__group">
                     <span class="form__label">効果説明</span>
-                    <input type="text" class="form__input--normal" data-buff-description>
+                    <input type="text" class="form__input--normal" data-buff-description required>
+                    <p class="form__error" data-buff-error="description"></p>
                 </div>
                 <!--コマンド-->
                 <div class="form__group">
                     <span class="form__label">コマンド</span>
-                    <input type="number" class="form__input--normal" data-buff-command>
+                    <input type="number" class="form__input--normal" data-buff-command min="-99" max="99" step="1">
+                    <p class="form__error" data-buff-error="command"></p>
                 </div>
                 <!--追加テキスト-->
                 <div class="form__group">
                     <span class="form__label">追加テキスト</span>
-                    <input type="number" class="form__input--normal" data-buff-extra-text>
+                    <input type="number" class="form__input--normal" data-buff-extra-text min="-99" max="99" step="1">
+                    <p class="form__error" data-buff-error="extraText"></p>
                 </div>
                 <!--対象-->
                 <div class="form__group">
@@ -1593,6 +1597,7 @@
                     <span class="form__label">一括登録</span>
                     <textarea class="form__input--description" data-buff-bulk></textarea>
                 </div>
+                <p class="form__error-summary" data-buff-error-summary aria-live="polite"></p>
             </div>
             <div class="dialog__footer">
                 <button class="dialog__footer__button form__button--add" data-buff-submit>登録</button>
