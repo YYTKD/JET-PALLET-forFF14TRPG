@@ -282,6 +282,65 @@ document.addEventListener("DOMContentLoaded", () => {
         return abilityElement;
     };
 
+    const findCardStatValue = (abilityElement, labelText) => {
+        if (!abilityElement) {
+            return "";
+        }
+        const statElements = abilityElement.querySelectorAll(".card__body .card__stat");
+        for (const statElement of statElements) {
+            const label = statElement.querySelector(".card__label");
+            if (label?.textContent?.trim() === labelText) {
+                return statElement.querySelector(".card__value")?.textContent?.trim() ?? "";
+            }
+        }
+        return "";
+    };
+
+    const buildCommandFromAbility = (abilityElement) => {
+        const name = abilityElement?.querySelector(".card__name")?.childNodes?.[0]?.textContent?.trim() ?? "";
+        const judge = abilityElement
+            ?.querySelector(".card__stat--judge .card__value")
+            ?.textContent?.trim() ?? "";
+        const baseDamage = findCardStatValue(abilityElement, "基本ダメージ：");
+        const directHit = findCardStatValue(abilityElement, "ダイレクトヒット：");
+
+        const judgeCommand = judge ? `${name ? `${name} ` : ""}${judge}` : "";
+        const damageParts = [];
+        if (baseDamage) {
+            damageParts.push(baseDamage);
+        }
+        if (directHit) {
+            damageParts.push(`DH:${directHit}`);
+        }
+        const damageCommand = damageParts.join(" ");
+
+        return { judgeCommand, damageCommand };
+    };
+
+    const updateCommandArea = ({ judgeCommand, damageCommand }) => {
+        const commandSection = document.querySelector(".section__body--command");
+        if (!commandSection) {
+            return;
+        }
+        const outputElements = commandSection.querySelectorAll(".output__text");
+        if (outputElements.length === 0) {
+            return;
+        }
+        const judgeOutput = outputElements[0];
+        if (judgeOutput) {
+            judgeOutput.textContent = judgeCommand || "判定を選択してください";
+        }
+        const damageOutput = outputElements[1];
+        if (damageOutput) {
+            damageOutput.textContent = damageCommand || "ダメージを選択してください";
+        }
+    };
+
+    const handleAbilitySelect = (abilityElement) => {
+        const commands = buildCommandFromAbility(abilityElement);
+        updateCommandArea(commands);
+    };
+
     const loadStoredAbilities = () => {
         if (!window.localStorage) {
             return [];
@@ -451,5 +510,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         showToast("アビリティを登録しました。", "success");
+    });
+
+    document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const abilityElement = target.closest(".ability");
+        if (!abilityElement) {
+            return;
+        }
+        handleAbilitySelect(abilityElement);
     });
 });
