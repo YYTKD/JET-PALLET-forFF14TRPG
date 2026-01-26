@@ -348,6 +348,44 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter(Boolean);
     };
 
+    const getJudgeBuffData = () => {
+        const buffElements = Array.from(document.querySelectorAll(".buff-area .buff"));
+        return buffElements.reduce(
+            (acc, buffElement) => {
+                const targetLabel =
+                    buffElement.querySelector("[data-buff-target]")?.textContent?.trim() ?? "";
+                let targetValue = "";
+                const storage = buffElement.dataset.buffStorage;
+                if (storage) {
+                    try {
+                        targetValue = JSON.parse(storage)?.targetValue ?? "";
+                    } catch (error) {
+                        console.warn("Failed to parse buff storage.", error);
+                    }
+                }
+                if (targetLabel !== "判定" && targetValue !== "judge") {
+                    return acc;
+                }
+                const commandText =
+                    buffElement.querySelector("[data-buff-command]")?.textContent?.trim() ?? "";
+                const match = commandText.match(/[+-]?\d+/);
+                if (match) {
+                    const numericValue = Number(match[0]);
+                    if (Number.isFinite(numericValue) && numericValue !== 0) {
+                        acc.modifiers.push(formatModifier(String(numericValue)));
+                    }
+                }
+                const extraText =
+                    buffElement.querySelector("[data-buff-extra-text]")?.textContent?.trim() ?? "";
+                if (extraText) {
+                    acc.extraTexts.push(extraText);
+                }
+                return acc;
+            },
+            { modifiers: [], extraTexts: [] },
+        );
+    };
+
     const parseJudgeText = (value) => {
         const raw = value?.trim() ?? "";
         if (!raw) {
@@ -397,10 +435,12 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelector(".command-option__DH input")?.checked ?? false;
 
         const parsedJudge = parseJudgeText(judge);
+        const judgeBuffData = getJudgeBuffData();
+        const judgeModifiers = [parsedJudge.modifiers, ...judgeBuffData.modifiers].filter(Boolean);
         const judgeCore = parsedJudge.baseCommand
-            ? [parsedJudge.baseCommand, parsedJudge.modifiers].filter(Boolean).join(" ")
+            ? [parsedJudge.baseCommand, ...judgeModifiers].filter(Boolean).join(" ")
             : "";
-        const buffExtraText = "";
+        const buffExtraText = judgeBuffData.extraTexts.join(" ");
         const judgeCommand = [judgeCore, name, buffExtraText].filter(Boolean).join(" ");
         const damageParts = [];
         const baseSplit = splitDiceAndModifier(baseDamage);
