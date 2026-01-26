@@ -296,6 +296,58 @@ document.addEventListener("DOMContentLoaded", () => {
         return "";
     };
 
+    const splitDiceAndModifier = (value) => {
+        const raw = value?.trim() ?? "";
+        if (!raw) {
+            return { dice: "", mod: "" };
+        }
+        const match = raw.match(/^(\d+d\d+)(.*)$/i);
+        if (!match) {
+            return { dice: "", mod: raw };
+        }
+        return { dice: match[1], mod: match[2].trim() };
+    };
+
+    const formatModifier = (value) => {
+        if (!value) {
+            return "";
+        }
+        return /^[+-]/.test(value) ? value : `+${value}`;
+    };
+
+    const getDamageBuffModifiers = () => {
+        const buffElements = Array.from(document.querySelectorAll(".buff-area .buff"));
+        return buffElements
+            .map((buffElement) => {
+                const targetLabel =
+                    buffElement.querySelector("[data-buff-target]")?.textContent?.trim() ?? "";
+                let targetValue = "";
+                const storage = buffElement.dataset.buffStorage;
+                if (storage) {
+                    try {
+                        targetValue = JSON.parse(storage)?.targetValue ?? "";
+                    } catch (error) {
+                        console.warn("Failed to parse buff storage.", error);
+                    }
+                }
+                if (targetLabel !== "ダメージ" && targetValue !== "damage") {
+                    return "";
+                }
+                const commandText =
+                    buffElement.querySelector("[data-buff-command]")?.textContent?.trim() ?? "";
+                const match = commandText.match(/[+-]?\d+/);
+                if (!match) {
+                    return "";
+                }
+                const numericValue = Number(match[0]);
+                if (!Number.isFinite(numericValue) || numericValue === 0) {
+                    return "";
+                }
+                return formatModifier(String(numericValue));
+            })
+            .filter(Boolean);
+    };
+
     const buildCommandFromAbility = (abilityElement) => {
         const name = abilityElement?.querySelector(".card__name")?.childNodes?.[0]?.textContent?.trim() ?? "";
         const judge = abilityElement
@@ -308,12 +360,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const judgeCommand = judge ? `${name ? `${name} ` : ""}${judge}` : "";
         const damageParts = [];
-        if (baseDamage) {
-            damageParts.push(baseDamage);
+        const baseSplit = splitDiceAndModifier(baseDamage);
+        if (baseSplit.dice) {
+            damageParts.push(baseSplit.dice);
         }
-        if (directHit && directHitEnabled) {
-            damageParts.push(`DH:${directHit}`);
+
+        const directSplit = splitDiceAndModifier(directHit);
+        if (directHitEnabled && directSplit.dice) {
+            damageParts.push(`DH:${directSplit.dice}`);
         }
+
+        const modifierParts = [];
+        if (baseSplit.mod) {
+            modifierParts.push(formatModifier(baseSplit.mod));
+        }
+        if (directHitEnabled && directSplit.mod) {
+            modifierParts.push(formatModifier(directSplit.mod));
+        }
+        modifierParts.push(...getDamageBuffModifiers());
+        damageParts.push(...modifierParts.filter(Boolean));
+
         const damageCommand = damageParts.join(" ");
 
         return { judgeCommand, damageCommand };
