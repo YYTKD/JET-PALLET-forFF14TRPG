@@ -303,13 +303,15 @@ document.addEventListener("DOMContentLoaded", () => {
             ?.textContent?.trim() ?? "";
         const baseDamage = findCardStatValue(abilityElement, "基本ダメージ：");
         const directHit = findCardStatValue(abilityElement, "ダイレクトヒット：");
+        const directHitEnabled =
+            document.querySelector(".command-option__DH input")?.checked ?? false;
 
         const judgeCommand = judge ? `${name ? `${name} ` : ""}${judge}` : "";
         const damageParts = [];
         if (baseDamage) {
             damageParts.push(baseDamage);
         }
-        if (directHit) {
+        if (directHit && directHitEnabled) {
             damageParts.push(`DH:${directHit}`);
         }
         const damageCommand = damageParts.join(" ");
