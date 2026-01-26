@@ -322,17 +322,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!commandSection) {
             return;
         }
-        const outputElements = commandSection.querySelectorAll(".output__text");
-        if (outputElements.length === 0) {
-            return;
-        }
-        const judgeOutput = outputElements[0];
+        const judgeOutput = commandSection.querySelector("#judgeOutput");
         if (judgeOutput) {
             judgeOutput.textContent = judgeCommand || "判定を選択してください";
         }
-        const damageOutput = outputElements[1];
-        if (damageOutput) {
-            damageOutput.textContent = damageCommand || "ダメージを選択してください";
+        const attackOutput = commandSection.querySelector("#attackOutput");
+        if (attackOutput) {
+            attackOutput.textContent = damageCommand || "ダメージを選択してください";
         }
     };
 
