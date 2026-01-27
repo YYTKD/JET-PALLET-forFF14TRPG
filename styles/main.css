@@ -149,6 +149,10 @@ details summary::marker {
     display: none;
 }
 
+body.is-ability-dragging .card--tooltip {
+    display: none !important;
+}
+
 @position-try --clock-position {
     positionarea: top left, top right, bottom left, bottom right, center;
 }
@@ -429,7 +433,7 @@ section {
 
 .ability-area {
     --ability-cell-size: 56px;
-    --ability-gap: 8px;
+    --ability-gap: 0px;
     --ability-columns: 6;
     --ability-rows: 1;
     display: grid;
@@ -443,6 +447,7 @@ section {
     align-content: start;
     justify-content: start;
     background-image: url("../assets/Frame_255.png");
+    position: relative;
 }
 
 .ability-area--other {
@@ -557,6 +562,25 @@ section {
     @starting-style {
         opacity: 0;
     }
+}
+
+.ability-drop-indicator {
+    position: absolute;
+    width: var(--ability-cell-size);
+    height: var(--ability-cell-size);
+    top: calc((var(--drop-row, 1) - 1) * (var(--ability-cell-size) + var(--ability-gap)));
+    left: calc((var(--drop-col, 1) - 1) * (var(--ability-cell-size) + var(--ability-gap)));
+    border: 2px solid #ffb100;
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(255, 177, 0, 0.45);
+    background: rgba(255, 177, 0, 0.12);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.ability-area.is-dragging .ability-drop-indicator {
+    opacity: 1;
 }
 
 .context-menu {

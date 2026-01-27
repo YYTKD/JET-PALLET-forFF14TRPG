@@ -99,6 +99,12 @@ const DATASET_KEYS = {
     uploaded: "uploaded",
 };
 
+const DRAG_CLASSES = {
+    bodyDragging: "is-ability-dragging",
+    areaDragging: "is-dragging",
+    dropIndicator: "ability-drop-indicator",
+};
+
 const TEXT = {
     defaultIcon: "assets/dummy_icon.png",
     uploadedImageLabel: "アップロード画像",
@@ -1433,6 +1439,31 @@ document.addEventListener("DOMContentLoaded", () => {
         return { cellSize, gap, columns, rows };
     };
 
+    const ensureDropIndicator = (abilityArea) => {
+        let indicator = abilityArea.querySelector(`.${DRAG_CLASSES.dropIndicator}`);
+        if (!(indicator instanceof HTMLElement)) {
+            indicator = document.createElement("div");
+            indicator.className = DRAG_CLASSES.dropIndicator;
+            abilityArea.appendChild(indicator);
+        }
+        return indicator;
+    };
+
+    const updateDropIndicator = (abilityArea, row, col) => {
+        const indicator = ensureDropIndicator(abilityArea);
+        indicator.style.setProperty("--drop-row", String(row));
+        indicator.style.setProperty("--drop-col", String(col));
+    };
+
+    const clearDropIndicator = (abilityArea) => {
+        abilityArea.classList.remove(DRAG_CLASSES.areaDragging);
+        const indicator = abilityArea.querySelector(`.${DRAG_CLASSES.dropIndicator}`);
+        if (indicator instanceof HTMLElement) {
+            indicator.style.removeProperty("--drop-row");
+            indicator.style.removeProperty("--drop-col");
+        }
+    };
+
     const getGridCoordinateFromEvent = (abilityArea, event) => {
         const rect = abilityArea.getBoundingClientRect();
         const { cellSize, gap, columns, rows } = getGridMetrics(abilityArea);
@@ -1479,10 +1510,25 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!hasDragPayloadType) {
                 return;
             }
+            const payload = getDragPayload(event);
+            if (payload && payload.area !== getAbilityAreaKey(abilityArea)) {
+                return;
+            }
             event.preventDefault();
             if (dataTransfer) {
                 dataTransfer.dropEffect = "move";
             }
+            const { row, col } = getGridCoordinateFromEvent(abilityArea, event);
+            abilityArea.classList.add(DRAG_CLASSES.areaDragging);
+            updateDropIndicator(abilityArea, row, col);
+        });
+
+        abilityArea.addEventListener("dragleave", (event) => {
+            const relatedTarget = event.relatedTarget;
+            if (relatedTarget instanceof Element && abilityArea.contains(relatedTarget)) {
+                return;
+            }
+            clearDropIndicator(abilityArea);
         });
 
         abilityArea.addEventListener("drop", (event) => {
@@ -1502,6 +1548,7 @@ document.addEventListener("DOMContentLoaded", () => {
             applyAbilityPosition(abilityElement, row, col);
             const updatedData = extractAbilityData(abilityElement);
             upsertStoredAbility(payload.id, payload.area, updatedData);
+            clearDropIndicator(abilityArea);
         });
     }
 
@@ -1729,6 +1776,13 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast(TEXT.toastRegister, "success");
     });
 
+    const clearDragState = () => {
+        document.body.classList.remove(DRAG_CLASSES.bodyDragging);
+        document.querySelectorAll(SELECTORS.abilityArea).forEach((abilityArea) => {
+            clearDropIndicator(abilityArea);
+        });
+    };
+
     document.addEventListener("dragstart", (event) => {
         const target = event.target;
         if (!(target instanceof Element)) {
@@ -1746,7 +1800,11 @@ document.addEventListener("DOMContentLoaded", () => {
         event.dataTransfer.setData("application/json", payload);
         event.dataTransfer.setData("text/plain", payload);
         event.dataTransfer.effectAllowed = "move";
+        document.body.classList.add(DRAG_CLASSES.bodyDragging);
     });
+
+    document.addEventListener("dragend", clearDragState);
+    document.addEventListener("drop", clearDragState);
 
     document.querySelectorAll(SELECTORS.abilityArea).forEach((abilityArea) => {
         registerAbilityArea(abilityArea);
