@@ -1,44 +1,53 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const abilityModal = document.getElementById("addAbilityModal");
-    if (!abilityModal) {
+    const collectElements = () => {
+        const abilityModal = document.getElementById("addAbilityModal");
+        const previewElements = {
+            icon: abilityModal?.querySelector("[data-ability-preview-icon]") ?? null,
+            name: abilityModal?.querySelector("[data-ability-preview-name]") ?? null,
+            tags: abilityModal?.querySelector("[data-ability-preview-tags]") ?? null,
+            prerequisite: abilityModal?.querySelector("[data-ability-preview-prerequisite]") ?? null,
+            timing: abilityModal?.querySelector("[data-ability-preview-timing]") ?? null,
+            cost: abilityModal?.querySelector("[data-ability-preview-cost]") ?? null,
+            limit: abilityModal?.querySelector("[data-ability-preview-limit]") ?? null,
+            target: abilityModal?.querySelector("[data-ability-preview-target]") ?? null,
+            range: abilityModal?.querySelector("[data-ability-preview-range]") ?? null,
+            judge: abilityModal?.querySelector("[data-ability-preview-judge]") ?? null,
+            effect: abilityModal?.querySelector("[data-ability-preview-effect]") ?? null,
+            directHit: abilityModal?.querySelector("[data-ability-preview-direct-hit]") ?? null,
+        };
+        const inputElements = {
+            iconSelect: abilityModal?.querySelector("[data-ability-icon-select]") ?? null,
+            iconInput: abilityModal?.querySelector("[data-ability-icon-input]") ?? null,
+            type: abilityModal?.querySelector("[data-ability-type]") ?? null,
+            name: abilityModal?.querySelector("[data-ability-name]") ?? null,
+            prerequisite: abilityModal?.querySelector("[data-ability-prerequisite]") ?? null,
+            timing: abilityModal?.querySelector("[data-ability-timing]") ?? null,
+            cost: abilityModal?.querySelector("[data-ability-cost]") ?? null,
+            limit: abilityModal?.querySelector("[data-ability-limit]") ?? null,
+            target: abilityModal?.querySelector("[data-ability-target]") ?? null,
+            range: abilityModal?.querySelector("[data-ability-range]") ?? null,
+            judge: abilityModal?.querySelector("[data-ability-judge]") ?? null,
+            judgeAttribute: abilityModal?.querySelector("[data-ability-judge-attribute]") ?? null,
+            effect: abilityModal?.querySelector("[data-ability-description]") ?? null,
+            directHit: abilityModal?.querySelector("[data-ability-direct-hit]") ?? null,
+            tagInput: abilityModal?.querySelector("[data-ability-tag-input]") ?? null,
+            tagAddButton: abilityModal?.querySelector("[data-ability-tag-add]") ?? null,
+        };
+        const tagContainer =
+            inputElements.tagInput?.closest(".form__group")?.querySelector(".form__row") ?? null;
+        return { abilityModal, previewElements, inputElements, tagContainer };
+    };
+
+    const hasRequiredElements = (elements) => Boolean(elements.abilityModal);
+
+    const elements = collectElements();
+    if (!hasRequiredElements(elements)) {
         return;
     }
 
     const PLACEHOLDER_TEXT = "未入力";
 
-    const previewElements = {
-        icon: abilityModal.querySelector("[data-ability-preview-icon]"),
-        name: abilityModal.querySelector("[data-ability-preview-name]"),
-        tags: abilityModal.querySelector("[data-ability-preview-tags]"),
-        prerequisite: abilityModal.querySelector("[data-ability-preview-prerequisite]"),
-        timing: abilityModal.querySelector("[data-ability-preview-timing]"),
-        cost: abilityModal.querySelector("[data-ability-preview-cost]"),
-        limit: abilityModal.querySelector("[data-ability-preview-limit]"),
-        target: abilityModal.querySelector("[data-ability-preview-target]"),
-        range: abilityModal.querySelector("[data-ability-preview-range]"),
-        judge: abilityModal.querySelector("[data-ability-preview-judge]"),
-        effect: abilityModal.querySelector("[data-ability-preview-effect]"),
-        directHit: abilityModal.querySelector("[data-ability-preview-direct-hit]"),
-    };
-
-    const inputElements = {
-        iconSelect: abilityModal.querySelector("[data-ability-icon-select]"),
-        iconInput: abilityModal.querySelector("[data-ability-icon-input]"),
-        type: abilityModal.querySelector("[data-ability-type]"),
-        name: abilityModal.querySelector("[data-ability-name]"),
-        prerequisite: abilityModal.querySelector("[data-ability-prerequisite]"),
-        timing: abilityModal.querySelector("[data-ability-timing]"),
-        cost: abilityModal.querySelector("[data-ability-cost]"),
-        limit: abilityModal.querySelector("[data-ability-limit]"),
-        target: abilityModal.querySelector("[data-ability-target]"),
-        range: abilityModal.querySelector("[data-ability-range]"),
-        judge: abilityModal.querySelector("[data-ability-judge]"),
-        judgeAttribute: abilityModal.querySelector("[data-ability-judge-attribute]"),
-        effect: abilityModal.querySelector("[data-ability-description]"),
-        directHit: abilityModal.querySelector("[data-ability-direct-hit]"),
-        tagInput: abilityModal.querySelector("[data-ability-tag-input]"),
-        tagAddButton: abilityModal.querySelector("[data-ability-tag-add]"),
-    };
+    const { previewElements, inputElements, tagContainer } = elements;
 
     const typeLabelMap = {
         main: "メイン",
@@ -48,7 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const defaultIconSrc = previewElements.icon?.getAttribute("src") ?? "";
-    const tagContainer = inputElements.tagInput?.closest(".form__group")?.querySelector(".form__row");
     const tagState = {
         list: [],
     };

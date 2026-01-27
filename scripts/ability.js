@@ -76,13 +76,39 @@ document.addEventListener("DOMContentLoaded", () => {
         return { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems };
     };
 
-    const abilityModal = document.getElementById("addAbilityModal");
-    if (!abilityModal) {
-        return;
-    }
+    const collectElements = () => {
+        const abilityModal = document.getElementById("addAbilityModal");
+        const modalElements = getAbilityModalElements(abilityModal);
+        const { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems } = getMenuElements();
+        const subcategoryTemplate = document.getElementById("abilitySubcategoryTemplate");
+        const abilityAreas = document.querySelectorAll(".ability-area[data-ability-area]");
+        const abilityRowAddButtons = document.querySelectorAll("[data-ability-row-add]");
+        const commandSection = document.querySelector(".section__body--command");
+        const judgeOutput = commandSection?.querySelector("#judgeOutput") ?? null;
+        const attackOutput = commandSection?.querySelector("#attackOutput") ?? null;
+        const phaseButton = document.querySelector("[data-turn-action=\"phase\"]");
+        return {
+            abilityModal,
+            modalElements,
+            contextMenu,
+            contextMenuItems,
+            sectionMenu,
+            sectionMenuItems,
+            subcategoryTemplate,
+            abilityAreas,
+            abilityRowAddButtons,
+            commandSection,
+            judgeOutput,
+            attackOutput,
+            phaseButton,
+        };
+    };
 
-    const modalElements = getAbilityModalElements(abilityModal);
-    if (!modalElements) {
+    const hasRequiredElements = ({ abilityModal, modalElements }) =>
+        Boolean(abilityModal && modalElements);
+
+    const elements = collectElements();
+    if (!hasRequiredElements(elements)) {
         return;
     }
 
@@ -111,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tagContainer,
         defaultIconSrc,
         defaultTagMarkup,
-    } = modalElements;
+    } = elements.modalElements;
 
     let currentIconSrc = defaultIconSrc;
     const showToast =
@@ -122,8 +148,20 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-    const { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems } = getMenuElements();
-    const subcategoryTemplate = document.getElementById("abilitySubcategoryTemplate");
+    const {
+        abilityModal,
+        contextMenu,
+        contextMenuItems,
+        sectionMenu,
+        sectionMenuItems,
+        subcategoryTemplate,
+        abilityAreas,
+        abilityRowAddButtons,
+        commandSection,
+        judgeOutput,
+        attackOutput,
+        phaseButton,
+    } = elements;
     let editingAbilityId = null;
     let editingAbilityElement = null;
     let contextMenuTarget = null;
@@ -183,7 +221,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const abilityRowsByArea = loadStoredAbilityRows();
-    const abilityAreas = document.querySelectorAll(".ability-area[data-ability-area]");
     abilityAreas.forEach((abilityArea) => {
         const areaKey = abilityArea.dataset.abilityArea;
         if (!areaKey) {
@@ -240,7 +277,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    const abilityRowAddButtons = document.querySelectorAll("[data-ability-row-add]");
     abilityRowAddButtons.forEach((button) => {
         button.addEventListener("click", (event) => {
             event.preventDefault();
@@ -840,15 +876,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const updateCommandArea = ({ judgeCommand, damageCommand }) => {
-        const commandSection = document.querySelector(".section__body--command");
         if (!commandSection) {
             return;
         }
-        const judgeOutput = commandSection.querySelector("#judgeOutput");
         if (judgeOutput) {
             judgeOutput.textContent = judgeCommand || "判定を選択してください";
         }
-        const attackOutput = commandSection.querySelector("#attackOutput");
         if (attackOutput) {
             attackOutput.textContent = damageCommand || "ダメージを選択してください";
         }
@@ -1653,17 +1686,18 @@ document.addEventListener("DOMContentLoaded", () => {
         updateStackBadge(abilityElement);
     });
 
-    const phaseButton = document.querySelector("[data-turn-action=\"phase\"]");
-    phaseButton?.addEventListener("click", () => {
-        document.querySelectorAll(".ability").forEach((abilityElement) => {
-            const max = Number(abilityElement.dataset.stackMax);
-            if (!Number.isFinite(max) || max <= 0) {
-                return;
-            }
-            abilityElement.dataset.stackCurrent = String(max);
-            updateStackBadge(abilityElement);
+    if (phaseButton) {
+        phaseButton.addEventListener("click", () => {
+            document.querySelectorAll(".ability").forEach((abilityElement) => {
+                const max = Number(abilityElement.dataset.stackMax);
+                if (!Number.isFinite(max) || max <= 0) {
+                    return;
+                }
+                abilityElement.dataset.stackCurrent = String(max);
+                updateStackBadge(abilityElement);
+            });
         });
-    });
+    }
 
     abilityModal.addEventListener("close", () => {
         resetAbilityForm();
