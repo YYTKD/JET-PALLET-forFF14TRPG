@@ -32,11 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon-buff.png";
     let currentIconSrc = defaultIconSrc;
-    const showToast = (message, type = "info") => {
-        if (typeof window.showToast === "function") {
-            window.showToast(message, { type });
-        }
-    };
+    const showToast =
+        window.toastUtils?.showToast ??
+        ((message, type = "info") => {
+            if (typeof window.showToast === "function") {
+                window.showToast(message, { type });
+            }
+        });
     const inlineErrorsEnabled = false;
     const defaultSubmitLabel = submitButton.textContent || "登録";
     const buffModalTitle = buffModal.querySelector(".section__header--title");
@@ -173,28 +175,22 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const loadStoredBuffs = (key) => {
-        if (!window.localStorage) {
-            return [];
-        }
-        try {
-            const raw = window.localStorage.getItem(key);
-            const parsed = raw ? JSON.parse(raw) : [];
+        if (window.storageUtils?.readJson) {
+            const parsed = window.storageUtils.readJson(key, [], {
+                parseErrorMessage: "Failed to parse stored buffs.",
+            });
             return Array.isArray(parsed) ? parsed : [];
-        } catch (error) {
-            console.warn("Failed to parse stored buffs.", error);
-            return [];
         }
+        return [];
     };
 
     const saveStoredBuffs = (key, buffs) => {
-        if (!window.localStorage) {
+        if (!window.storageUtils?.writeJson) {
             return;
         }
-        try {
-            window.localStorage.setItem(key, JSON.stringify(buffs));
-        } catch (error) {
-            console.warn("Failed to save buffs.", error);
-        }
+        window.storageUtils.writeJson(key, buffs, {
+            saveErrorMessage: "Failed to save buffs.",
+        });
     };
 
     const markBuffAsUserCreated = (buffElement, data) => {

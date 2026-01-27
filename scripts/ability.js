@@ -114,11 +114,13 @@ document.addEventListener("DOMContentLoaded", () => {
     } = modalElements;
 
     let currentIconSrc = defaultIconSrc;
-    const showToast = (message, type = "info") => {
-        if (typeof window.showToast === "function") {
-            window.showToast(message, { type });
-        }
-    };
+    const showToast =
+        window.toastUtils?.showToast ??
+        ((message, type = "info") => {
+            if (typeof window.showToast === "function") {
+                window.showToast(message, { type });
+            }
+        });
 
     const { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems } = getMenuElements();
     const subcategoryTemplate = document.getElementById("abilitySubcategoryTemplate");
@@ -138,27 +140,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const readStorageJson = (key, fallback) => {
-        if (!window.localStorage) {
-            return fallback;
+        if (window.storageUtils?.readJson) {
+            return window.storageUtils.readJson(key, fallback, {
+                parseErrorMessage: `Failed to parse stored data for ${key}.`,
+            });
         }
-        try {
-            const raw = window.localStorage.getItem(key);
-            return raw ? JSON.parse(raw) : fallback;
-        } catch (error) {
-            console.warn(`Failed to parse stored data for ${key}.`, error);
-            return fallback;
-        }
+        return fallback;
     };
 
     const writeStorageJson = (key, value, logLabel) => {
-        if (!window.localStorage) {
+        if (!window.storageUtils?.writeJson) {
             return;
         }
-        try {
-            window.localStorage.setItem(key, JSON.stringify(value));
-        } catch (error) {
-            console.warn(`Failed to save ${logLabel}.`, error);
-        }
+        window.storageUtils.writeJson(key, value, {
+            saveErrorMessage: `Failed to save ${logLabel}.`,
+        });
     };
 
     const loadStoredAbilityRows = () => {
