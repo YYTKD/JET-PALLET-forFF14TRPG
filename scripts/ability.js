@@ -1472,16 +1472,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function registerAbilityArea(abilityArea) {
         abilityArea.addEventListener("dragover", (event) => {
-            const payload = getDragPayload(event);
-            if (!payload) {
-                return;
-            }
-            if (payload.area !== getAbilityAreaKey(abilityArea)) {
+            const dataTransfer = event.dataTransfer;
+            const types = dataTransfer?.types ? Array.from(dataTransfer.types) : [];
+            const hasDragPayloadType =
+                types.includes("application/json") || types.includes("text/plain");
+            if (!hasDragPayloadType) {
                 return;
             }
             event.preventDefault();
-            if (event.dataTransfer) {
-                event.dataTransfer.dropEffect = "move";
+            if (dataTransfer) {
+                dataTransfer.dropEffect = "move";
             }
         });
 
