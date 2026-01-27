@@ -44,6 +44,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    const contextMenu = document.getElementById("abilityContextMenu");
+    const contextMenuItems = contextMenu?.querySelectorAll("[data-ability-action]") ?? [];
+    const defaultTagMarkup = tagContainer?.innerHTML ?? "";
+    let editingAbilityId = null;
+    let editingAbilityElement = null;
+    let contextMenuTarget = null;
+    let longPressTimer = null;
+
+    const generateAbilityId = () => {
+        if (window.crypto?.randomUUID) {
+            return window.crypto.randomUUID();
+        }
+        return `ability-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
+
     const setIconPreview = (src) => {
         if (!src) {
             return;
@@ -259,10 +274,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${attributeText}${formatJudgeValue(judgeValue)}`;
     };
 
-    const createAbilityElement = (data) => {
+    const createAbilityElement = (data, abilityId) => {
         const abilityElement = document.createElement("div");
         abilityElement.className = "ability";
         abilityElement.setAttribute("draggable", "true");
+        if (abilityId) {
+            abilityElement.dataset.abilityId = abilityId;
+        }
 
         const tagText = data.tags ?? "";
         const metaBlocks = [
@@ -330,6 +348,23 @@ document.addEventListener("DOMContentLoaded", () => {
         return abilityElement;
     };
 
+    const parseTagList = (tagText) => {
+        return (tagText ?? "")
+            .split("・")
+            .map((tag) => tag.trim())
+            .filter(Boolean);
+    };
+
+    const setTagsFromText = (tagText) => {
+        if (!tagContainer) {
+            return;
+        }
+        tagContainer.innerHTML = "";
+        parseTagList(tagText).forEach((tag) => {
+            tagContainer.appendChild(createTagElement(tag));
+        });
+    };
+
     const findCardStatValue = (abilityElement, labelText) => {
         if (!abilityElement) {
             return "";
@@ -361,6 +396,23 @@ document.addEventListener("DOMContentLoaded", () => {
             return "";
         }
         return /^[+-]/.test(value) ? value : `+${value}`;
+    };
+
+    const ensureAbilityIconOption = (iconSrc) => {
+        if (!iconSelect || !iconSrc) {
+            return;
+        }
+        const existingOption = Array.from(iconSelect.options).find(
+            (option) => option.value === iconSrc,
+        );
+        if (existingOption) {
+            return;
+        }
+        const uploadedOption = document.createElement("option");
+        uploadedOption.value = iconSrc;
+        uploadedOption.textContent = "アップロード画像";
+        uploadedOption.dataset.uploaded = "true";
+        iconSelect.appendChild(uploadedOption);
     };
 
     const getDamageBuffData = () => {
@@ -558,7 +610,25 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const raw = window.localStorage.getItem(STORAGE_KEY);
             const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed : [];
+            if (!Array.isArray(parsed)) {
+                return [];
+            }
+            const normalized = parsed
+                .map((entry) => {
+                    if (!entry || !entry.data) {
+                        return null;
+                    }
+                    return {
+                        ...entry,
+                        id: entry.id ?? generateAbilityId(),
+                    };
+                })
+                .filter(Boolean);
+            const needsSave = normalized.some((entry, index) => entry.id !== parsed[index]?.id);
+            if (needsSave) {
+                saveStoredAbilities(normalized);
+            }
+            return normalized;
         } catch (error) {
             console.warn("Failed to parse stored abilities.", error);
             return [];
@@ -588,7 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!abilityArea) {
                 return;
             }
-            const abilityElement = createAbilityElement(entry.data);
+            const abilityElement = createAbilityElement(entry.data, entry.id);
             abilityElement.dataset.userCreated = "true";
             abilityArea.appendChild(abilityElement);
         });
@@ -634,10 +704,258 @@ document.addEventListener("DOMContentLoaded", () => {
             iconSelect.selectedIndex = 0;
         }
 
+        if (tagContainer && defaultTagMarkup) {
+            tagContainer.innerHTML = defaultTagMarkup;
+        }
+
         setIconPreview(defaultIconSrc);
     };
 
+    const getAbilityName = (abilityElement) => {
+        return (
+            abilityElement?.querySelector(".card__name")?.childNodes?.[0]?.textContent?.trim() ?? ""
+        );
+    };
+
+    const extractAbilityData = (abilityElement) => {
+        const triggerStats = Array.from(
+            abilityElement?.querySelectorAll(".card__trigger .card__stat") ?? [],
+        );
+        let prerequisite = "";
+        let timing = "";
+        triggerStats.forEach((stat) => {
+            const label = stat.querySelector(".card__label")?.textContent?.trim();
+            const value = stat.querySelector(".card__value")?.textContent?.trim() ?? "";
+            if (label === "前提：") {
+                prerequisite = value;
+            }
+            if (label === "タイミング：") {
+                timing = value;
+            }
+        });
+        return {
+            iconSrc: abilityElement?.querySelector("img")?.getAttribute("src") ?? defaultIconSrc,
+            name: getAbilityName(abilityElement),
+            tags: abilityElement?.querySelector(".card__tags")?.textContent?.trim() ?? "",
+            stackMax: abilityElement?.dataset.stackMax ?? "",
+            stackCurrent: abilityElement?.dataset.stackCurrent ?? "",
+            prerequisite,
+            timing,
+            cost: findCardStatValue(abilityElement, "コスト："),
+            limit: findCardStatValue(abilityElement, "制限："),
+            target: findCardStatValue(abilityElement, "対象："),
+            range: findCardStatValue(abilityElement, "範囲："),
+            judge:
+                abilityElement
+                    ?.querySelector(".card__stat--judge .card__value")
+                    ?.textContent?.trim() ?? "",
+            baseDamage: findCardStatValue(abilityElement, "基本ダメージ："),
+            directHit: findCardStatValue(abilityElement, "ダイレクトヒット："),
+            description: findCardStatValue(abilityElement, "基本効果："),
+        };
+    };
+
+    const populateAbilityForm = (data, areaValue) => {
+        const judgeMatch = parseJudgeText(data.judge).baseCommand.match(
+            /([+-]?(?:\d+)?d\d+)\+\{([^}]+)\}/i,
+        );
+
+        setIconPreview(data.iconSrc);
+        ensureAbilityIconOption(data.iconSrc);
+        if (iconSelect) {
+            iconSelect.value = data.iconSrc;
+        }
+        if (iconInput) {
+            iconInput.value = "";
+        }
+
+        if (typeSelect && areaValue) {
+            typeSelect.value = areaValue;
+        }
+
+        if (nameInput) {
+            nameInput.value = data.name ?? "";
+        }
+        if (stackInput) {
+            stackInput.value = data.stackMax ?? "";
+        }
+        if (prerequisiteInput) {
+            prerequisiteInput.value = data.prerequisite ?? "";
+        }
+        if (timingInput) {
+            timingInput.value = data.timing ?? "";
+        }
+        if (costInput) {
+            costInput.value = data.cost ?? "";
+        }
+        if (limitInput) {
+            limitInput.value = data.limit ?? "";
+        }
+        if (targetInput) {
+            targetInput.value = data.target ?? "";
+        }
+        if (rangeInput) {
+            rangeInput.value = data.range ?? "";
+        }
+        if (baseDamageInput) {
+            baseDamageInput.value = data.baseDamage ?? "";
+        }
+        if (directHitInput) {
+            directHitInput.value = data.directHit ?? "";
+        }
+        if (descriptionInput) {
+            descriptionInput.value = data.description ?? "";
+        }
+
+        if (judgeInput) {
+            judgeInput.value = judgeMatch ? judgeMatch[1].replace(/^\+/, "") : "";
+        }
+        if (judgeAttributeSelect) {
+            if (judgeMatch) {
+                judgeAttributeSelect.value = `+{${judgeMatch[2]}}`;
+            } else {
+                judgeAttributeSelect.selectedIndex = 0;
+            }
+        }
+
+        setTagsFromText(data.tags);
+
+        [
+            nameInput,
+            stackInput,
+            prerequisiteInput,
+            timingInput,
+            costInput,
+            limitInput,
+            targetInput,
+            rangeInput,
+            judgeInput,
+            judgeAttributeSelect,
+            baseDamageInput,
+            directHitInput,
+            descriptionInput,
+            typeSelect,
+            iconSelect,
+        ].forEach((input) => {
+            if (!input) {
+                return;
+            }
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    };
+
+    const buildAbilityDataFromForm = () => {
+        const typeLabel = typeSelect?.selectedOptions?.[0]?.textContent?.trim() ?? "";
+        const iconSrc = currentIconSrc || iconPreview?.src || defaultIconSrc;
+        const stackMax = parseStackValue(stackInput?.value?.trim());
+        return {
+            iconSrc,
+            name: nameInput?.value?.trim() ?? "",
+            tags: buildTagText(typeLabel),
+            stackMax: stackMax ? String(stackMax) : "",
+            stackCurrent: stackMax ? String(stackMax) : "",
+            prerequisite: prerequisiteInput?.value?.trim() ?? "",
+            timing: timingInput?.value?.trim() ?? "",
+            cost: costInput?.value?.trim() ?? "",
+            limit: limitInput?.value?.trim() ?? "",
+            target: targetInput?.value?.trim() ?? "",
+            range: rangeInput?.value?.trim() ?? "",
+            judge: buildJudgeText(),
+            baseDamage: baseDamageInput?.value?.trim() ?? "",
+            directHit: directHitInput?.value?.trim() ?? "",
+            description: descriptionInput?.value?.trim() ?? "",
+        };
+    };
+
+    const closeContextMenu = () => {
+        if (!contextMenu) {
+            return;
+        }
+        contextMenu.classList.remove("is-open");
+        contextMenu.setAttribute("aria-hidden", "true");
+        contextMenuTarget = null;
+    };
+
+    const openContextMenu = (abilityElement, x, y) => {
+        if (!contextMenu) {
+            return;
+        }
+        contextMenuTarget = abilityElement;
+        const menuWidth = contextMenu.offsetWidth || 160;
+        const menuHeight = contextMenu.offsetHeight || 120;
+        const maxX = window.innerWidth - menuWidth - 8;
+        const maxY = window.innerHeight - menuHeight - 8;
+        const left = Math.max(8, Math.min(x, maxX));
+        const top = Math.max(8, Math.min(y, maxY));
+        contextMenu.style.left = `${left}px`;
+        contextMenu.style.top = `${top}px`;
+        contextMenu.classList.add("is-open");
+        contextMenu.setAttribute("aria-hidden", "false");
+    };
+
+    const startEditingAbility = (abilityElement) => {
+        if (!abilityElement || !abilityModal) {
+            return;
+        }
+        const abilityId = abilityElement.dataset.abilityId || generateAbilityId();
+        abilityElement.dataset.abilityId = abilityId;
+        editingAbilityId = abilityId;
+        editingAbilityElement = abilityElement;
+        addButton.textContent = "更新";
+        const abilityArea = abilityElement.closest(".ability-area");
+        const areaValue = abilityArea?.dataset.abilityArea ?? "main";
+        abilityModal.dataset.targetArea = areaValue;
+        populateAbilityForm(extractAbilityData(abilityElement), areaValue);
+        if (typeof abilityModal.showModal === "function") {
+            abilityModal.showModal();
+        }
+    };
+
+    const resetEditingState = () => {
+        editingAbilityId = null;
+        editingAbilityElement = null;
+        addButton.textContent = "登録";
+    };
+
+    const insertAbilityAfter = (referenceElement, newElement) => {
+        if (!referenceElement?.parentElement) {
+            return;
+        }
+        const nextSibling = referenceElement.nextElementSibling;
+        if (nextSibling) {
+            referenceElement.parentElement.insertBefore(newElement, nextSibling);
+        } else {
+            referenceElement.parentElement.appendChild(newElement);
+        }
+    };
+
+    const removeStoredAbility = (abilityId) => {
+        const storedAbilities = loadStoredAbilities();
+        const filtered = storedAbilities.filter((entry) => entry.id !== abilityId);
+        if (filtered.length !== storedAbilities.length) {
+            saveStoredAbilities(filtered);
+        }
+    };
+
+    const upsertStoredAbility = (abilityId, area, data) => {
+        const storedAbilities = loadStoredAbilities();
+        const index = storedAbilities.findIndex((entry) => entry.id === abilityId);
+        if (index >= 0) {
+            storedAbilities[index] = { ...storedAbilities[index], id: abilityId, area, data };
+        } else {
+            storedAbilities.push({ id: abilityId, area, data });
+        }
+        saveStoredAbilities(storedAbilities);
+    };
+
     renderStoredAbilities();
+
+    document.querySelectorAll(".ability").forEach((abilityElement) => {
+        if (!abilityElement.dataset.abilityId) {
+            abilityElement.dataset.abilityId = generateAbilityId();
+        }
+    });
 
     if (tagAddButton) {
         tagAddButton.addEventListener("click", (event) => {
@@ -673,35 +991,54 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    if (contextMenuItems.length > 0) {
+        contextMenuItems.forEach((item) => {
+            item.addEventListener("click", () => {
+                if (!contextMenuTarget) {
+                    return;
+                }
+                const action = item.dataset.abilityAction;
+                const abilityId = contextMenuTarget.dataset.abilityId;
+                const abilityArea = contextMenuTarget.closest(".ability-area");
+                const areaValue = abilityArea?.dataset.abilityArea ?? "main";
+                if (action === "edit") {
+                    closeContextMenu();
+                    startEditingAbility(contextMenuTarget);
+                    return;
+                }
+                if (action === "duplicate") {
+                    closeContextMenu();
+                    const data = extractAbilityData(contextMenuTarget);
+                    const newAbilityId = generateAbilityId();
+                    const newElement = createAbilityElement(data, newAbilityId);
+                    newElement.dataset.userCreated = "true";
+                    insertAbilityAfter(contextMenuTarget, newElement);
+                    upsertStoredAbility(newAbilityId, areaValue, data);
+                    showToast("アビリティを複製しました。", "success");
+                    return;
+                }
+                if (action === "delete") {
+                    closeContextMenu();
+                    contextMenuTarget.remove();
+                    if (abilityId) {
+                        removeStoredAbility(abilityId);
+                    }
+                    showToast("アビリティを削除しました。", "success");
+                }
+            });
+        });
+    }
+
     addButton.addEventListener("click", (event) => {
         event.preventDefault();
-
-        const typeLabel = typeSelect?.selectedOptions?.[0]?.textContent?.trim() ?? "";
-        const iconSrc = currentIconSrc || iconPreview?.src || defaultIconSrc;
-        const stackMax = parseStackValue(stackInput?.value?.trim());
-        const data = {
-            iconSrc,
-            name: nameInput?.value?.trim() ?? "",
-            tags: buildTagText(typeLabel),
-            stackMax: stackMax ? String(stackMax) : "",
-            stackCurrent: stackMax ? String(stackMax) : "",
-            prerequisite: prerequisiteInput?.value?.trim() ?? "",
-            timing: timingInput?.value?.trim() ?? "",
-            cost: costInput?.value?.trim() ?? "",
-            limit: limitInput?.value?.trim() ?? "",
-            target: targetInput?.value?.trim() ?? "",
-            range: rangeInput?.value?.trim() ?? "",
-            judge: buildJudgeText(),
-            baseDamage: baseDamageInput?.value?.trim() ?? "",
-            directHit: directHitInput?.value?.trim() ?? "",
-            description: descriptionInput?.value?.trim() ?? "",
-        };
+        const data = buildAbilityDataFromForm();
 
         if (!data.description) {
             data.description = "（未入力）";
         }
 
-        const targetArea = abilityModal.dataset.targetArea || typeSelect?.value || "main";
+        const targetArea =
+            abilityModal.dataset.targetArea || typeSelect?.value || "main";
         const abilityArea =
             document.querySelector(`.ability-area[data-ability-area="${targetArea}"]`) ||
             document.querySelector('.ability-area[data-ability-area="main"]');
@@ -710,12 +1047,26 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const abilityElement = createAbilityElement(data);
+        if (editingAbilityElement) {
+            const abilityId = editingAbilityId ?? editingAbilityElement.dataset.abilityId ?? generateAbilityId();
+            const updatedElement = createAbilityElement(data, abilityId);
+            updatedElement.dataset.userCreated = "true";
+            editingAbilityElement.replaceWith(updatedElement);
+            upsertStoredAbility(abilityId, targetArea, data);
+            resetAbilityForm();
+            resetEditingState();
+            if (typeof abilityModal.close === "function") {
+                abilityModal.close();
+            }
+            showToast("アビリティを更新しました。", "success");
+            return;
+        }
+
+        const abilityId = generateAbilityId();
+        const abilityElement = createAbilityElement(data, abilityId);
         abilityElement.dataset.userCreated = "true";
         abilityArea.appendChild(abilityElement);
-        const storedAbilities = loadStoredAbilities();
-        storedAbilities.push({ area: targetArea, data });
-        saveStoredAbilities(storedAbilities);
+        upsertStoredAbility(abilityId, targetArea, data);
         resetAbilityForm();
 
         if (typeof abilityModal.close === "function") {
@@ -736,6 +1087,61 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         handleAbilitySelect(abilityElement);
     });
+
+    document.addEventListener("contextmenu", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const abilityElement = target.closest(".ability");
+        if (!abilityElement) {
+            closeContextMenu();
+            return;
+        }
+        event.preventDefault();
+        openContextMenu(abilityElement, event.clientX, event.clientY);
+    });
+
+    document.addEventListener("pointerdown", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const abilityElement = target.closest(".ability");
+        if (!abilityElement || event.button !== 0) {
+            return;
+        }
+        if (event.pointerType !== "touch") {
+            return;
+        }
+        longPressTimer = window.setTimeout(() => {
+            openContextMenu(abilityElement, event.clientX, event.clientY);
+        }, 500);
+    });
+
+    const clearLongPress = () => {
+        if (longPressTimer) {
+            window.clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
+    };
+
+    document.addEventListener("pointerup", clearLongPress);
+    document.addEventListener("pointercancel", clearLongPress);
+    document.addEventListener("pointermove", clearLongPress);
+
+    document.addEventListener("click", (event) => {
+        if (!contextMenu || !contextMenu.classList.contains("is-open")) {
+            return;
+        }
+        if (event.target instanceof Element && contextMenu.contains(event.target)) {
+            return;
+        }
+        closeContextMenu();
+    });
+
+    window.addEventListener("scroll", closeContextMenu, true);
+    window.addEventListener("resize", closeContextMenu);
 
     document.addEventListener("dblclick", (event) => {
         const target = event.target;
@@ -766,5 +1172,10 @@ document.addEventListener("DOMContentLoaded", () => {
             abilityElement.dataset.stackCurrent = String(max);
             updateStackBadge(abilityElement);
         });
+    });
+
+    abilityModal.addEventListener("close", () => {
+        resetAbilityForm();
+        resetEditingState();
     });
 });
