@@ -442,8 +442,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const parsedJudge = parseJudgeText(judge);
         const judgeBuffData = getJudgeBuffData();
         const judgeModifiers = [parsedJudge.modifiers, ...judgeBuffData.modifiers].filter(Boolean);
+        const judgeModifierText = judgeModifiers.join("");
         const judgeCore = parsedJudge.baseCommand
-            ? [parsedJudge.baseCommand, ...judgeModifiers].filter(Boolean).join(" ")
+            ? `${parsedJudge.baseCommand}${judgeModifierText}`
             : "";
         const buffExtraText = judgeBuffData.extraTexts.join(" ");
         const judgeCommand = [judgeCore, name, buffExtraText].filter(Boolean).join(" ");
