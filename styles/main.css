@@ -428,15 +428,20 @@ section {
 }
 
 .ability-area {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0;
+    --ability-cell-size: 56px;
+    --ability-gap: 8px;
+    --ability-columns: 6;
+    --ability-rows: 3;
+    display: grid;
+    grid-template-columns: repeat(var(--ability-columns), var(--ability-cell-size));
+    grid-template-rows: repeat(var(--ability-rows), var(--ability-cell-size));
+    gap: var(--ability-gap);
     height: fit-content;
     min-height: 56px;
     width: 100%;
     grid-area: auto;
-    align-content: space-around;
+    align-content: start;
+    justify-content: start;
     background-image: url("../assets/Frame_255.png");
 }
 

@@ -262,6 +262,30 @@ document.addEventListener("DOMContentLoaded", () => {
         updateStackBadge(abilityElement);
     };
 
+    const parseGridCoordinate = (value) => {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue) || numericValue <= 0) {
+            return null;
+        }
+        return Math.floor(numericValue);
+    };
+
+    const applyAbilityPosition = (abilityElement, row, col) => {
+        const safeRow = parseGridCoordinate(row);
+        const safeCol = parseGridCoordinate(col);
+        if (!safeRow || !safeCol) {
+            abilityElement.style.gridRow = "";
+            abilityElement.style.gridColumn = "";
+            delete abilityElement.dataset.abilityRow;
+            delete abilityElement.dataset.abilityCol;
+            return;
+        }
+        abilityElement.dataset.abilityRow = String(safeRow);
+        abilityElement.dataset.abilityCol = String(safeCol);
+        abilityElement.style.gridRow = String(safeRow);
+        abilityElement.style.gridColumn = String(safeCol);
+    };
+
     const buildJudgeText = () => {
         const judgeValue = judgeInput?.value?.trim();
         const attributeValue = judgeAttributeSelect?.value?.trim();
@@ -344,6 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const stackMax = parseStackValue(data.stackMax);
         const stackCurrent = parseStackValue(data.stackCurrent);
         initializeStackData(abilityElement, stackMax, stackCurrent);
+        applyAbilityPosition(abilityElement, data.row, data.col);
 
         return abilityElement;
     };
@@ -752,6 +777,8 @@ document.addEventListener("DOMContentLoaded", () => {
             baseDamage: findCardStatValue(abilityElement, "基本ダメージ："),
             directHit: findCardStatValue(abilityElement, "ダイレクトヒット："),
             description: findCardStatValue(abilityElement, "基本効果："),
+            row: abilityElement?.dataset.abilityRow ?? "",
+            col: abilityElement?.dataset.abilityCol ?? "",
         };
     };
 
@@ -845,7 +872,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     };
 
-    const buildAbilityDataFromForm = () => {
+    const buildAbilityDataFromForm = (abilityElement = null) => {
         const typeLabel = typeSelect?.selectedOptions?.[0]?.textContent?.trim() ?? "";
         const iconSrc = currentIconSrc || iconPreview?.src || defaultIconSrc;
         const stackMax = parseStackValue(stackInput?.value?.trim());
@@ -865,6 +892,8 @@ document.addEventListener("DOMContentLoaded", () => {
             baseDamage: baseDamageInput?.value?.trim() ?? "",
             directHit: directHitInput?.value?.trim() ?? "",
             description: descriptionInput?.value?.trim() ?? "",
+            row: abilityElement?.dataset.abilityRow ?? "",
+            col: abilityElement?.dataset.abilityCol ?? "",
         };
     };
 
@@ -949,6 +978,67 @@ document.addEventListener("DOMContentLoaded", () => {
         saveStoredAbilities(storedAbilities);
     };
 
+    const getAbilityAreaKey = (abilityArea) => {
+        return abilityArea?.dataset?.abilityArea ?? "main";
+    };
+
+    const parseCssNumber = (value) => {
+        const numericValue = Number.parseFloat(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+    };
+
+    const getGridMetrics = (abilityArea) => {
+        const styles = window.getComputedStyle(abilityArea);
+        const cellSize =
+            parseCssNumber(styles.getPropertyValue("--ability-cell-size")) ??
+            parseCssNumber(styles.width) ??
+            56;
+        const gap =
+            parseCssNumber(styles.getPropertyValue("--ability-gap")) ??
+            parseCssNumber(styles.columnGap) ??
+            0;
+        const columns = parseGridCoordinate(styles.getPropertyValue("--ability-columns"));
+        const rows = parseGridCoordinate(styles.getPropertyValue("--ability-rows"));
+        return { cellSize, gap, columns, rows };
+    };
+
+    const getGridCoordinateFromEvent = (abilityArea, event) => {
+        const rect = abilityArea.getBoundingClientRect();
+        const { cellSize, gap, columns, rows } = getGridMetrics(abilityArea);
+        const stride = cellSize + gap;
+        const localX = event.clientX - rect.left;
+        const localY = event.clientY - rect.top;
+        let col = Math.floor(localX / stride) + 1;
+        let row = Math.floor(localY / stride) + 1;
+        if (columns) {
+            col = Math.max(1, Math.min(columns, col));
+        }
+        if (rows) {
+            row = Math.max(1, Math.min(rows, row));
+        }
+        return { row, col };
+    };
+
+    const getDragPayload = (event) => {
+        const raw = event.dataTransfer?.getData("application/json");
+        if (raw) {
+            try {
+                return JSON.parse(raw);
+            } catch (error) {
+                console.warn("Failed to parse drag payload.", error);
+            }
+        }
+        const fallback = event.dataTransfer?.getData("text/plain");
+        if (fallback) {
+            try {
+                return JSON.parse(fallback);
+            } catch (error) {
+                console.warn("Failed to parse drag payload.", error);
+            }
+        }
+        return null;
+    };
+
     renderStoredAbilities();
 
     document.querySelectorAll(".ability").forEach((abilityElement) => {
@@ -1031,7 +1121,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addButton.addEventListener("click", (event) => {
         event.preventDefault();
-        const data = buildAbilityDataFromForm();
+        const data = buildAbilityDataFromForm(editingAbilityElement);
 
         if (!data.description) {
             data.description = "（未入力）";
@@ -1074,6 +1164,62 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         showToast("アビリティを登録しました。", "success");
+    });
+
+    document.addEventListener("dragstart", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const abilityElement = target.closest(".ability");
+        if (!abilityElement || !event.dataTransfer) {
+            return;
+        }
+        const abilityId = abilityElement.dataset.abilityId || generateAbilityId();
+        abilityElement.dataset.abilityId = abilityId;
+        const abilityArea = abilityElement.closest(".ability-area");
+        const areaValue = getAbilityAreaKey(abilityArea);
+        const payload = JSON.stringify({ id: abilityId, area: areaValue });
+        event.dataTransfer.setData("application/json", payload);
+        event.dataTransfer.setData("text/plain", payload);
+        event.dataTransfer.effectAllowed = "move";
+    });
+
+    document.querySelectorAll(".ability-area").forEach((abilityArea) => {
+        abilityArea.addEventListener("dragover", (event) => {
+            const payload = getDragPayload(event);
+            if (!payload) {
+                return;
+            }
+            if (payload.area !== getAbilityAreaKey(abilityArea)) {
+                return;
+            }
+            event.preventDefault();
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = "move";
+            }
+        });
+
+        abilityArea.addEventListener("drop", (event) => {
+            const payload = getDragPayload(event);
+            if (!payload) {
+                return;
+            }
+            if (payload.area !== getAbilityAreaKey(abilityArea)) {
+                return;
+            }
+            event.preventDefault();
+            const abilityElement = document.querySelector(
+                `.ability[data-ability-id="${CSS.escape(payload.id)}"]`,
+            );
+            if (!abilityElement) {
+                return;
+            }
+            const { row, col } = getGridCoordinateFromEvent(abilityArea, event);
+            applyAbilityPosition(abilityElement, row, col);
+            const updatedData = extractAbilityData(abilityElement);
+            upsertStoredAbility(payload.id, payload.area, updatedData);
+        });
     });
 
     document.addEventListener("click", (event) => {
