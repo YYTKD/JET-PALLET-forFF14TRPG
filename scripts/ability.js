@@ -446,6 +446,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const baseSplit = splitDiceAndModifier(baseDamage);
         if (baseSplit.dice) {
             damageParts.push(baseSplit.dice);
+        } else if (baseSplit.mod) {
+            damageParts.push(baseSplit.mod.replace(/^\+/, ""));
         }
 
         const directSplit = splitDiceAndModifier(directHit);
@@ -454,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const modifierParts = [];
-        if (baseSplit.mod) {
+        if (baseSplit.dice && baseSplit.mod) {
             modifierParts.push(formatModifier(baseSplit.mod));
         }
         if (directHitEnabled && directSplit.mod) {
