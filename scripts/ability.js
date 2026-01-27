@@ -1,43 +1,118 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const STORAGE_KEYS = {
+        abilities: "jet-pallet-abilities",
+        rows: "jet-pallet-ability-rows",
+    };
+
+    const getAbilityModalElements = (modal) => {
+        if (!modal) {
+            return null;
+        }
+        const addButton = modal.querySelector(".form__button--add");
+        if (!addButton) {
+            return null;
+        }
+        const iconInput = modal.querySelector("[data-ability-icon-input]");
+        const iconPreview = modal.querySelector("#iconpreview");
+        const iconSelect = modal.querySelector("[data-ability-icon-select]");
+        const previewIcon = modal.querySelector("[data-ability-preview-icon]");
+        const typeSelect = modal.querySelector("[data-ability-type]");
+        const nameInput = modal.querySelector("[data-ability-name]");
+        const stackInput = modal.querySelector("[data-ability-stack]");
+        const prerequisiteInput = modal.querySelector("[data-ability-prerequisite]");
+        const timingInput = modal.querySelector("[data-ability-timing]");
+        const costInput = modal.querySelector("[data-ability-cost]");
+        const limitInput = modal.querySelector("[data-ability-limit]");
+        const targetInput = modal.querySelector("[data-ability-target]");
+        const rangeInput = modal.querySelector("[data-ability-range]");
+        const judgeInput = modal.querySelector("[data-ability-judge]");
+        const judgeAttributeSelect = modal.querySelector("[data-ability-judge-attribute]");
+        const baseDamageInput = modal.querySelector("[data-ability-base-damage]");
+        const directHitInput = modal.querySelector("[data-ability-direct-hit]");
+        const descriptionInput = modal.querySelector("[data-ability-description]");
+        const tagInput = modal.querySelector("[data-ability-tag-input]");
+        const tagAddButton = modal.querySelector("[data-ability-tag-add]");
+        const tagGroup = tagInput?.closest(".form__group");
+        const tagContainer = tagGroup?.querySelector(".form__row");
+        const defaultIconSrc =
+            iconPreview?.getAttribute("src") ??
+            previewIcon?.getAttribute("src") ??
+            "assets/dummy_icon.png";
+        const defaultTagMarkup = tagContainer?.innerHTML ?? "";
+
+        return {
+            addButton,
+            iconInput,
+            iconPreview,
+            iconSelect,
+            previewIcon,
+            typeSelect,
+            nameInput,
+            stackInput,
+            prerequisiteInput,
+            timingInput,
+            costInput,
+            limitInput,
+            targetInput,
+            rangeInput,
+            judgeInput,
+            judgeAttributeSelect,
+            baseDamageInput,
+            directHitInput,
+            descriptionInput,
+            tagInput,
+            tagAddButton,
+            tagContainer,
+            defaultIconSrc,
+            defaultTagMarkup,
+        };
+    };
+
+    const getMenuElements = () => {
+        const contextMenu = document.getElementById("abilityContextMenu");
+        const contextMenuItems = contextMenu?.querySelectorAll("[data-ability-action]") ?? [];
+        const sectionMenu = document.getElementById("sectionSettingsMenu");
+        const sectionMenuItems = sectionMenu?.querySelectorAll("[data-section-action]") ?? [];
+        return { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems };
+    };
+
     const abilityModal = document.getElementById("addAbilityModal");
     if (!abilityModal) {
         return;
     }
 
-    const STORAGE_KEY = "jet-pallet-abilities";
-    const ROW_STORAGE_KEY = "jet-pallet-ability-rows";
-
-    const addButton = abilityModal.querySelector(".form__button--add");
-    if (!addButton) {
+    const modalElements = getAbilityModalElements(abilityModal);
+    if (!modalElements) {
         return;
     }
 
-    const iconInput = abilityModal.querySelector("[data-ability-icon-input]");
-    const iconPreview = abilityModal.querySelector("#iconpreview");
-    const iconSelect = abilityModal.querySelector("[data-ability-icon-select]");
-    const previewIcon = abilityModal.querySelector("[data-ability-preview-icon]");
-    const typeSelect = abilityModal.querySelector("[data-ability-type]");
-    const nameInput = abilityModal.querySelector("[data-ability-name]");
-    const stackInput = abilityModal.querySelector("[data-ability-stack]");
-    const prerequisiteInput = abilityModal.querySelector("[data-ability-prerequisite]");
-    const timingInput = abilityModal.querySelector("[data-ability-timing]");
-    const costInput = abilityModal.querySelector("[data-ability-cost]");
-    const limitInput = abilityModal.querySelector("[data-ability-limit]");
-    const targetInput = abilityModal.querySelector("[data-ability-target]");
-    const rangeInput = abilityModal.querySelector("[data-ability-range]");
-    const judgeInput = abilityModal.querySelector("[data-ability-judge]");
-    const judgeAttributeSelect = abilityModal.querySelector("[data-ability-judge-attribute]");
-    const baseDamageInput = abilityModal.querySelector("[data-ability-base-damage]");
-    const directHitInput = abilityModal.querySelector("[data-ability-direct-hit]");
-    const descriptionInput = abilityModal.querySelector("[data-ability-description]");
-    const tagInput = abilityModal.querySelector("[data-ability-tag-input]");
-    const tagAddButton = abilityModal.querySelector("[data-ability-tag-add]");
-    const tagGroup = tagInput?.closest(".form__group");
-    const tagContainer = tagGroup?.querySelector(".form__row");
-    const defaultIconSrc =
-        iconPreview?.getAttribute("src") ??
-        previewIcon?.getAttribute("src") ??
-        "assets/dummy_icon.png";
+    const {
+        addButton,
+        iconInput,
+        iconPreview,
+        iconSelect,
+        previewIcon,
+        typeSelect,
+        nameInput,
+        stackInput,
+        prerequisiteInput,
+        timingInput,
+        costInput,
+        limitInput,
+        targetInput,
+        rangeInput,
+        judgeInput,
+        judgeAttributeSelect,
+        baseDamageInput,
+        directHitInput,
+        descriptionInput,
+        tagInput,
+        tagAddButton,
+        tagContainer,
+        defaultIconSrc,
+        defaultTagMarkup,
+    } = modalElements;
+
     let currentIconSrc = defaultIconSrc;
     const showToast = (message, type = "info") => {
         if (typeof window.showToast === "function") {
@@ -45,18 +120,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const contextMenu = document.getElementById("abilityContextMenu");
-    const contextMenuItems = contextMenu?.querySelectorAll("[data-ability-action]") ?? [];
-    const sectionMenu = document.getElementById("sectionSettingsMenu");
-    const sectionMenuItems = sectionMenu?.querySelectorAll("[data-section-action]") ?? [];
+    const { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems } = getMenuElements();
     const subcategoryTemplate = document.getElementById("abilitySubcategoryTemplate");
-    const defaultTagMarkup = tagContainer?.innerHTML ?? "";
     let editingAbilityId = null;
     let editingAbilityElement = null;
     let contextMenuTarget = null;
     let sectionMenuTarget = null;
     let longPressTimer = null;
 
+    // Pure formatting/value helpers.
     const parseAbilityRowCount = (value) => {
         const parsed = Number.parseInt(value, 10);
         if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -65,29 +137,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return parsed;
     };
 
-    const loadStoredAbilityRows = () => {
+    const readStorageJson = (key, fallback) => {
         if (!window.localStorage) {
-            return {};
+            return fallback;
         }
         try {
-            const raw = window.localStorage.getItem(ROW_STORAGE_KEY);
-            const parsed = raw ? JSON.parse(raw) : {};
-            return parsed && typeof parsed === "object" ? parsed : {};
+            const raw = window.localStorage.getItem(key);
+            return raw ? JSON.parse(raw) : fallback;
         } catch (error) {
-            console.warn("Failed to parse stored ability rows.", error);
-            return {};
+            console.warn(`Failed to parse stored data for ${key}.`, error);
+            return fallback;
         }
     };
 
-    const saveStoredAbilityRows = (rowsByArea) => {
+    const writeStorageJson = (key, value, logLabel) => {
         if (!window.localStorage) {
             return;
         }
         try {
-            window.localStorage.setItem(ROW_STORAGE_KEY, JSON.stringify(rowsByArea));
+            window.localStorage.setItem(key, JSON.stringify(value));
         } catch (error) {
-            console.warn("Failed to save ability rows.", error);
+            console.warn(`Failed to save ${logLabel}.`, error);
         }
+    };
+
+    const loadStoredAbilityRows = () => {
+        const parsed = readStorageJson(STORAGE_KEYS.rows, {});
+        return parsed && typeof parsed === "object" ? parsed : {};
+    };
+
+    const saveStoredAbilityRows = (rowsByArea) => {
+        writeStorageJson(STORAGE_KEYS.rows, rowsByArea, "ability rows");
     };
 
     const applyAbilityRows = (abilityArea, rows) => {
@@ -784,46 +864,30 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const loadStoredAbilities = () => {
-        if (!window.localStorage) {
+        const parsed = readStorageJson(STORAGE_KEYS.abilities, []);
+        if (!Array.isArray(parsed)) {
             return [];
         }
-        try {
-            const raw = window.localStorage.getItem(STORAGE_KEY);
-            const parsed = raw ? JSON.parse(raw) : [];
-            if (!Array.isArray(parsed)) {
-                return [];
-            }
-            const normalized = parsed
-                .map((entry) => {
-                    if (!entry || !entry.data) {
-                        return null;
-                    }
-                    return {
-                        ...entry,
-                        id: entry.id ?? generateAbilityId(),
-                    };
-                })
-                .filter(Boolean);
-            const needsSave = normalized.some((entry, index) => entry.id !== parsed[index]?.id);
-            if (needsSave) {
-                saveStoredAbilities(normalized);
-            }
-            return normalized;
-        } catch (error) {
-            console.warn("Failed to parse stored abilities.", error);
-            return [];
+        const normalized = parsed
+            .map((entry) => {
+                if (!entry || !entry.data) {
+                    return null;
+                }
+                return {
+                    ...entry,
+                    id: entry.id ?? generateAbilityId(),
+                };
+            })
+            .filter(Boolean);
+        const needsSave = normalized.some((entry, index) => entry.id !== parsed[index]?.id);
+        if (needsSave) {
+            saveStoredAbilities(normalized);
         }
+        return normalized;
     };
 
     const saveStoredAbilities = (abilities) => {
-        if (!window.localStorage) {
-            return;
-        }
-        try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(abilities));
-        } catch (error) {
-            console.warn("Failed to save abilities.", error);
-        }
+        writeStorageJson(STORAGE_KEYS.abilities, abilities, "abilities");
     };
 
     const renderStoredAbilities = () => {
