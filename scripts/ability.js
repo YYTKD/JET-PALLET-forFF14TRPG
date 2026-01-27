@@ -315,10 +315,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return /^[+-]/.test(value) ? value : `+${value}`;
     };
 
-    const getDamageBuffModifiers = () => {
+    const getDamageBuffData = () => {
         const buffElements = Array.from(document.querySelectorAll(".buff-area .buff"));
-        return buffElements
-            .map((buffElement) => {
+        return buffElements.reduce(
+            (acc, buffElement) => {
                 const targetLabel =
                     buffElement.querySelector("[data-buff-target]")?.textContent?.trim() ?? "";
                 let targetValue = "";
@@ -331,21 +331,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
                 if (targetLabel !== "ダメージ" && targetValue !== "damage") {
-                    return "";
+                    return acc;
                 }
                 const commandText =
                     buffElement.querySelector("[data-buff-command]")?.textContent?.trim() ?? "";
                 const match = commandText.match(/[+-]?\d+/);
-                if (!match) {
-                    return "";
+                if (match) {
+                    const numericValue = Number(match[0]);
+                    if (Number.isFinite(numericValue) && numericValue !== 0) {
+                        acc.modifiers.push(formatModifier(String(numericValue)));
+                    }
                 }
-                const numericValue = Number(match[0]);
-                if (!Number.isFinite(numericValue) || numericValue === 0) {
-                    return "";
+                const extraText =
+                    buffElement.querySelector("[data-buff-extra-text]")?.textContent?.trim() ?? "";
+                if (extraText) {
+                    acc.extraTexts.push(extraText);
                 }
-                return formatModifier(String(numericValue));
-            })
-            .filter(Boolean);
+                return acc;
+            },
+            { modifiers: [], extraTexts: [] },
+        );
     };
 
     const getJudgeBuffData = () => {
@@ -442,30 +447,37 @@ document.addEventListener("DOMContentLoaded", () => {
             : "";
         const buffExtraText = judgeBuffData.extraTexts.join(" ");
         const judgeCommand = [judgeCore, name, buffExtraText].filter(Boolean).join(" ");
+        const damageBuffData = getDamageBuffData();
         const damageParts = [];
         const baseSplit = splitDiceAndModifier(baseDamage);
+        let baseRoll = "";
         if (baseSplit.dice) {
-            damageParts.push(baseSplit.dice);
+            baseRoll = baseSplit.dice;
+            if (baseSplit.mod) {
+                baseRoll += formatModifier(baseSplit.mod);
+            }
         } else if (baseSplit.mod) {
-            damageParts.push(baseSplit.mod.replace(/^\+/, ""));
+            baseRoll = baseSplit.mod.replace(/^\+/, "");
+        }
+        if (baseRoll) {
+            baseRoll += damageBuffData.modifiers.join("");
+            damageParts.push(baseRoll);
         }
 
         const directSplit = splitDiceAndModifier(directHit);
         if (directHitEnabled && directSplit.dice) {
-            damageParts.push(`DH:${directSplit.dice}`);
+            let directRoll = `DH:${directSplit.dice}`;
+            if (directSplit.mod) {
+                directRoll += formatModifier(directSplit.mod);
+            }
+            damageParts.push(directRoll);
         }
 
-        const modifierParts = [];
-        if (baseSplit.dice && baseSplit.mod) {
-            modifierParts.push(formatModifier(baseSplit.mod));
-        }
-        if (directHitEnabled && directSplit.mod) {
-            modifierParts.push(formatModifier(directSplit.mod));
-        }
-        modifierParts.push(...getDamageBuffModifiers());
-        damageParts.push(...modifierParts.filter(Boolean));
-
-        const damageCommand = damageParts.join(" ");
+        const damageCore = damageParts.join(" ");
+        const damageExtraText = damageBuffData.extraTexts
+            .map((text) => `【${text}】`)
+            .join(" ");
+        const damageCommand = [damageCore, name, damageExtraText].filter(Boolean).join(" ");
 
         return { judgeCommand, damageCommand };
     };
