@@ -1,35 +1,75 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const buffModal = document.getElementById("addBuffModal");
-    if (!buffModal) {
-        return;
-    }
-
     const BUFF_LIBRARY_KEY = "jet-pallet-buff-library";
     const ACTIVE_BUFFS_KEY = "jet-pallet-active-buffs";
 
-    const submitButton = buffModal.querySelector("[data-buff-submit]");
-    const buffArea = document.querySelector(".buff-area");
-    if (!submitButton || !buffArea) {
+    const collectElements = () => {
+        const buffModal = document.getElementById("addBuffModal");
+        const submitButton = buffModal?.querySelector("[data-buff-submit]") ?? null;
+        const buffArea = document.querySelector(".buff-area");
+        const iconInput = buffModal?.querySelector("[data-buff-icon]") ?? null;
+        const iconPreview = buffModal?.querySelector("[data-buff-icon-preview]") ?? null;
+        const typeSelect = buffModal?.querySelector("[data-buff-type]") ?? null;
+        const nameInput = buffModal?.querySelector("[data-buff-name]") ?? null;
+        const descriptionInput = buffModal?.querySelector("[data-buff-description]") ?? null;
+        const commandInput = buffModal?.querySelector("[data-buff-command]") ?? null;
+        const extraTextInput = buffModal?.querySelector("[data-buff-extra-text]") ?? null;
+        const targetSelect = buffModal?.querySelector("[data-buff-target]") ?? null;
+        const durationSelect = buffModal?.querySelector("[data-buff-duration]") ?? null;
+        const bulkInput = buffModal?.querySelector("[data-buff-bulk]") ?? null;
+        const errorSummary = buffModal?.querySelector("[data-buff-error-summary]") ?? null;
+        const errorFields = {
+            name: buffModal?.querySelector("[data-buff-error=\"name\"]") ?? null,
+            description: buffModal?.querySelector("[data-buff-error=\"description\"]") ?? null,
+            command: buffModal?.querySelector("[data-buff-error=\"command\"]") ?? null,
+            extraText: buffModal?.querySelector("[data-buff-error=\"extraText\"]") ?? null,
+        };
+        const buffModalTitle = buffModal?.querySelector(".section__header--title") ?? null;
+        return {
+            buffModal,
+            submitButton,
+            buffArea,
+            iconInput,
+            iconPreview,
+            typeSelect,
+            nameInput,
+            descriptionInput,
+            commandInput,
+            extraTextInput,
+            targetSelect,
+            durationSelect,
+            bulkInput,
+            errorSummary,
+            errorFields,
+            buffModalTitle,
+        };
+    };
+
+    const hasRequiredElements = ({ buffModal, submitButton, buffArea }) =>
+        Boolean(buffModal && submitButton && buffArea);
+
+    const elements = collectElements();
+    if (!hasRequiredElements(elements)) {
         return;
     }
 
-    const iconInput = buffModal.querySelector("[data-buff-icon]");
-    const iconPreview = buffModal.querySelector("[data-buff-icon-preview]");
-    const typeSelect = buffModal.querySelector("[data-buff-type]");
-    const nameInput = buffModal.querySelector("[data-buff-name]");
-    const descriptionInput = buffModal.querySelector("[data-buff-description]");
-    const commandInput = buffModal.querySelector("[data-buff-command]");
-    const extraTextInput = buffModal.querySelector("[data-buff-extra-text]");
-    const targetSelect = buffModal.querySelector("[data-buff-target]");
-    const durationSelect = buffModal.querySelector("[data-buff-duration]");
-    const bulkInput = buffModal.querySelector("[data-buff-bulk]");
-    const errorSummary = buffModal.querySelector("[data-buff-error-summary]");
-    const errorFields = {
-        name: buffModal.querySelector("[data-buff-error=\"name\"]"),
-        description: buffModal.querySelector("[data-buff-error=\"description\"]"),
-        command: buffModal.querySelector("[data-buff-error=\"command\"]"),
-        extraText: buffModal.querySelector("[data-buff-error=\"extraText\"]"),
-    };
+    const {
+        buffModal,
+        submitButton,
+        buffArea,
+        iconInput,
+        iconPreview,
+        typeSelect,
+        nameInput,
+        descriptionInput,
+        commandInput,
+        extraTextInput,
+        targetSelect,
+        durationSelect,
+        bulkInput,
+        errorSummary,
+        errorFields,
+        buffModalTitle,
+    } = elements;
     const defaultIconSrc = iconPreview?.getAttribute("src") ?? "assets/dummy_icon-buff.png";
     let currentIconSrc = defaultIconSrc;
     const showToast =
@@ -41,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     const inlineErrorsEnabled = false;
     const defaultSubmitLabel = submitButton.textContent || "登録";
-    const buffModalTitle = buffModal.querySelector(".section__header--title");
     const defaultModalTitle = buffModalTitle?.textContent || "バフ・デバフ登録";
 
     const createBuffId = () => {
