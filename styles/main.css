@@ -434,7 +434,7 @@ section {
     --ability-rows: 3;
     display: grid;
     grid-template-columns: repeat(var(--ability-columns), var(--ability-cell-size));
-    grid-template-rows: repeat(var(--ability-rows), var(--ability-cell-size));
+    grid-template-rows: repeat(var(--ability-rows), 56px);
     gap: var(--ability-gap);
     height: fit-content;
     min-height: 56px;

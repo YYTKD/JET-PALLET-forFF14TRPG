@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const STORAGE_KEY = "jet-pallet-abilities";
+    const ROW_STORAGE_KEY = "jet-pallet-ability-rows";
 
     const addButton = abilityModal.querySelector(".form__button--add");
     if (!addButton) {
@@ -51,6 +52,89 @@ document.addEventListener("DOMContentLoaded", () => {
     let editingAbilityElement = null;
     let contextMenuTarget = null;
     let longPressTimer = null;
+
+    const parseAbilityRowCount = (value) => {
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+            return null;
+        }
+        return parsed;
+    };
+
+    const loadStoredAbilityRows = () => {
+        if (!window.localStorage) {
+            return {};
+        }
+        try {
+            const raw = window.localStorage.getItem(ROW_STORAGE_KEY);
+            const parsed = raw ? JSON.parse(raw) : {};
+            return parsed && typeof parsed === "object" ? parsed : {};
+        } catch (error) {
+            console.warn("Failed to parse stored ability rows.", error);
+            return {};
+        }
+    };
+
+    const saveStoredAbilityRows = (rowsByArea) => {
+        if (!window.localStorage) {
+            return;
+        }
+        try {
+            window.localStorage.setItem(ROW_STORAGE_KEY, JSON.stringify(rowsByArea));
+        } catch (error) {
+            console.warn("Failed to save ability rows.", error);
+        }
+    };
+
+    const applyAbilityRows = (abilityArea, rows) => {
+        abilityArea.style.setProperty("--ability-rows", String(rows));
+    };
+
+    const getCurrentAbilityRows = (abilityArea) => {
+        const styleValue = abilityArea.style.getPropertyValue("--ability-rows");
+        const parsedStyle = parseAbilityRowCount(styleValue);
+        if (parsedStyle) {
+            return parsedStyle;
+        }
+        const computedValue = window
+            .getComputedStyle(abilityArea)
+            .getPropertyValue("--ability-rows");
+        return parseAbilityRowCount(computedValue) ?? 1;
+    };
+
+    const abilityRowsByArea = loadStoredAbilityRows();
+    const abilityAreas = document.querySelectorAll(".ability-area[data-ability-area]");
+    abilityAreas.forEach((abilityArea) => {
+        const areaKey = abilityArea.dataset.abilityArea;
+        if (!areaKey) {
+            return;
+        }
+        const storedRows = parseAbilityRowCount(abilityRowsByArea[areaKey]);
+        if (storedRows) {
+            applyAbilityRows(abilityArea, storedRows);
+        }
+    });
+
+    const abilityRowAddButtons = document.querySelectorAll("[data-ability-row-add]");
+    abilityRowAddButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const areaKey = button.dataset.abilityRowAdd;
+            if (!areaKey) {
+                return;
+            }
+            const abilityArea = document.querySelector(
+                `.ability-area[data-ability-area="${areaKey}"]`,
+            );
+            if (!abilityArea) {
+                return;
+            }
+            const currentRows = getCurrentAbilityRows(abilityArea);
+            const nextRows = currentRows + 1;
+            applyAbilityRows(abilityArea, nextRows);
+            abilityRowsByArea[areaKey] = nextRows;
+            saveStoredAbilityRows(abilityRowsByArea);
+        });
+    });
 
     const generateAbilityId = () => {
         if (window.crypto?.randomUUID) {
