@@ -500,6 +500,24 @@ section {
     z-index: 1;
 }
 
+.ability__stack {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    min-width: 18px;
+    padding: 1px 4px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+    z-index: 2;
+    pointer-events: none;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
 .ability:hover .card--tooltip {
     position: fixed;
     display: block;

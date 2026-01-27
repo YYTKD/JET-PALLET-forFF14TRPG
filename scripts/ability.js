@@ -203,6 +203,50 @@ document.addEventListener("DOMContentLoaded", () => {
         return /^[+-]/.test(value) ? value : `+${value}`;
     };
 
+    const parseStackValue = (value) => {
+        const numericValue = Number(value);
+        if (!Number.isFinite(numericValue) || numericValue <= 0) {
+            return null;
+        }
+        return Math.floor(numericValue);
+    };
+
+    const ensureStackBadge = (abilityElement) => {
+        let badge = abilityElement.querySelector(".ability__stack");
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = "ability__stack";
+            abilityElement.appendChild(badge);
+        }
+        return badge;
+    };
+
+    const updateStackBadge = (abilityElement) => {
+        if (!abilityElement) {
+            return;
+        }
+        const max = Number(abilityElement.dataset.stackMax);
+        const current = Number(abilityElement.dataset.stackCurrent);
+        if (!Number.isFinite(max) || max <= 0) {
+            abilityElement.querySelector(".ability__stack")?.remove();
+            return;
+        }
+        const badge = ensureStackBadge(abilityElement);
+        const safeCurrent = Number.isFinite(current) ? Math.max(0, current) : max;
+        abilityElement.dataset.stackCurrent = String(safeCurrent);
+        badge.textContent = String(safeCurrent);
+    };
+
+    const initializeStackData = (abilityElement, stackMax, stackCurrent) => {
+        if (!abilityElement || !Number.isFinite(stackMax) || stackMax <= 0) {
+            return;
+        }
+        const initialCurrent = Number.isFinite(stackCurrent) ? stackCurrent : stackMax;
+        abilityElement.dataset.stackMax = String(stackMax);
+        abilityElement.dataset.stackCurrent = String(initialCurrent);
+        updateStackBadge(abilityElement);
+    };
+
     const buildJudgeText = () => {
         const judgeValue = judgeInput?.value?.trim();
         const attributeValue = judgeAttributeSelect?.value?.trim();
@@ -278,6 +322,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
         `;
+
+        const stackMax = parseStackValue(data.stackMax);
+        const stackCurrent = parseStackValue(data.stackCurrent);
+        initializeStackData(abilityElement, stackMax, stackCurrent);
 
         return abilityElement;
     };
@@ -630,10 +678,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const typeLabel = typeSelect?.selectedOptions?.[0]?.textContent?.trim() ?? "";
         const iconSrc = currentIconSrc || iconPreview?.src || defaultIconSrc;
+        const stackMax = parseStackValue(stackInput?.value?.trim());
         const data = {
             iconSrc,
             name: nameInput?.value?.trim() ?? "",
             tags: buildTagText(typeLabel),
+            stackMax: stackMax ? String(stackMax) : "",
+            stackCurrent: stackMax ? String(stackMax) : "",
             prerequisite: prerequisiteInput?.value?.trim() ?? "",
             timing: timingInput?.value?.trim() ?? "",
             cost: costInput?.value?.trim() ?? "",
@@ -684,5 +735,36 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         handleAbilitySelect(abilityElement);
+    });
+
+    document.addEventListener("dblclick", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const abilityElement = target.closest(".ability");
+        if (!abilityElement) {
+            return;
+        }
+        const max = Number(abilityElement.dataset.stackMax);
+        if (!Number.isFinite(max) || max <= 0) {
+            return;
+        }
+        const current = Number(abilityElement.dataset.stackCurrent);
+        const nextValue = Math.max(0, (Number.isFinite(current) ? current : max) - 1);
+        abilityElement.dataset.stackCurrent = String(nextValue);
+        updateStackBadge(abilityElement);
+    });
+
+    const phaseButton = document.querySelector("[data-turn-action=\"phase\"]");
+    phaseButton?.addEventListener("click", () => {
+        document.querySelectorAll(".ability").forEach((abilityElement) => {
+            const max = Number(abilityElement.dataset.stackMax);
+            if (!Number.isFinite(max) || max <= 0) {
+                return;
+            }
+            abilityElement.dataset.stackCurrent = String(max);
+            updateStackBadge(abilityElement);
+        });
     });
 });
