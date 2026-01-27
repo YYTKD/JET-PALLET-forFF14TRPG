@@ -286,6 +286,40 @@ document.addEventListener("DOMContentLoaded", () => {
         abilityElement.style.gridColumn = String(safeCol);
     };
 
+    const buildOccupiedCellMap = (abilityArea) => {
+        const occupied = new Set();
+        if (!abilityArea) {
+            return occupied;
+        }
+        abilityArea.querySelectorAll(".ability").forEach((abilityElement) => {
+            const row = parseGridCoordinate(abilityElement.dataset.abilityRow);
+            const col = parseGridCoordinate(abilityElement.dataset.abilityCol);
+            if (!row || !col) {
+                return;
+            }
+            occupied.add(`${row}-${col}`);
+        });
+        return occupied;
+    };
+
+    const findFirstEmptyCell = (abilityArea, occupied) => {
+        if (!abilityArea) {
+            return null;
+        }
+        const { columns, rows } = getGridMetrics(abilityArea);
+        if (!columns || !rows) {
+            return null;
+        }
+        for (let row = 1; row <= rows; row += 1) {
+            for (let col = 1; col <= columns; col += 1) {
+                if (!occupied.has(`${row}-${col}`)) {
+                    return { row, col };
+                }
+            }
+        }
+        return null;
+    };
+
     const buildJudgeText = () => {
         const judgeValue = judgeInput?.value?.trim();
         const attributeValue = judgeAttributeSelect?.value?.trim();
@@ -673,6 +707,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const renderStoredAbilities = () => {
         const storedAbilities = loadStoredAbilities();
+        const occupiedMapByArea = new Map();
+        let needsSave = false;
         storedAbilities.forEach((entry) => {
             if (!entry || !entry.data) {
                 return;
@@ -683,10 +719,31 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!abilityArea) {
                 return;
             }
+            const areaKey = getAbilityAreaKey(abilityArea);
+            if (!occupiedMapByArea.has(areaKey)) {
+                occupiedMapByArea.set(areaKey, buildOccupiedCellMap(abilityArea));
+            }
+            const occupiedCells = occupiedMapByArea.get(areaKey);
+            const hasRow = parseGridCoordinate(entry.data.row);
+            const hasCol = parseGridCoordinate(entry.data.col);
+            if (!hasRow || !hasCol) {
+                const emptyCell = findFirstEmptyCell(abilityArea, occupiedCells);
+                if (emptyCell) {
+                    entry.data.row = String(emptyCell.row);
+                    entry.data.col = String(emptyCell.col);
+                    occupiedCells.add(`${emptyCell.row}-${emptyCell.col}`);
+                    needsSave = true;
+                }
+            } else {
+                occupiedCells.add(`${hasRow}-${hasCol}`);
+            }
             const abilityElement = createAbilityElement(entry.data, entry.id);
             abilityElement.dataset.userCreated = "true";
             abilityArea.appendChild(abilityElement);
         });
+        if (needsSave) {
+            saveStoredAbilities(storedAbilities);
+        }
     };
 
     const resetAbilityForm = () => {
@@ -1153,6 +1210,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const abilityId = generateAbilityId();
+        const occupiedCells = buildOccupiedCellMap(abilityArea);
+        const hasRow = parseGridCoordinate(data.row);
+        const hasCol = parseGridCoordinate(data.col);
+        if (!hasRow || !hasCol) {
+            const emptyCell = findFirstEmptyCell(abilityArea, occupiedCells);
+            if (emptyCell) {
+                data.row = String(emptyCell.row);
+                data.col = String(emptyCell.col);
+            }
+        }
         const abilityElement = createAbilityElement(data, abilityId);
         abilityElement.dataset.userCreated = "true";
         abilityArea.appendChild(abilityElement);
