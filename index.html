@@ -1676,13 +1676,13 @@
 <script src="scripts/toast.js"></script>
 <script src="scripts/storage.js"></script>
 <script src="scripts/reset.js"></script>
-<script src="scripts/toast-utils.js"></script>  <!-- ← toast-utils が先 -->
+<script src="scripts/toast-utils.js"></script>
 <script src="scripts/resource.js"></script>
 
 <!-- 機能スクリプト（依存関係あり） -->
-<script src="scripts/ability-preview.js"></script>  <!-- ← ability より先 -->
-<script src="scripts/ability.js"></script>           <!-- ← ability が先 -->
-<script src="scripts/buff.js"></script>              <!-- ← buff が後 -->
+ <script src="scripts/ability.js"></script> 
+<script src="scripts/ability-preview.js"></script> 
+<script src="scripts/buff.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const abilityModal = document.getElementById("addAbilityModal");
