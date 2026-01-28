@@ -1671,15 +1671,18 @@
 </main>
 <div class="toast-container" data-toast-container></div>
 <script src="https://cdn.jsdelivr.net/npm/@iconfu/svg-inject@1/dist/svg-inject.min.js"></script>
+<!-- 基盤スクリプト（依存関係なし） -->
 <script src="scripts/svg-inject.js"></script>
 <script src="scripts/toast.js"></script>
 <script src="scripts/storage.js"></script>
 <script src="scripts/reset.js"></script>
+<script src="scripts/toast-utils.js"></script>  <!-- ← toast-utils が先 -->
 <script src="scripts/resource.js"></script>
-<script src="scripts/toast-utils.js"></script>
-<script src="scripts/ability.js"></script>
-<script src="scripts/ability-preview.js"></script>
-<script src="scripts/buff.js"></script>
+
+<!-- 機能スクリプト（依存関係あり） -->
+<script src="scripts/ability-preview.js"></script>  <!-- ← ability より先 -->
+<script src="scripts/ability.js"></script>           <!-- ← ability が先 -->
+<script src="scripts/buff.js"></script>              <!-- ← buff が後 -->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const abilityModal = document.getElementById("addAbilityModal");
