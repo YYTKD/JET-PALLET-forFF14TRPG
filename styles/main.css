@@ -294,6 +294,17 @@ footer {
     background: var(--bg-main);
 }
 
+.footer__character-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px;
+}
+
+.character__reset {
+    gap: 4px;
+}
+
 .footer__logo--area {
     display: flex;
     gap: 8px;
