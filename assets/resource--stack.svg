@@ -1,10 +1,10 @@
 <svg width="31" height="26" viewBox="0 0 31 26" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g filter="url(#filter0_dif_363_403)">
-<path d="M8.34863 5H18.3486L24.3486 12L18.3486 19H8.34863L14.3486 12L8.34863 5Z" fill="#FFFFA3"/>
-<path d="M18.8086 4L19.1074 4.34961L25.1074 11.3496L25.666 12L25.1074 12.6504L19.1074 19.6504L18.8086 20H6.1748L7.58984 18.3496L13.0322 12L7.58984 5.65039L6.1748 4H18.8086Z" stroke="#FFA82D" stroke-width="2"/>
+<path d="M8.34863 5H18.3486L24.3486 12L18.3486 19H8.34863L14.3486 12L8.34863 5Z" fill="currentColor"/>
+<path d="M18.8086 4L19.1074 4.34961L25.1074 11.3496L25.666 12L25.1074 12.6504L19.1074 19.6504L18.8086 20H6.1748L7.58984 18.3496L13.0322 12L7.58984 5.65039L6.1748 4H18.8086Z" stroke="currentColor" stroke-width="2"/>
 </g>
 <g filter="url(#filter1_f_363_403)">
-<path d="M8.34863 5H18.3486L24.3486 12L18.3486 19H8.34863L14.3486 12L8.34863 5Z" fill="#FFFFA3"/>
+<path d="M8.34863 5H18.3486L24.3486 12L18.3486 19H8.34863L14.3486 12L8.34863 5Z" fill="currentColor"/>
 </g>
 <defs>
 <filter id="filter0_dif_363_403" x="0" y="0" width="30.9824" height="26" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">

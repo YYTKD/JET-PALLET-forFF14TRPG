@@ -117,7 +117,7 @@ const ensureResourceStore = () => {
 
 const createStackIcon = (isActive) => {
     const icon = document.createElement("img");
-    icon.className = "resource__icon--arrow svg-inject";
+    icon.className = "resource__icon--arrow js-svg-inject";
     if (isActive) {
         icon.classList.add("resource__icon--active");
     }
@@ -138,7 +138,7 @@ const injectSvgIcons = (root) => {
     if (typeof window.SVGInject !== "function") {
         return;
     }
-    const targets = root.querySelectorAll("img.svg-inject");
+    const targets = root.querySelectorAll("img.js-svg-inject");
     if (targets.length === 0) {
         return;
     }
@@ -149,7 +149,7 @@ const renderGauge = (container, resource) => {
     const max = Math.max(RESOURCE_DEFAULTS.max, resource.max);
     const current = clamp(resource.current, RESOURCE_DEFAULTS.min, max);
     const gaugeIcon = document.createElement("img");
-    gaugeIcon.className = "resource__icon--gauge svg-inject";
+    gaugeIcon.className = "resource__icon--gauge js-svg-inject";
     gaugeIcon.setAttribute("src", "assets/resource--gauge.svg");
     gaugeIcon.setAttribute("alt", "");
 
@@ -181,7 +181,9 @@ const createResourceGroup = (resource, onChange) => {
 
     const icon = document.createElement("div");
     icon.className = "resource__icon";
-    icon.style.setProperty("--resource-accent", resource.color ?? "blue");
+    const resourceColor = resource.color ?? "blue";
+    icon.style.setProperty("--resource-accent", resourceColor);
+    icon.style.setProperty("--resource-color", resourceColor);
 
     if (resource.style === RESOURCE_STYLES.stack) {
         icon.classList.add("resource--stack");

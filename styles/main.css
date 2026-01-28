@@ -1572,6 +1572,7 @@ details:not([open]) summary {
 .resource__icon {
     anchor-name: --resource-anchor;
     anchor-scope: --resource-anchor;
+    color: var(--resource-color, var(--resource-accent));
 }
 
 .resource--stack {
