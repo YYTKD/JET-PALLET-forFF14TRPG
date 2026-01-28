@@ -692,6 +692,26 @@ document.addEventListener("DOMContentLoaded", () => {
         return occupied;
     };
 
+    const isCellOccupied = (abilityArea, row, col, excludeElement = null) => {
+        if (!abilityArea) {
+            return false;
+        }
+        return Array.from(abilityArea.querySelectorAll(SELECTORS.abilityElement)).some(
+            (abilityElement) => {
+                if (excludeElement && abilityElement === excludeElement) {
+                    return false;
+                }
+                const abilityRow = parseGridCoordinate(
+                    abilityElement.dataset[DATASET_KEYS.abilityRow],
+                );
+                const abilityCol = parseGridCoordinate(
+                    abilityElement.dataset[DATASET_KEYS.abilityCol],
+                );
+                return abilityRow === row && abilityCol === col;
+            },
+        );
+    };
+
     const findFirstEmptyCell = (abilityArea, occupied) => {
         if (!abilityArea) {
             return null;
@@ -1110,7 +1130,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     needsSave = true;
                 }
             } else {
-                occupiedCells.add(`${hasRow}-${hasCol}`);
+                const cellKey = `${hasRow}-${hasCol}`;
+                if (occupiedCells.has(cellKey)) {
+                    const emptyCell = findFirstEmptyCell(abilityArea, occupiedCells);
+                    if (emptyCell) {
+                        entry.data.row = String(emptyCell.row);
+                        entry.data.col = String(emptyCell.col);
+                        occupiedCells.add(`${emptyCell.row}-${emptyCell.col}`);
+                    } else {
+                        entry.data.row = "";
+                        entry.data.col = "";
+                    }
+                    needsSave = true;
+                } else {
+                    occupiedCells.add(cellKey);
+                }
             }
             const abilityElement = createAbilityElement(entry.data, entry.id);
             abilityElement.dataset[DATASET_KEYS.userCreated] = "true";
@@ -1512,13 +1546,21 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const payload = getDragPayload(event);
             if (payload && payload.area !== getAbilityAreaKey(abilityArea)) {
+                clearDropIndicator(abilityArea);
+                return;
+            }
+            const { row, col } = getGridCoordinateFromEvent(abilityArea, event);
+            const draggedElement = payload?.id
+                ? document.querySelector(buildAbilityIdSelector(payload.id))
+                : null;
+            if (isCellOccupied(abilityArea, row, col, draggedElement)) {
+                clearDropIndicator(abilityArea);
                 return;
             }
             event.preventDefault();
             if (dataTransfer) {
                 dataTransfer.dropEffect = "move";
             }
-            const { row, col } = getGridCoordinateFromEvent(abilityArea, event);
             abilityArea.classList.add(DRAG_CLASSES.areaDragging);
             updateDropIndicator(abilityArea, row, col);
         });
@@ -1545,6 +1587,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
             const { row, col } = getGridCoordinateFromEvent(abilityArea, event);
+            if (isCellOccupied(abilityArea, row, col, abilityElement)) {
+                clearDropIndicator(abilityArea);
+                return;
+            }
             applyAbilityPosition(abilityElement, row, col);
             const updatedData = extractAbilityData(abilityElement);
             upsertStoredAbility(payload.id, payload.area, updatedData);
@@ -1761,6 +1807,15 @@ document.addEventListener("DOMContentLoaded", () => {
             if (emptyCell) {
                 data.row = String(emptyCell.row);
                 data.col = String(emptyCell.col);
+            }
+        } else if (occupiedCells.has(`${hasRow}-${hasCol}`)) {
+            const emptyCell = findFirstEmptyCell(abilityArea, occupiedCells);
+            if (emptyCell) {
+                data.row = String(emptyCell.row);
+                data.col = String(emptyCell.col);
+            } else {
+                data.row = "";
+                data.col = "";
             }
         }
         const abilityElement = createAbilityElement(data, abilityId);
