@@ -187,17 +187,10 @@ const renderGauge = (container, resource) => {
     container.appendChild(gaugeValue);
 };
 
-const createResourceGroup = (resource, onChange) => {
-    const group = document.createElement("div");
-    group.className = "resource__group";
-
-    const label = document.createElement("span");
-    label.className = "resource__label";
-    label.textContent = resource.name ?? "";
-
+const createResourceIcon = (resource) => {
     const icon = document.createElement("div");
     icon.className = "resource__icon";
-    const resourceColor = resource.color ?? "blue";
+    const resourceColor = resource.color ?? RESOURCE_COLORS.blue;
     icon.style.setProperty("--resource-accent", resourceColor);
     icon.style.setProperty("--resource-color", resourceColor);
 
@@ -208,6 +201,18 @@ const createResourceGroup = (resource, onChange) => {
         icon.classList.add("resource--gauge");
         renderGauge(icon, resource);
     }
+    return icon;
+};
+
+const createResourceGroup = (resource, onChange) => {
+    const group = document.createElement("div");
+    group.className = "resource__group";
+
+    const label = document.createElement("span");
+    label.className = "resource__label";
+    label.textContent = resource.name ?? "";
+
+    const icon = createResourceIcon(resource);
 
     const control = document.createElement("div");
     control.className = "resource__control";
@@ -234,6 +239,43 @@ const createResourceGroup = (resource, onChange) => {
     group.appendChild(control);
 
     return group;
+};
+
+const createResourceListItem = (resource, onEdit, onDelete) => {
+    const row = document.createElement("div");
+    row.className = "resource__group";
+
+    const label = document.createElement("span");
+    label.className = "resource__label";
+    label.textContent = resource.name ?? "";
+
+    const icon = createResourceIcon(resource);
+
+    const control = document.createElement("div");
+    control.className = "resource__control";
+
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "material-symbols-rounded";
+    editButton.textContent = "edit";
+    editButton.setAttribute("aria-label", `${resource.name ?? ""}を編集`);
+    editButton.addEventListener("click", () => onEdit?.(resource));
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "material-symbols-rounded";
+    deleteButton.textContent = "delete";
+    deleteButton.setAttribute("aria-label", `${resource.name ?? ""}を削除`);
+    deleteButton.addEventListener("click", () => onDelete?.(resource));
+
+    control.appendChild(editButton);
+    control.appendChild(deleteButton);
+
+    row.appendChild(label);
+    row.appendChild(icon);
+    row.appendChild(control);
+
+    return row;
 };
 
 const renderResources = (root) => {
@@ -333,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setSelectValue(elements.colorSelect, resource.color, defaultResourceForm.color);
     };
 
-    const renderResourceList = (root, onEdit) => {
+    const renderResourceList = (root, onEdit, onDelete) => {
         if (!root) {
             return;
         }
@@ -344,23 +386,9 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         resources.forEach((resource) => {
-            const row = document.createElement("div");
-            row.className = "resource__group";
-
-            const label = document.createElement("span");
-            label.className = "resource__label";
-            label.textContent = resource.name ?? "";
-
-            const editButton = document.createElement("button");
-            editButton.type = "button";
-            editButton.className = "material-symbols-rounded";
-            editButton.textContent = "edit";
-            editButton.addEventListener("click", () => onEdit?.(resource));
-
-            row.appendChild(label);
-            row.appendChild(editButton);
-            root.appendChild(row);
+            root.appendChild(createResourceListItem(resource, onEdit, onDelete));
         });
+        injectSvgIcons(root);
     };
 
     const refreshResourceDisplays = () => {
@@ -382,11 +410,32 @@ document.addEventListener("DOMContentLoaded", () => {
     let editingResourceId = null;
 
     const handleEdit = (resource) => {
+        if (!resource?.id) {
+            return;
+        }
         editingResourceId = resource.id;
         setResourceFormValues(resourceFormElements, resource);
     };
 
-    renderResourceList(resourceFormElements.list, handleEdit);
+    const handleDelete = (resource) => {
+        if (!resource?.id) {
+            return;
+        }
+        const currentResources = readResources();
+        const nextResources = currentResources.filter((entry) => entry.id !== resource.id);
+        if (nextResources.length === currentResources.length) {
+            return;
+        }
+        writeResources(nextResources);
+        if (editingResourceId === resource.id) {
+            editingResourceId = null;
+            setResourceFormValues(resourceFormElements, defaultResourceForm);
+        }
+        renderResourceList(resourceFormElements.list, handleEdit, handleDelete);
+        refreshResourceDisplays();
+    };
+
+    renderResourceList(resourceFormElements.list, handleEdit, handleDelete);
 
     resourceFormElements.submitButton?.addEventListener("click", () => {
         const name = resourceFormElements.nameInput?.value?.trim() ?? "";
@@ -407,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
         upsertResource(payload);
         editingResourceId = null;
         setResourceFormValues(resourceFormElements, defaultResourceForm);
-        renderResourceList(resourceFormElements.list, handleEdit);
+        renderResourceList(resourceFormElements.list, handleEdit, handleDelete);
         refreshResourceDisplays();
     });
 
