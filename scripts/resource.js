@@ -10,6 +10,14 @@ const RESOURCE_STYLES = Object.freeze({
     stack: "stack",
 });
 
+const RESOURCE_COLORS = Object.freeze({
+    red: "red",
+    blue: "blue",
+    yellow: "yellow",
+    green: "green",
+    purple: "purple",
+});
+
 const DEFAULT_RESOURCES = Object.freeze([
     {
         id: "resource-mp",
@@ -259,6 +267,108 @@ const renderResources = (root) => {
 document.addEventListener("DOMContentLoaded", () => {
     ensureResourceStore();
 
+    const resourceSelectors = {
+        list: "[data-trait-resource-list]",
+        nameInput: "[data-resource-name]",
+        currentInput: "[data-resource-current]",
+        maxInput: "[data-resource-max]",
+        styleSelect: "[data-resource-style]",
+        colorSelect: "[data-resource-color]",
+        submitButton: "[data-resource-submit]",
+        resetButton: "[data-resource-reset]",
+    };
+
+    const createResourceId = () => {
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+            return crypto.randomUUID();
+        }
+        return `resource-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
+
+    const setSelectValue = (select, value, fallback) => {
+        if (!select) {
+            return;
+        }
+        const hasOption = Array.from(select.options).some((option) => option.value === value);
+        select.value = hasOption ? value : fallback;
+    };
+
+    const defaultResourceForm = {
+        name: "",
+        current: RESOURCE_DEFAULTS.min,
+        max: RESOURCE_DEFAULTS.max,
+        style: RESOURCE_STYLES.gauge,
+        color: RESOURCE_COLORS.blue,
+    };
+
+    const getResourceFormElements = () => ({
+        list: document.querySelector(resourceSelectors.list),
+        nameInput: document.querySelector(resourceSelectors.nameInput),
+        currentInput: document.querySelector(resourceSelectors.currentInput),
+        maxInput: document.querySelector(resourceSelectors.maxInput),
+        styleSelect: document.querySelector(resourceSelectors.styleSelect),
+        colorSelect: document.querySelector(resourceSelectors.colorSelect),
+        submitButton: document.querySelector(resourceSelectors.submitButton),
+        resetButton: document.querySelector(resourceSelectors.resetButton),
+    });
+
+    const setResourceFormValues = (elements, resource) => {
+        if (!elements) {
+            return;
+        }
+        if (elements.nameInput) {
+            elements.nameInput.value = resource.name ?? "";
+        }
+        if (elements.currentInput) {
+            elements.currentInput.value = Number.isFinite(Number(resource.current))
+                ? String(resource.current)
+                : String(defaultResourceForm.current);
+        }
+        if (elements.maxInput) {
+            elements.maxInput.value = Number.isFinite(Number(resource.max))
+                ? String(resource.max)
+                : String(defaultResourceForm.max);
+        }
+        setSelectValue(elements.styleSelect, resource.style, defaultResourceForm.style);
+        setSelectValue(elements.colorSelect, resource.color, defaultResourceForm.color);
+    };
+
+    const renderResourceList = (root, onEdit) => {
+        if (!root) {
+            return;
+        }
+        const resources = readResources();
+        root.innerHTML = "";
+        if (resources.length === 0) {
+            root.textContent = "登録済みのリソースはありません。";
+            return;
+        }
+        resources.forEach((resource) => {
+            const row = document.createElement("div");
+            row.className = "resource__group";
+
+            const label = document.createElement("span");
+            label.className = "resource__label";
+            label.textContent = resource.name ?? "";
+
+            const editButton = document.createElement("button");
+            editButton.type = "button";
+            editButton.className = "material-symbols-rounded";
+            editButton.textContent = "edit";
+            editButton.addEventListener("click", () => onEdit?.(resource));
+
+            row.appendChild(label);
+            row.appendChild(editButton);
+            root.appendChild(row);
+        });
+    };
+
+    const refreshResourceDisplays = () => {
+        document
+            .querySelectorAll("[data-trait-resource-root]")
+            .forEach((root) => renderResources(root));
+    };
+
     window.resourceStore = {
         read: readResources,
         write: writeResources,
@@ -266,9 +376,45 @@ document.addEventListener("DOMContentLoaded", () => {
         upsert: upsertResource,
     };
 
-    document
-        .querySelectorAll("[data-trait-resource-root]")
-        .forEach((root) => renderResources(root));
+    refreshResourceDisplays();
+
+    const resourceFormElements = getResourceFormElements();
+    let editingResourceId = null;
+
+    const handleEdit = (resource) => {
+        editingResourceId = resource.id;
+        setResourceFormValues(resourceFormElements, resource);
+    };
+
+    renderResourceList(resourceFormElements.list, handleEdit);
+
+    resourceFormElements.submitButton?.addEventListener("click", () => {
+        const name = resourceFormElements.nameInput?.value?.trim() ?? "";
+        const currentValue = Number(resourceFormElements.currentInput?.value);
+        const maxValue = Number(resourceFormElements.maxInput?.value);
+        const style = resourceFormElements.styleSelect?.value ?? defaultResourceForm.style;
+        const color = resourceFormElements.colorSelect?.value ?? defaultResourceForm.color;
+        const payload = {
+            id: editingResourceId ?? createResourceId(),
+            name,
+            current: Number.isFinite(currentValue)
+                ? currentValue
+                : defaultResourceForm.current,
+            max: Number.isFinite(maxValue) ? maxValue : defaultResourceForm.max,
+            style,
+            color,
+        };
+        upsertResource(payload);
+        editingResourceId = null;
+        setResourceFormValues(resourceFormElements, defaultResourceForm);
+        renderResourceList(resourceFormElements.list, handleEdit);
+        refreshResourceDisplays();
+    });
+
+    resourceFormElements.resetButton?.addEventListener("click", () => {
+        editingResourceId = null;
+        setResourceFormValues(resourceFormElements, defaultResourceForm);
+    });
 
     injectSvgIcons(document);
 });
