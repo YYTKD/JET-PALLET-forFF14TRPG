@@ -1078,11 +1078,52 @@ document.addEventListener("DOMContentLoaded", () => {
         updateCommandArea(commands);
     };
 
+    const getAbilityAreaKey = (abilityArea) => {
+        return abilityArea?.dataset?.[DATASET_KEYS.abilityArea] ?? TEXT.defaultAbilityArea;
+    };
+
+    const isUserCreatedAbility = (abilityElement) =>
+        abilityElement?.dataset?.[DATASET_KEYS.userCreated] === "true";
+
+    const buildAbilitySignature = (data, area) => {
+        const normalized = {
+            area: area || TEXT.defaultAbilityArea,
+            name: data?.name ?? "",
+            iconSrc: data?.iconSrc ?? "",
+            tags: data?.tags ?? "",
+            stackMax: data?.stackMax ?? "",
+            stackCurrent: data?.stackCurrent ?? "",
+            prerequisite: data?.prerequisite ?? "",
+            timing: data?.timing ?? "",
+            cost: data?.cost ?? "",
+            limit: data?.limit ?? "",
+            target: data?.target ?? "",
+            range: data?.range ?? "",
+            judge: data?.judge ?? "",
+            baseDamage: data?.baseDamage ?? "",
+            directHit: data?.directHit ?? "",
+            description: data?.description ?? "",
+            row: data?.row ?? "",
+            col: data?.col ?? "",
+        };
+        return JSON.stringify(normalized);
+    };
+
     const loadStoredAbilities = () => {
         const parsed = readStorageJson(STORAGE_KEYS.abilities, []);
         if (!Array.isArray(parsed)) {
             return [];
         }
+        const defaultAbilitySignatures = new Set(
+            Array.from(document.querySelectorAll(SELECTORS.abilityElement))
+                .filter((abilityElement) => !isUserCreatedAbility(abilityElement))
+                .map((abilityElement) =>
+                    buildAbilitySignature(
+                        extractAbilityData(abilityElement),
+                        getAbilityAreaKey(abilityElement.closest(SELECTORS.abilityArea)),
+                    ),
+                ),
+        );
         const normalized = parsed
             .map((entry) => {
                 if (!entry || !entry.data) {
@@ -1094,11 +1135,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
             })
             .filter(Boolean);
-        const needsSave = normalized.some((entry, index) => entry.id !== parsed[index]?.id);
+        const filtered = normalized.filter(
+            (entry) =>
+                !defaultAbilitySignatures.has(
+                    buildAbilitySignature(entry.data, entry.area || TEXT.defaultAbilityArea),
+                ),
+        );
+        const needsSave =
+            normalized.length !== parsed.length ||
+            filtered.length !== normalized.length ||
+            normalized.some((entry, index) => entry.id !== parsed[index]?.id);
         if (needsSave) {
-            saveStoredAbilities(normalized);
+            saveStoredAbilities(filtered);
         }
-        return normalized;
+        return filtered;
     };
 
     const saveStoredAbilities = (abilities) => {
@@ -1111,6 +1161,9 @@ document.addEventListener("DOMContentLoaded", () => {
         let needsSave = false;
         storedAbilities.forEach((entry) => {
             if (!entry || !entry.data) {
+                return;
+            }
+            if (entry.id && document.querySelector(buildAbilityIdSelector(entry.id))) {
                 return;
             }
             const abilityArea =
@@ -1457,10 +1510,6 @@ document.addEventListener("DOMContentLoaded", () => {
         saveStoredAbilities(storedAbilities);
     };
 
-    const getAbilityAreaKey = (abilityArea) => {
-        return abilityArea?.dataset?.[DATASET_KEYS.abilityArea] ?? TEXT.defaultAbilityArea;
-    };
-
     const parseCssNumber = (value) => {
         const numericValue = Number.parseFloat(value);
         return Number.isFinite(numericValue) ? numericValue : null;
@@ -1601,7 +1650,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             applyAbilityPosition(abilityElement, row, col);
             const updatedData = extractAbilityData(abilityElement);
-            upsertStoredAbility(payload.id, payload.area, updatedData);
+            if (isUserCreatedAbility(abilityElement)) {
+                upsertStoredAbility(payload.id, payload.area, updatedData);
+            }
             clearDropIndicator(abilityArea);
         });
     }
@@ -1700,7 +1751,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     const newElement = createAbilityElement(data, newAbilityId);
                     newElement.dataset[DATASET_KEYS.userCreated] = "true";
                     insertAbilityAfter(contextMenuTarget, newElement);
-                    upsertStoredAbility(newAbilityId, areaValue, data);
+                    if (isUserCreatedAbility(newElement)) {
+                        upsertStoredAbility(newAbilityId, areaValue, data);
+                    }
                     showToast(TEXT.toastDuplicate, "success");
                     return;
                 }
@@ -1794,9 +1847,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 editingAbilityElement.dataset[DATASET_KEYS.abilityId] ??
                 generateAbilityId();
             const updatedElement = createAbilityElement(data, abilityId);
-            updatedElement.dataset[DATASET_KEYS.userCreated] = "true";
+            const shouldPersist = isUserCreatedAbility(editingAbilityElement);
+            if (shouldPersist) {
+                updatedElement.dataset[DATASET_KEYS.userCreated] = "true";
+            }
             editingAbilityElement.replaceWith(updatedElement);
-            upsertStoredAbility(abilityId, targetArea, data);
+            if (shouldPersist) {
+                upsertStoredAbility(abilityId, targetArea, data);
+            }
             resetAbilityForm();
             resetEditingState();
             if (typeof abilityModal.close === "function") {
@@ -1829,7 +1887,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const abilityElement = createAbilityElement(data, abilityId);
         abilityElement.dataset[DATASET_KEYS.userCreated] = "true";
         abilityArea.appendChild(abilityElement);
-        upsertStoredAbility(abilityId, targetArea, data);
+        if (isUserCreatedAbility(abilityElement)) {
+            upsertStoredAbility(abilityId, targetArea, data);
+        }
         resetAbilityForm();
 
         if (typeof abilityModal.close === "function") {
