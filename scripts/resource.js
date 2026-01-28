@@ -241,43 +241,6 @@ const createResourceGroup = (resource, onChange) => {
     return group;
 };
 
-const createResourceListItem = (resource, onEdit, onDelete) => {
-    const row = document.createElement("div");
-    row.className = "resource__group";
-
-    const label = document.createElement("span");
-    label.className = "resource__label";
-    label.textContent = resource.name ?? "";
-
-    const icon = createResourceIcon(resource);
-
-    const control = document.createElement("div");
-    control.className = "resource__control";
-
-    const editButton = document.createElement("button");
-    editButton.type = "button";
-    editButton.className = "material-symbols-rounded";
-    editButton.textContent = "edit";
-    editButton.setAttribute("aria-label", `${resource.name ?? ""}を編集`);
-    editButton.addEventListener("click", () => onEdit?.(resource));
-
-    const deleteButton = document.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.className = "material-symbols-rounded";
-    deleteButton.textContent = "delete";
-    deleteButton.setAttribute("aria-label", `${resource.name ?? ""}を削除`);
-    deleteButton.addEventListener("click", () => onDelete?.(resource));
-
-    control.appendChild(editButton);
-    control.appendChild(deleteButton);
-
-    row.appendChild(label);
-    row.appendChild(icon);
-    row.appendChild(control);
-
-    return row;
-};
-
 const renderResources = (root) => {
     if (!root) {
         return;
@@ -343,19 +306,39 @@ document.addEventListener("DOMContentLoaded", () => {
         color: RESOURCE_COLORS.blue,
     };
 
-    const getResourceFormElements = () => ({
-        list: document.querySelector(resourceSelectors.list),
-        nameInput: document.querySelector(resourceSelectors.nameInput),
-        currentInput: document.querySelector(resourceSelectors.currentInput),
-        maxInput: document.querySelector(resourceSelectors.maxInput),
-        styleSelect: document.querySelector(resourceSelectors.styleSelect),
-        colorSelect: document.querySelector(resourceSelectors.colorSelect),
-        submitButton: document.querySelector(resourceSelectors.submitButton),
-        resetButton: document.querySelector(resourceSelectors.resetButton),
-    });
+    const resourceFormOptions = {
+        styles: [
+            { value: RESOURCE_STYLES.gauge, label: "ゲージ" },
+            { value: RESOURCE_STYLES.stack, label: "スタック（▷）" },
+            { value: RESOURCE_STYLES.stack, label: "スタック（○）" },
+            { value: RESOURCE_STYLES.stack, label: "スタック（□）" },
+        ],
+        colors: [
+            { value: RESOURCE_COLORS.red, label: "red" },
+            { value: RESOURCE_COLORS.blue, label: "blue" },
+            { value: RESOURCE_COLORS.yellow, label: "yellow" },
+            { value: RESOURCE_COLORS.green, label: "green" },
+            { value: RESOURCE_COLORS.purple, label: "purple" },
+        ],
+    };
+
+    const getResourceFormElements = (root) => {
+        if (!root) {
+            return null;
+        }
+        return {
+            nameInput: root.querySelector(resourceSelectors.nameInput),
+            currentInput: root.querySelector(resourceSelectors.currentInput),
+            maxInput: root.querySelector(resourceSelectors.maxInput),
+            styleSelect: root.querySelector(resourceSelectors.styleSelect),
+            colorSelect: root.querySelector(resourceSelectors.colorSelect),
+            submitButton: root.querySelector(resourceSelectors.submitButton),
+            resetButton: root.querySelector(resourceSelectors.resetButton),
+        };
+    };
 
     const setResourceFormValues = (elements, resource) => {
-        if (!elements) {
+        if (!elements || !resource) {
             return;
         }
         if (elements.nameInput) {
@@ -375,18 +358,240 @@ document.addEventListener("DOMContentLoaded", () => {
         setSelectValue(elements.colorSelect, resource.color, defaultResourceForm.color);
     };
 
-    const renderResourceList = (root, onEdit, onDelete) => {
+    const createFormGroup = (labelText) => {
+        const group = document.createElement("div");
+        group.className = "form__group";
+
+        const label = document.createElement("span");
+        label.className = "form__label";
+        label.textContent = labelText;
+
+        group.appendChild(label);
+        return group;
+    };
+
+    const createFormInput = (type, dataAttribute) => {
+        const input = document.createElement("input");
+        input.type = type;
+        input.className = "form__input--normal";
+        input.setAttribute(dataAttribute, "");
+        return input;
+    };
+
+    const createFormSelect = (className, dataAttribute, options) => {
+        const select = document.createElement("select");
+        select.className = className;
+        select.setAttribute(dataAttribute, "");
+        options.forEach(({ value, label }) => {
+            const option = document.createElement("option");
+            option.className = "dammy";
+            option.value = value;
+            option.textContent = label;
+            select.appendChild(option);
+        });
+        return select;
+    };
+
+    const createResourceFormContent = (container, resource, handlers) => {
+        if (!container) {
+            return;
+        }
+        container.innerHTML = "";
+
+        const formRow = document.createElement("div");
+        formRow.className = "form__row";
+
+        const nameGroup = createFormGroup("リソース名");
+        const nameInput = createFormInput("text", "data-resource-name");
+        nameGroup.appendChild(nameInput);
+
+        const currentGroup = createFormGroup("現在値");
+        const currentInput = createFormInput("number", "data-resource-current");
+        currentGroup.appendChild(currentInput);
+
+        const maxGroup = createFormGroup("最大値");
+        const maxInput = createFormInput("number", "data-resource-max");
+        maxGroup.appendChild(maxInput);
+
+        formRow.appendChild(nameGroup);
+        formRow.appendChild(currentGroup);
+        formRow.appendChild(maxGroup);
+
+        const selectGroup = createFormGroup("形状");
+        const selectRow = document.createElement("div");
+        selectRow.className = "form__row";
+        const styleSelect = createFormSelect(
+            "form__option--type",
+            "data-resource-style",
+            resourceFormOptions.styles,
+        );
+        const colorSelect = createFormSelect(
+            "form__option--color",
+            "data-resource-color",
+            resourceFormOptions.colors,
+        );
+        selectRow.appendChild(styleSelect);
+        selectRow.appendChild(colorSelect);
+        selectGroup.appendChild(selectRow);
+
+        const buttonRow = document.createElement("div");
+        buttonRow.className = "form__row";
+
+        const submitButton = document.createElement("button");
+        submitButton.type = "button";
+        submitButton.setAttribute("data-resource-submit", "");
+        submitButton.textContent = handlers?.submitLabel ?? "リソースを保存する";
+
+        const resetButton = document.createElement("button");
+        resetButton.type = "button";
+        resetButton.setAttribute("data-resource-reset", "");
+        resetButton.textContent = "キャンセル";
+
+        buttonRow.appendChild(submitButton);
+        buttonRow.appendChild(resetButton);
+
+        container.appendChild(formRow);
+        container.appendChild(selectGroup);
+        container.appendChild(buttonRow);
+
+        const elements = getResourceFormElements(container);
+        setResourceFormValues(elements, resource);
+
+        submitButton.addEventListener("click", () => handlers?.onSubmit?.(container));
+        resetButton.addEventListener("click", () => handlers?.onCancel?.(container));
+    };
+
+    const createResourceListItem = (resource, handlers) => {
+        const item = document.createElement("div");
+        item.className = "resource__list-item";
+
+        const row = document.createElement("div");
+        row.className = "resource__group";
+
+        const label = document.createElement("span");
+        label.className = "resource__label";
+        label.textContent = resource.name ?? "";
+
+        const icon = createResourceIcon(resource);
+
+        const control = document.createElement("div");
+        control.className = "resource__control";
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "material-symbols-rounded";
+        editButton.textContent = "edit";
+        editButton.setAttribute("aria-label", `${resource.name ?? ""}を編集`);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "material-symbols-rounded";
+        deleteButton.textContent = "delete";
+        deleteButton.setAttribute("aria-label", `${resource.name ?? ""}を削除`);
+
+        control.appendChild(editButton);
+        control.appendChild(deleteButton);
+
+        row.appendChild(label);
+        row.appendChild(icon);
+        row.appendChild(control);
+
+        const options = document.createElement("div");
+        options.className = "resource__options";
+        options.dataset.resourceOptions = resource.id;
+        options.hidden = true;
+
+        editButton.addEventListener("click", () => handlers?.onEdit?.(resource, options));
+        deleteButton.addEventListener("click", () => handlers?.onDelete?.(resource));
+
+        item.appendChild(row);
+        item.appendChild(options);
+
+        return item;
+    };
+
+    const createResourceAddItem = (handlers) => {
+        const item = document.createElement("div");
+        item.className = "resource__list-item";
+
+        const row = document.createElement("div");
+        row.className = "resource__group resource__group--add";
+
+        const label = document.createElement("span");
+        label.className = "resource__label";
+        label.textContent = "新規リソース";
+
+        const control = document.createElement("div");
+        control.className = "resource__control";
+
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.className = "material-symbols-rounded";
+        addButton.textContent = "add";
+        addButton.setAttribute("aria-label", "リソースを追加");
+
+        control.appendChild(addButton);
+        row.appendChild(label);
+        row.appendChild(control);
+
+        const options = document.createElement("div");
+        options.className = "resource__options";
+        options.dataset.resourceOptions = "new-resource";
+        options.hidden = true;
+
+        addButton.addEventListener("click", () => handlers?.onCreate?.(options));
+
+        item.appendChild(row);
+        item.appendChild(options);
+
+        return item;
+    };
+
+    const closeAllResourceForms = (root) => {
+        if (!root) {
+            return;
+        }
+        root.querySelectorAll(".resource__options").forEach((options) => {
+            options.hidden = true;
+            options.innerHTML = "";
+        });
+    };
+
+    const extractResourceFormValues = (root) => {
+        const elements = getResourceFormElements(root);
+        if (!elements) {
+            return null;
+        }
+        const name = elements.nameInput?.value?.trim() ?? "";
+        const currentValue = Number(elements.currentInput?.value);
+        const maxValue = Number(elements.maxInput?.value);
+        const style = elements.styleSelect?.value ?? defaultResourceForm.style;
+        const color = elements.colorSelect?.value ?? defaultResourceForm.color;
+        return {
+            name,
+            current: Number.isFinite(currentValue)
+                ? currentValue
+                : defaultResourceForm.current,
+            max: Number.isFinite(maxValue) ? maxValue : defaultResourceForm.max,
+            style,
+            color,
+        };
+    };
+
+    const renderResourceList = (root, handlers) => {
         if (!root) {
             return;
         }
         const resources = readResources();
         root.innerHTML = "";
+        root.appendChild(createResourceAddItem(handlers));
         if (resources.length === 0) {
-            root.textContent = "登録済みのリソースはありません。";
-            return;
+            const emptyMessage = document.createElement("p");
+            emptyMessage.textContent = "登録済みのリソースはありません。";
+            root.appendChild(emptyMessage);
         }
         resources.forEach((resource) => {
-            root.appendChild(createResourceListItem(resource, onEdit, onDelete));
+            root.appendChild(createResourceListItem(resource, handlers));
         });
         injectSvgIcons(root);
     };
@@ -406,15 +611,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
     refreshResourceDisplays();
 
-    const resourceFormElements = getResourceFormElements();
+    const resourceListRoot = document.querySelector(resourceSelectors.list);
     let editingResourceId = null;
 
-    const handleEdit = (resource) => {
-        if (!resource?.id) {
+    const handleEdit = (resource, optionsContainer) => {
+        if (!resource?.id || !resourceListRoot || !optionsContainer) {
             return;
         }
+        closeAllResourceForms(resourceListRoot);
         editingResourceId = resource.id;
-        setResourceFormValues(resourceFormElements, resource);
+        optionsContainer.hidden = false;
+        createResourceFormContent(optionsContainer, resource, {
+            submitLabel: "リソースを更新する",
+            onSubmit: (container) => {
+                const values = extractResourceFormValues(container);
+                if (!values) {
+                    return;
+                }
+                upsertResource({ ...values, id: editingResourceId ?? createResourceId() });
+                editingResourceId = null;
+                closeAllResourceForms(resourceListRoot);
+                renderResourceList(resourceListRoot, {
+                    onEdit: handleEdit,
+                    onDelete: handleDelete,
+                    onCreate: handleCreate,
+                });
+                refreshResourceDisplays();
+            },
+            onCancel: () => {
+                editingResourceId = null;
+                closeAllResourceForms(resourceListRoot);
+            },
+        });
     };
 
     const handleDelete = (resource) => {
@@ -429,40 +657,48 @@ document.addEventListener("DOMContentLoaded", () => {
         writeResources(nextResources);
         if (editingResourceId === resource.id) {
             editingResourceId = null;
-            setResourceFormValues(resourceFormElements, defaultResourceForm);
         }
-        renderResourceList(resourceFormElements.list, handleEdit, handleDelete);
+        renderResourceList(resourceListRoot, {
+            onEdit: handleEdit,
+            onDelete: handleDelete,
+            onCreate: handleCreate,
+        });
         refreshResourceDisplays();
     };
 
-    renderResourceList(resourceFormElements.list, handleEdit, handleDelete);
-
-    resourceFormElements.submitButton?.addEventListener("click", () => {
-        const name = resourceFormElements.nameInput?.value?.trim() ?? "";
-        const currentValue = Number(resourceFormElements.currentInput?.value);
-        const maxValue = Number(resourceFormElements.maxInput?.value);
-        const style = resourceFormElements.styleSelect?.value ?? defaultResourceForm.style;
-        const color = resourceFormElements.colorSelect?.value ?? defaultResourceForm.color;
-        const payload = {
-            id: editingResourceId ?? createResourceId(),
-            name,
-            current: Number.isFinite(currentValue)
-                ? currentValue
-                : defaultResourceForm.current,
-            max: Number.isFinite(maxValue) ? maxValue : defaultResourceForm.max,
-            style,
-            color,
-        };
-        upsertResource(payload);
+    const handleCreate = (optionsContainer) => {
+        if (!resourceListRoot || !optionsContainer) {
+            return;
+        }
+        closeAllResourceForms(resourceListRoot);
         editingResourceId = null;
-        setResourceFormValues(resourceFormElements, defaultResourceForm);
-        renderResourceList(resourceFormElements.list, handleEdit, handleDelete);
-        refreshResourceDisplays();
-    });
+        optionsContainer.hidden = false;
+        createResourceFormContent(optionsContainer, defaultResourceForm, {
+            submitLabel: "リソースを追加する",
+            onSubmit: (container) => {
+                const values = extractResourceFormValues(container);
+                if (!values) {
+                    return;
+                }
+                upsertResource({ ...values, id: createResourceId() });
+                closeAllResourceForms(resourceListRoot);
+                renderResourceList(resourceListRoot, {
+                    onEdit: handleEdit,
+                    onDelete: handleDelete,
+                    onCreate: handleCreate,
+                });
+                refreshResourceDisplays();
+            },
+            onCancel: () => {
+                closeAllResourceForms(resourceListRoot);
+            },
+        });
+    };
 
-    resourceFormElements.resetButton?.addEventListener("click", () => {
-        editingResourceId = null;
-        setResourceFormValues(resourceFormElements, defaultResourceForm);
+    renderResourceList(resourceListRoot, {
+        onEdit: handleEdit,
+        onDelete: handleDelete,
+        onCreate: handleCreate,
     });
 
     injectSvgIcons(document);
