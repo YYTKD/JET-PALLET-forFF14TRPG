@@ -1556,51 +1556,36 @@
                 <button class="material-symbols-rounded" command="close" commandfor="addTRAITModal">close</button>
             </div>
             <div class="dialog__body">
+                <div data-trait-resource-list></div>
                 <div class="resource__group resource__preview">
-                    <span class="resource__label">登録済みリソース：リソース名</span>
-                    <div class="resource--stack">
-                        <img class="resource__icon--arrow is-active js-svg-inject" src="assets/resource--stack.svg" />
-                        <img class="resource__icon--arrow is-active js-svg-inject" src="assets/resource--stack.svg" />
-                        <img class="resource__icon--arrow is-active js-svg-inject" src="assets/resource--stack.svg" />
-                        <img class="resource__icon--arrow js-svg-inject" src="assets/resource--stack.svg" />
-                        <img class="resource__icon--arrow js-svg-inject" src="assets/resource--stack.svg" />
-                    </div>
-                </div>
-                <div class="resource__group resource__preview">
-                    <span class="resource__label">登録済みリソース：リソース名</span>
-                    <div class="resource--gauge">
-                        <img class="resource__icon--gauge js-svg-inject" src="assets/resource--gauge.svg" />
-                        <span class="resource__icon--gauge-value">2</span>
-                    </div>
                     <div class="resource__options">
-
                         <div class="form__row">
                             <!--名前-->
                             <div class="form__group">
                                 <span class="form__label">リソース名</span>
-                                <input type="text" class="form__input--normal">
+                                <input type="text" class="form__input--normal" data-resource-name>
                             </div>
                             <!--現在値-->
                             <div class="form__group">
                                 <span class="form__label">現在値</span>
-                                <input type="number" class="form__input--normal">
+                                <input type="number" class="form__input--normal" data-resource-current>
                             </div>
                             <!--最大値-->
                             <div class="form__group">
                                 <span class="form__label">最大値</span>
-                                <input type="number" class="form__input--normal">
+                                <input type="number" class="form__input--normal" data-resource-max>
                             </div>
                         </div>
                         <div class="form__group">
                             <span class="form__label">形状</span>
                             <div class="form__row">
-                                <select class="form__option--type">
+                                <select class="form__option--type" data-resource-style>
                                     <option class="dammy">ゲージ</option>
                                     <option class="dammy">スタック（▷）</option>
                                     <option class="dammy">スタック（○）</option>
                                     <option class="dammy">スタック（□）</option>
                                 </select>
-                                <select class="form__option--color">
+                                <select class="form__option--color" data-resource-color>
                                     <option class="dammy">red</option>
                                     <option class="dammy">blue</option>
                                     <option class="dammy">yellow</option>
@@ -1609,10 +1594,12 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="form__row">
+                            <button type="button" data-resource-submit>リソースを追加する</button>
+                            <button type="button" data-resource-reset>入力をリセット</button>
+                        </div>
                     </div>
                 </div>
-                <!--登録ボタン-->
-                <button>リソースを追加する</button>
             </div>
         </div>
     </dialog>
