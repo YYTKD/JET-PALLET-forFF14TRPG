@@ -1103,12 +1103,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return !commandPlaceholders.has(commandText);
     };
 
-    const showToast = (message, type = "info") => {
-        if (window.toastUtils?.showToast) {
-            window.toastUtils.showToast(message, type);
-        }
-    };
-
     const copyTextToClipboard = async (text) => {
         if (navigator.clipboard?.writeText) {
             await navigator.clipboard.writeText(text);
