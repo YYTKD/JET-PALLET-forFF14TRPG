@@ -144,10 +144,16 @@
         </div>
     </header>
     <footer>
-        <button class="character__banner" command="show-modal" commandfor="characterSettingModal">
-            <span class="character__job">モンク</span>
-            <span class="character__level">Lv50</span>
-        </button>
+        <div class="footer__character-controls">
+            <button class="character__banner" command="show-modal" commandfor="characterSettingModal">
+                <span class="character__job">モンク</span>
+                <span class="character__level">Lv50</span>
+            </button>
+            <button id="resetAllButton" class="character__reset">
+                <span class="material-symbols-rounded">restart_alt</span>
+                <span>初期化</span>
+            </button>
+        </div>
         <div class="button__area--footer">
             <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="start">hourglass_top<h6>ターン開始</h6></button>
             <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="end">hourglass_empty<h6>ターン終了</h6></button>
@@ -1679,6 +1685,7 @@
 <div class="toast-container" data-toast-container></div>
 <script src="scripts/toast.js"></script>
 <script src="scripts/storage.js"></script>
+<script src="scripts/reset.js"></script>
 <script src="scripts/resource.js"></script>
 <script src="scripts/toast-utils.js"></script>
 <script src="scripts/ability.js"></script>
