@@ -160,7 +160,7 @@ const renderGauge = (container, resource) => {
     container.appendChild(gaugeValue);
 };
 
-const createResourceGroup = (resource) => {
+const createResourceGroup = (resource, onChange) => {
     const group = document.createElement("div");
     group.className = "resource__group";
 
@@ -183,6 +183,23 @@ const createResourceGroup = (resource) => {
     const control = document.createElement("div");
     control.className = "resource__control";
 
+    const decrementButton = document.createElement("button");
+    decrementButton.className = "resource__btn material-symbols-rounded";
+    decrementButton.type = "button";
+    decrementButton.textContent = "remove";
+    decrementButton.setAttribute("aria-label", `${resource.name ?? ""}を減らす`);
+    decrementButton.addEventListener("click", () => onChange?.(resource.id, -1));
+
+    const incrementButton = document.createElement("button");
+    incrementButton.className = "resource__btn material-symbols-rounded";
+    incrementButton.type = "button";
+    incrementButton.textContent = "add";
+    incrementButton.setAttribute("aria-label", `${resource.name ?? ""}を増やす`);
+    incrementButton.addEventListener("click", () => onChange?.(resource.id, 1));
+
+    control.appendChild(decrementButton);
+    control.appendChild(incrementButton);
+
     group.appendChild(label);
     group.appendChild(icon);
     group.appendChild(control);
@@ -197,7 +214,23 @@ const renderResources = (root) => {
     const resources = readResources();
     root.innerHTML = "";
     resources.forEach((resource) => {
-        root.appendChild(createResourceGroup(resource));
+        root.appendChild(
+            createResourceGroup(resource, (id, delta) => {
+                const nextResources = readResources();
+                const target = nextResources.find((entry) => entry.id === id);
+                if (!target) {
+                    return;
+                }
+                const currentValue = Number(target.current);
+                const nextValue = Number.isFinite(currentValue)
+                    ? currentValue + delta
+                    : delta > 0
+                        ? target.max
+                        : RESOURCE_DEFAULTS.min;
+                updateResource(id, { current: nextValue });
+                renderResources(root);
+            }),
+        );
     });
 };
 
