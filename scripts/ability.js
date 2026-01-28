@@ -105,6 +105,8 @@ const ABILITY_DRAG_CLASSES = {
     dropIndicator: "ability-drop-indicator",
 };
 
+const ABILITY_DRAG_PAYLOAD_TYPES = ["application/json", "text/plain"];
+
 const ABILITY_TEXT = {
     defaultIcon: "assets/dummy_icon.png",
     uploadedImageLabel: "アップロード画像",
@@ -1743,18 +1745,25 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     };
 
+    const hasDragPayloadType = (dataTransfer) => {
+        const types = Array.from(dataTransfer?.types ?? []);
+        return ABILITY_DRAG_PAYLOAD_TYPES.some((type) => types.includes(type));
+    };
+
     function registerAbilityArea(abilityArea) {
         abilityArea.addEventListener("dragover", (event) => {
+            const dataTransfer = event.dataTransfer;
+            if (hasDragPayloadType(dataTransfer)) {
+                event.preventDefault();
+            }
             const payload = getDragPayload(event);
             if (!payload) {
                 return;
             }
-            if (payload && payload.area !== getAbilityAreaKey(abilityArea)) {
+            if (payload.area !== getAbilityAreaKey(abilityArea)) {
                 clearDropIndicator(abilityArea);
                 return;
             }
-            event.preventDefault();
-            const dataTransfer = event.dataTransfer;
             if (dataTransfer) {
                 dataTransfer.dropEffect = "move";
             }
