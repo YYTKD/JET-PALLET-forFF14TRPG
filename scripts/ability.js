@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
     abilities: "jet-pallet-abilities",
     rows: "jet-pallet-ability-rows",
+    positions: "jet-pallet-ability-positions",
 };
 
 const SELECTORS = {
@@ -360,6 +361,15 @@ document.addEventListener("DOMContentLoaded", () => {
         writeStorageJson(STORAGE_KEYS.rows, rowsByArea, "ability rows");
     };
 
+    const loadStoredAbilityPositions = () => {
+        const parsed = readStorageJson(STORAGE_KEYS.positions, {});
+        return parsed && typeof parsed === "object" ? parsed : {};
+    };
+
+    const saveStoredAbilityPositions = (positionsByIdentity) => {
+        writeStorageJson(STORAGE_KEYS.positions, positionsByIdentity, "ability positions");
+    };
+
     const applyAbilityRows = (abilityArea, rows) => {
         abilityArea.style.setProperty("--ability-rows", String(rows));
     };
@@ -377,6 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const abilityRowsByArea = loadStoredAbilityRows();
+    const abilityPositionsByIdentity = loadStoredAbilityPositions();
     abilityAreas.forEach((abilityArea) => {
         const areaKey = abilityArea.dataset[DATASET_KEYS.abilityArea];
         if (!areaKey) {
@@ -1109,6 +1120,27 @@ document.addEventListener("DOMContentLoaded", () => {
         return JSON.stringify(normalized);
     };
 
+    const buildAbilityIdentity = (data, area) => {
+        const normalized = {
+            area: area || TEXT.defaultAbilityArea,
+            name: data?.name ?? "",
+            iconSrc: data?.iconSrc ?? "",
+            tags: data?.tags ?? "",
+            stackMax: data?.stackMax ?? "",
+            prerequisite: data?.prerequisite ?? "",
+            timing: data?.timing ?? "",
+            cost: data?.cost ?? "",
+            limit: data?.limit ?? "",
+            target: data?.target ?? "",
+            range: data?.range ?? "",
+            judge: data?.judge ?? "",
+            baseDamage: data?.baseDamage ?? "",
+            directHit: data?.directHit ?? "",
+            description: data?.description ?? "",
+        };
+        return JSON.stringify(normalized);
+    };
+
     const loadStoredAbilities = () => {
         const parsed = readStorageJson(STORAGE_KEYS.abilities, []);
         if (!Array.isArray(parsed)) {
@@ -1535,6 +1567,29 @@ document.addEventListener("DOMContentLoaded", () => {
         saveStoredAbilities(storedAbilities);
     };
 
+    const persistAbilityPosition = (abilityElement) => {
+        const abilityArea = abilityElement?.closest(SELECTORS.abilityArea);
+        if (!abilityArea) {
+            return;
+        }
+        const areaKey = getAbilityAreaKey(abilityArea);
+        const data = extractAbilityData(abilityElement);
+        const identity = buildAbilityIdentity(data, areaKey);
+        if (!identity) {
+            return;
+        }
+        if (data.row && data.col) {
+            abilityPositionsByIdentity[identity] = {
+                row: data.row,
+                col: data.col,
+                area: areaKey,
+            };
+        } else {
+            delete abilityPositionsByIdentity[identity];
+        }
+        saveStoredAbilityPositions(abilityPositionsByIdentity);
+    };
+
     const parseCssNumber = (value) => {
         const numericValue = Number.parseFloat(value);
         return Number.isFinite(numericValue) ? numericValue : null;
@@ -1677,6 +1732,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const updatedData = extractAbilityData(abilityElement);
             if (isUserCreatedAbility(abilityElement)) {
                 upsertStoredAbility(payload.id, payload.area, updatedData);
+            } else {
+                persistAbilityPosition(abilityElement);
             }
             clearDropIndicator(abilityArea);
         });
@@ -1712,6 +1769,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderStoredAbilities();
+
+    document.querySelectorAll(SELECTORS.abilityElement).forEach((abilityElement) => {
+        if (isUserCreatedAbility(abilityElement)) {
+            return;
+        }
+        const abilityArea = abilityElement.closest(SELECTORS.abilityArea);
+        if (!abilityArea) {
+            return;
+        }
+        const areaKey = getAbilityAreaKey(abilityArea);
+        const identity = buildAbilityIdentity(extractAbilityData(abilityElement), areaKey);
+        const storedPosition = abilityPositionsByIdentity[identity];
+        if (!storedPosition) {
+            return;
+        }
+        const row = parseGridCoordinate(storedPosition.row);
+        const col = parseGridCoordinate(storedPosition.col);
+        if (!row || !col) {
+            return;
+        }
+        if (isCellOccupied(abilityArea, row, col, abilityElement)) {
+            return;
+        }
+        applyAbilityPosition(abilityElement, row, col);
+    });
 
     document.querySelectorAll(SELECTORS.abilityElement).forEach((abilityElement) => {
         if (!abilityElement.dataset[DATASET_KEYS.abilityId]) {
