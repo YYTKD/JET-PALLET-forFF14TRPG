@@ -14,10 +14,18 @@ const DEFAULT_RESOURCES = Object.freeze([
     {
         id: "resource-mp",
         name: "MP",
-        current: 0,
-        max: 10,
+        current: 5,
+        max: 5,
         style: RESOURCE_STYLES.gauge,
-        color: "blue",
+        color: "red",
+    },
+    {
+        id: "resource-toki",
+        name: "闘気",
+        current: 0,
+        max: 5,
+        style: RESOURCE_STYLES.stack,
+        color: "yellow",
     },
 ]);
 
