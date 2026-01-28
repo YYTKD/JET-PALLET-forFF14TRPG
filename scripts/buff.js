@@ -40,13 +40,13 @@ const BUFF_SELECTORS = {
     turnPhaseButton: "[data-turn-action=\"phase\"]",
 };
 
-const DATASET_KEYS = {
+const BUFF_DATASET_KEYS = {
     userCreated: "userCreated",
     buffStorage: "buffStorage",
     buffDuration: "buffDuration",
 };
 
-const DATA_ATTRIBUTES = {
+const BUFF_DATA_ATTRIBUTES = {
     userCreated: "user-created",
     buffStorage: "buff-storage",
     buffDuration: "buff-duration",
@@ -264,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const buff = document.createElement("div");
         buff.className = "buff";
         if (durationValue) {
-            buff.dataset[DATASET_KEYS.buffDuration] = durationValue;
+            buff.dataset[BUFF_DATASET_KEYS.buffDuration] = durationValue;
         }
         buff.innerHTML = `
             <span class="buff__limit" data-buff-limit></span>
@@ -340,8 +340,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const markBuffAsUserCreated = (buffElement, data) => {
-        buffElement.dataset[DATASET_KEYS.userCreated] = "true";
-        buffElement.dataset[DATASET_KEYS.buffStorage] = JSON.stringify(data);
+        buffElement.dataset[BUFF_DATASET_KEYS.userCreated] = "true";
+        buffElement.dataset[BUFF_DATASET_KEYS.buffStorage] = JSON.stringify(data);
     };
 
     const buffLibraryModal = document.querySelector(BUFF_SELECTORS.buffLibraryModal);
@@ -441,11 +441,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const persistActiveBuffElements = () => {
         const entries = Array.from(
             buffArea.querySelectorAll(
-                `.buff${buildDataSelector(DATA_ATTRIBUTES.userCreated, "true")}`,
+                `.buff${buildDataSelector(BUFF_DATA_ATTRIBUTES.userCreated, "true")}`,
             ),
         )
             .map((buff) => {
-                const raw = buff.dataset[DATASET_KEYS.buffStorage];
+                const raw = buff.dataset[BUFF_DATASET_KEYS.buffStorage];
                 if (!raw) {
                     return null;
                 }
@@ -472,16 +472,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const createLibraryRow = (data) => {
         const row = document.createElement("tr");
-        row.dataset[DATASET_KEYS.buffStorage] = JSON.stringify(data);
+        row.dataset[BUFF_DATASET_KEYS.buffStorage] = JSON.stringify(data);
         row.innerHTML = `
-            <td><button class="material-symbols-rounded" data-${DATA_ATTRIBUTES.buffLibraryAdd}>add</button></td>
+            <td><button class="material-symbols-rounded" data-${BUFF_DATA_ATTRIBUTES.buffLibraryAdd}>add</button></td>
             <td>
                 <div class="buff"><img src="${data.iconSrc || defaultIconSrc}" alt="" /></div>
             </td>
             <td>${data.name || ""}</td>
             <td>
-                <button class="material-symbols-rounded" data-${DATA_ATTRIBUTES.buffLibraryEdit}>edit</button>
-                <button class="material-symbols-rounded" data-${DATA_ATTRIBUTES.buffLibraryDelete}>delete</button>
+                <button class="material-symbols-rounded" data-${BUFF_DATA_ATTRIBUTES.buffLibraryEdit}>edit</button>
+                <button class="material-symbols-rounded" data-${BUFF_DATA_ATTRIBUTES.buffLibraryDelete}>delete</button>
             </td>
         `;
         return row;
@@ -513,7 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const editButton = event.target.closest(BUFF_SELECTORS.buffLibraryEdit);
         const deleteButton = event.target.closest(BUFF_SELECTORS.buffLibraryDelete);
         const row = event.target.closest("tr");
-        const raw = row?.dataset[DATASET_KEYS.buffStorage];
+        const raw = row?.dataset[BUFF_DATASET_KEYS.buffStorage];
         if (!raw) {
             return;
         }
@@ -826,7 +826,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const removeBuffsByDuration = (durationKey) => {
         buffArea.querySelectorAll(BUFF_SELECTORS.buffItem).forEach((buff) => {
             const currentDuration =
-                buff.dataset[DATASET_KEYS.buffDuration] ||
+                buff.dataset[BUFF_DATASET_KEYS.buffDuration] ||
                 durationFromLabel(buff.querySelector(BUFF_SELECTORS.buffLimit)?.textContent);
             if (currentDuration === durationKey) {
                 buff.remove();
