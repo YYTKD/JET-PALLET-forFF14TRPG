@@ -159,6 +159,8 @@ const buildAbilityIdSelector = (abilityId) =>
     )}`;
 
 document.addEventListener("DOMContentLoaded", () => {
+    const copyButtons = Array.from(document.querySelectorAll(".button--copy"));
+    const copyTimers = new WeakMap();
 
     const getAbilityModalElements = (modal) => {
         if (!modal) {
@@ -1088,6 +1090,82 @@ document.addEventListener("DOMContentLoaded", () => {
         const commands = buildCommandFromAbility(abilityElement);
         updateCommandArea(commands);
     };
+
+    const commandPlaceholders = new Set([
+        TEXT.commandJudgePlaceholder,
+        TEXT.commandDamagePlaceholder,
+    ]);
+
+    const isGeneratedCommand = (commandText) => {
+        if (!commandText) {
+            return false;
+        }
+        return !commandPlaceholders.has(commandText);
+    };
+
+    const showToast = (message, type = "info") => {
+        if (window.toastUtils?.showToast) {
+            window.toastUtils.showToast(message, type);
+        }
+    };
+
+    const copyTextToClipboard = async (text) => {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+        const fallback = document.createElement("textarea");
+        fallback.value = text;
+        fallback.setAttribute("readonly", "");
+        fallback.style.position = "absolute";
+        fallback.style.left = "-9999px";
+        document.body.appendChild(fallback);
+        fallback.select();
+        document.execCommand("copy");
+        fallback.remove();
+    };
+
+    const markCopyButton = (button) => {
+        const originalLabel = button.dataset.originalLabel ?? button.textContent ?? "";
+        button.dataset.originalLabel = originalLabel;
+        button.textContent = "コピー完了！";
+        button.classList.add("button--copied");
+
+        const existingTimer = copyTimers.get(button);
+        if (existingTimer) {
+            window.clearTimeout(existingTimer);
+        }
+        const timer = window.setTimeout(() => {
+            button.textContent = originalLabel;
+            button.classList.remove("button--copied");
+            copyTimers.delete(button);
+        }, 2000);
+        copyTimers.set(button, timer);
+    };
+
+    if (copyButtons.length > 0) {
+        copyButtons.forEach((button) => {
+            button.addEventListener("click", async () => {
+                const targetId = button.dataset.target;
+                const output = targetId ? document.getElementById(targetId) : null;
+                const commandText = output?.textContent?.trim() ?? "";
+
+                if (!isGeneratedCommand(commandText)) {
+                    showToast("コマンドがありません", "error");
+                    return;
+                }
+
+                try {
+                    await copyTextToClipboard(commandText);
+                    showToast("クリップボードにコピーしました", "success");
+                    markCopyButton(button);
+                } catch (error) {
+                    console.error("Failed to copy command:", error);
+                    showToast("クリップボードにコピーできませんでした", "error");
+                }
+            });
+        });
+    }
 
     const getAbilityAreaKey = (abilityArea) => {
         return abilityArea?.dataset?.[DATASET_KEYS.abilityArea] ?? TEXT.defaultAbilityArea;
