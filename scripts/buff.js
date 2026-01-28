@@ -3,7 +3,7 @@ const STORAGE_KEYS = {
     active: "jet-pallet-active-buffs",
 };
 
-const SELECTORS = {
+const BUFF_SELECTORS = {
     buffModal: "#addBuffModal",
     submitButton: "[data-buff-submit]",
     buffArea: ".buff-area",
@@ -98,27 +98,27 @@ const TEXT = {
 document.addEventListener("DOMContentLoaded", () => {
 
     const collectElements = () => {
-        const buffModal = document.querySelector(SELECTORS.buffModal);
-        const submitButton = buffModal?.querySelector(SELECTORS.submitButton) ?? null;
-        const buffArea = document.querySelector(SELECTORS.buffArea);
-        const iconInput = buffModal?.querySelector(SELECTORS.iconInput) ?? null;
-        const iconPreview = buffModal?.querySelector(SELECTORS.iconPreview) ?? null;
-        const typeSelect = buffModal?.querySelector(SELECTORS.typeSelect) ?? null;
-        const nameInput = buffModal?.querySelector(SELECTORS.nameInput) ?? null;
-        const descriptionInput = buffModal?.querySelector(SELECTORS.descriptionInput) ?? null;
-        const commandInput = buffModal?.querySelector(SELECTORS.commandInput) ?? null;
-        const extraTextInput = buffModal?.querySelector(SELECTORS.extraTextInput) ?? null;
-        const targetSelect = buffModal?.querySelector(SELECTORS.targetSelect) ?? null;
-        const durationSelect = buffModal?.querySelector(SELECTORS.durationSelect) ?? null;
-        const bulkInput = buffModal?.querySelector(SELECTORS.bulkInput) ?? null;
-        const errorSummary = buffModal?.querySelector(SELECTORS.errorSummary) ?? null;
+        const buffModal = document.querySelector(BUFF_SELECTORS.buffModal);
+        const submitButton = buffModal?.querySelector(BUFF_SELECTORS.submitButton) ?? null;
+        const buffArea = document.querySelector(BUFF_SELECTORS.buffArea);
+        const iconInput = buffModal?.querySelector(BUFF_SELECTORS.iconInput) ?? null;
+        const iconPreview = buffModal?.querySelector(BUFF_SELECTORS.iconPreview) ?? null;
+        const typeSelect = buffModal?.querySelector(BUFF_SELECTORS.typeSelect) ?? null;
+        const nameInput = buffModal?.querySelector(BUFF_SELECTORS.nameInput) ?? null;
+        const descriptionInput = buffModal?.querySelector(BUFF_SELECTORS.descriptionInput) ?? null;
+        const commandInput = buffModal?.querySelector(BUFF_SELECTORS.commandInput) ?? null;
+        const extraTextInput = buffModal?.querySelector(BUFF_SELECTORS.extraTextInput) ?? null;
+        const targetSelect = buffModal?.querySelector(BUFF_SELECTORS.targetSelect) ?? null;
+        const durationSelect = buffModal?.querySelector(BUFF_SELECTORS.durationSelect) ?? null;
+        const bulkInput = buffModal?.querySelector(BUFF_SELECTORS.bulkInput) ?? null;
+        const errorSummary = buffModal?.querySelector(BUFF_SELECTORS.errorSummary) ?? null;
         const errorFields = {
-            name: buffModal?.querySelector(SELECTORS.errorField("name")) ?? null,
-            description: buffModal?.querySelector(SELECTORS.errorField("description")) ?? null,
-            command: buffModal?.querySelector(SELECTORS.errorField("command")) ?? null,
-            extraText: buffModal?.querySelector(SELECTORS.errorField("extraText")) ?? null,
+            name: buffModal?.querySelector(BUFF_SELECTORS.errorField("name")) ?? null,
+            description: buffModal?.querySelector(BUFF_SELECTORS.errorField("description")) ?? null,
+            command: buffModal?.querySelector(BUFF_SELECTORS.errorField("command")) ?? null,
+            extraText: buffModal?.querySelector(BUFF_SELECTORS.errorField("extraText")) ?? null,
         };
-        const buffModalTitle = buffModal?.querySelector(SELECTORS.buffModalTitle) ?? null;
+        const buffModalTitle = buffModal?.querySelector(BUFF_SELECTORS.buffModalTitle) ?? null;
         return {
             buffModal,
             submitButton,
@@ -306,17 +306,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             </div>
         `;
-        applyText(buff.querySelector(SELECTORS.buffLimit), limit);
-        applyText(buff.querySelector(SELECTORS.buffName), name);
-        applyText(buff.querySelector(SELECTORS.buffTag), tag);
-        applyText(buff.querySelector(SELECTORS.buffDescription), description, {
+        applyText(buff.querySelector(BUFF_SELECTORS.buffLimit), limit);
+        applyText(buff.querySelector(BUFF_SELECTORS.buffName), name);
+        applyText(buff.querySelector(BUFF_SELECTORS.buffTag), tag);
+        applyText(buff.querySelector(BUFF_SELECTORS.buffDescription), description, {
             hideWhenEmpty: true,
         });
-        applyText(buff.querySelector(SELECTORS.buffType), tag, { hideWhenEmpty: true });
-        applyText(buff.querySelector(SELECTORS.buffDuration), duration, { hideWhenEmpty: true });
-        applyText(buff.querySelector(SELECTORS.buffCommand), command, { hideWhenEmpty: true });
-        applyText(buff.querySelector(SELECTORS.buffExtraText), extraText, { hideWhenEmpty: true });
-        applyText(buff.querySelector(SELECTORS.buffTarget), target, { hideWhenEmpty: true });
+        applyText(buff.querySelector(BUFF_SELECTORS.buffType), tag, { hideWhenEmpty: true });
+        applyText(buff.querySelector(BUFF_SELECTORS.buffDuration), duration, { hideWhenEmpty: true });
+        applyText(buff.querySelector(BUFF_SELECTORS.buffCommand), command, { hideWhenEmpty: true });
+        applyText(buff.querySelector(BUFF_SELECTORS.buffExtraText), extraText, { hideWhenEmpty: true });
+        applyText(buff.querySelector(BUFF_SELECTORS.buffTarget), target, { hideWhenEmpty: true });
         return buff;
     };
 
@@ -344,8 +344,8 @@ document.addEventListener("DOMContentLoaded", () => {
         buffElement.dataset[DATASET_KEYS.buffStorage] = JSON.stringify(data);
     };
 
-    const buffLibraryModal = document.querySelector(SELECTORS.buffLibraryModal);
-    const buffLibraryTableBody = buffLibraryModal?.querySelector(SELECTORS.buffLibraryBody);
+    const buffLibraryModal = document.querySelector(BUFF_SELECTORS.buffLibraryModal);
+    const buffLibraryTableBody = buffLibraryModal?.querySelector(BUFF_SELECTORS.buffLibraryBody);
     const editingState = {
         id: null,
     };
@@ -509,9 +509,9 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     buffLibraryTableBody?.addEventListener("click", (event) => {
-        const addButton = event.target.closest(SELECTORS.buffLibraryAdd);
-        const editButton = event.target.closest(SELECTORS.buffLibraryEdit);
-        const deleteButton = event.target.closest(SELECTORS.buffLibraryDelete);
+        const addButton = event.target.closest(BUFF_SELECTORS.buffLibraryAdd);
+        const editButton = event.target.closest(BUFF_SELECTORS.buffLibraryEdit);
+        const deleteButton = event.target.closest(BUFF_SELECTORS.buffLibraryDelete);
         const row = event.target.closest("tr");
         const raw = row?.dataset[DATASET_KEYS.buffStorage];
         if (!raw) {
@@ -803,9 +803,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const turnButtons = {
-        start: document.querySelector(SELECTORS.turnStartButton),
-        end: document.querySelector(SELECTORS.turnEndButton),
-        phase: document.querySelector(SELECTORS.turnPhaseButton),
+        start: document.querySelector(BUFF_SELECTORS.turnStartButton),
+        end: document.querySelector(BUFF_SELECTORS.turnEndButton),
+        phase: document.querySelector(BUFF_SELECTORS.turnPhaseButton),
     };
 
     const durationFromLabel = (label) => {
@@ -824,10 +824,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const removeBuffsByDuration = (durationKey) => {
-        buffArea.querySelectorAll(SELECTORS.buffItem).forEach((buff) => {
+        buffArea.querySelectorAll(BUFF_SELECTORS.buffItem).forEach((buff) => {
             const currentDuration =
                 buff.dataset[DATASET_KEYS.buffDuration] ||
-                durationFromLabel(buff.querySelector(SELECTORS.buffLimit)?.textContent);
+                durationFromLabel(buff.querySelector(BUFF_SELECTORS.buffLimit)?.textContent);
             if (currentDuration === durationKey) {
                 buff.remove();
             }
