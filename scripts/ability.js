@@ -78,7 +78,6 @@ const DATA_ATTRIBUTES = {
     buffStorage: "buff-storage",
     buffDuration: "buff-duration",
     targetArea: "target-area",
-    tagRemove: "tag-remove",
     uploaded: "uploaded",
 };
 
