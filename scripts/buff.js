@@ -1,4 +1,4 @@
-const STORAGE_KEYS = {
+const BUFF_STORAGE_KEYS = {
     library: "jet-pallet-buff-library",
     active: "jet-pallet-active-buffs",
 };
@@ -55,10 +55,10 @@ const BUFF_DATA_ATTRIBUTES = {
     buffLibraryDelete: "buff-library-delete",
 };
 
-const buildDataSelector = (attribute, value) =>
+const buildBuffDataSelector = (attribute, value) =>
     value === undefined ? `[data-${attribute}]` : `[data-${attribute}="${value}"]`;
 
-const TEXT = {
+const BUFF_TEXT = {
     defaultSubmitLabel: "登録",
     defaultModalTitle: "バフ・デバフ登録",
     modalEditTitle: "バフ・デバフ編集",
@@ -176,8 +176,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     const inlineErrorsEnabled = false;
-    const defaultSubmitLabel = submitButton.textContent || TEXT.defaultSubmitLabel;
-    const defaultModalTitle = buffModalTitle?.textContent || TEXT.defaultModalTitle;
+    const defaultSubmitLabel = submitButton.textContent || BUFF_TEXT.defaultSubmitLabel;
+    const defaultModalTitle = buffModalTitle?.textContent || BUFF_TEXT.defaultModalTitle;
 
     const createBuffId = () => {
         if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -187,14 +187,14 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const buffTypeLabels = {
-        buff: TEXT.typeBuff,
-        debuff: TEXT.typeDebuff,
+        buff: BUFF_TEXT.typeBuff,
+        debuff: BUFF_TEXT.typeDebuff,
     };
 
     const durationLabels = {
-        permanent: TEXT.durationPermanent,
-        "until-turn-end": TEXT.durationTurnEnd,
-        "until-next-turn-start": TEXT.durationNextTurn,
+        permanent: BUFF_TEXT.durationPermanent,
+        "until-turn-end": BUFF_TEXT.durationTurnEnd,
+        "until-next-turn-start": BUFF_TEXT.durationNextTurn,
     };
 
     const readFileAsDataURL = (file) =>
@@ -280,27 +280,27 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div class="card__body">
                     <div class="card__stat">
-                        <span class="card__label">${TEXT.labelDetail}</span>
+                        <span class="card__label">${BUFF_TEXT.labelDetail}</span>
                         <span class="card__value" data-buff-description></span>
                     </div>
                     <div class="card__stat">
-                        <span class="card__label">${TEXT.labelType}</span>
+                        <span class="card__label">${BUFF_TEXT.labelType}</span>
                         <span class="card__value" data-buff-type></span>
                     </div>
                     <div class="card__stat">
-                        <span class="card__label">${TEXT.labelDuration}</span>
+                        <span class="card__label">${BUFF_TEXT.labelDuration}</span>
                         <span class="card__value" data-buff-duration></span>
                     </div>
                     <div class="card__stat">
-                        <span class="card__label">${TEXT.labelCommand}</span>
+                        <span class="card__label">${BUFF_TEXT.labelCommand}</span>
                         <span class="card__value" data-buff-command></span>
                     </div>
                     <div class="card__stat">
-                        <span class="card__label">${TEXT.labelExtraText}</span>
+                        <span class="card__label">${BUFF_TEXT.labelExtraText}</span>
                         <span class="card__value" data-buff-extra-text></span>
                     </div>
                     <div class="card__stat">
-                        <span class="card__label">${TEXT.labelTarget}</span>
+                        <span class="card__label">${BUFF_TEXT.labelTarget}</span>
                         <span class="card__value" data-buff-target></span>
                     </div>
                 </div>
@@ -359,7 +359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const getStoredLibraryBuffs = () => {
-        const storedBuffs = loadStoredBuffs(STORAGE_KEYS.library);
+        const storedBuffs = loadStoredBuffs(BUFF_STORAGE_KEYS.library);
         let hasChanges = false;
         const normalized = storedBuffs.map((buff) => {
             if (!buff) {
@@ -372,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return buff;
         });
         if (hasChanges) {
-            saveStoredBuffs(STORAGE_KEYS.library, normalized);
+            saveStoredBuffs(BUFF_STORAGE_KEYS.library, normalized);
         }
         return normalized;
     };
@@ -384,13 +384,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const storedBuffs = getStoredLibraryBuffs();
         const target = storedBuffs.find((buff) => buff?.id === buffId);
         if (!target) {
-            showToast(TEXT.toastNotFound, "error");
+            showToast(BUFF_TEXT.toastNotFound, "error");
             return;
         }
         editingState.id = buffId;
         submitButton.textContent = "更新";
         if (buffModalTitle) {
-            buffModalTitle.textContent = TEXT.modalEditTitle;
+            buffModalTitle.textContent = BUFF_TEXT.modalEditTitle;
         }
         setIconPreview(target.iconSrc || defaultIconSrc);
         if (typeSelect) {
@@ -414,9 +414,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (targetSelect) {
             const resolvedTargetValue =
                 target.targetValue ||
-                (target.target === TEXT.targetJudge
+                (target.target === BUFF_TEXT.targetJudge
                     ? "judge"
-                    : target.target === TEXT.targetDamage
+                    : target.target === BUFF_TEXT.targetDamage
                     ? "damage"
                     : "");
             targetSelect.value = resolvedTargetValue;
@@ -441,7 +441,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const persistActiveBuffElements = () => {
         const entries = Array.from(
             buffArea.querySelectorAll(
-                `.buff${buildDataSelector(BUFF_DATA_ATTRIBUTES.userCreated, "true")}`,
+                `.buff${buildBuffDataSelector(BUFF_DATA_ATTRIBUTES.userCreated, "true")}`,
             ),
         )
             .map((buff) => {
@@ -457,7 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             })
             .filter(Boolean);
-        saveStoredBuffs(STORAGE_KEYS.active, entries);
+        saveStoredBuffs(BUFF_STORAGE_KEYS.active, entries);
     };
 
     const addActiveBuff = (data) => {
@@ -495,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
         buffLibraryTableBody.innerHTML = "";
         if (storedBuffs.length === 0) {
             const emptyRow = document.createElement("tr");
-            emptyRow.innerHTML = `<td colspan="4">${TEXT.emptyLibrary}</td>`;
+            emptyRow.innerHTML = `<td colspan="4">${BUFF_TEXT.emptyLibrary}</td>`;
             buffLibraryTableBody.appendChild(emptyRow);
             return;
         }
@@ -521,7 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 const data = JSON.parse(raw);
                 addActiveBuff(data);
-                showToast(TEXT.toastAdded, "success");
+                showToast(BUFF_TEXT.toastAdded, "success");
             } catch (error) {
                 console.warn("Failed to parse buff entry.", error);
             }
@@ -541,9 +541,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = JSON.parse(raw);
                 const storedBuffs = getStoredLibraryBuffs();
                 const nextBuffs = storedBuffs.filter((buff) => buff?.id !== data.id);
-                saveStoredBuffs(STORAGE_KEYS.library, nextBuffs);
+                saveStoredBuffs(BUFF_STORAGE_KEYS.library, nextBuffs);
                 renderStoredBuffs();
-                showToast(TEXT.toastDeleted, "success");
+                showToast(BUFF_TEXT.toastDeleted, "success");
             } catch (error) {
                 console.warn("Failed to parse buff entry.", error);
             }
@@ -551,7 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const renderActiveBuffs = () => {
-        const storedBuffs = loadStoredBuffs(STORAGE_KEYS.active);
+        const storedBuffs = loadStoredBuffs(BUFF_STORAGE_KEYS.active);
         storedBuffs.forEach((data) => {
             addActiveBuff(data);
         });
@@ -646,7 +646,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const validateRequired = (input, field, label, errors) => {
         const value = input?.value?.trim() ?? "";
         if (!value) {
-            const message = `${label}${TEXT.errorRequiredSuffix}`;
+            const message = `${label}${BUFF_TEXT.errorRequiredSuffix}`;
             setFieldError(field, message);
             markInvalid(input);
             if (errors) {
@@ -666,7 +666,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const numericValue = Number(raw);
         if (Number.isNaN(numericValue)) {
-            const message = `${label}${TEXT.errorNumericSuffix}`;
+            const message = `${label}${BUFF_TEXT.errorNumericSuffix}`;
             setFieldError(field, message);
             markInvalid(input);
             if (errors) {
@@ -677,7 +677,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const minValue = input?.min !== "" ? Number(input.min) : null;
         const maxValue = input?.max !== "" ? Number(input.max) : null;
         if (minValue !== null && numericValue < minValue) {
-            const message = `${label}${minValue}${TEXT.errorMinSuffix}`;
+            const message = `${label}${minValue}${BUFF_TEXT.errorMinSuffix}`;
             setFieldError(field, message);
             markInvalid(input);
             if (errors) {
@@ -686,7 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return false;
         }
         if (maxValue !== null && numericValue > maxValue) {
-            const message = `${label}${maxValue}${TEXT.errorMaxSuffix}`;
+            const message = `${label}${maxValue}${BUFF_TEXT.errorMaxSuffix}`;
             setFieldError(field, message);
             markInvalid(input);
             if (errors) {
@@ -701,15 +701,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const validateForm = () => {
         clearErrors();
         const errors = [];
-        validateRequired(nameInput, "name", TEXT.fieldLabels.name, errors);
-        validateRequired(descriptionInput, "description", TEXT.fieldLabels.description, errors);
-        validateNumberRange(commandInput, "command", TEXT.fieldLabels.command, errors);
-        validateNumberRange(extraTextInput, "extraText", TEXT.fieldLabels.extraText, errors);
+        validateRequired(nameInput, "name", BUFF_TEXT.fieldLabels.name, errors);
+        validateRequired(descriptionInput, "description", BUFF_TEXT.fieldLabels.description, errors);
+        validateNumberRange(commandInput, "command", BUFF_TEXT.fieldLabels.command, errors);
+        validateNumberRange(extraTextInput, "extraText", BUFF_TEXT.fieldLabels.extraText, errors);
 
         if (errors.length > 0) {
             showToast(errors.join("\n"), "error");
             if (errorSummary && inlineErrorsEnabled) {
-                errorSummary.textContent = TEXT.errorSummary;
+                errorSummary.textContent = BUFF_TEXT.errorSummary;
             }
             return false;
         }
@@ -759,10 +759,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const updatedBuffs = storedBuffs.map((buff) =>
                 buff?.id === editingState.id ? buffData : buff
             );
-            saveStoredBuffs(STORAGE_KEYS.library, updatedBuffs);
+            saveStoredBuffs(BUFF_STORAGE_KEYS.library, updatedBuffs);
         } else {
             storedBuffs.push(buffData);
-            saveStoredBuffs(STORAGE_KEYS.library, storedBuffs);
+            saveStoredBuffs(BUFF_STORAGE_KEYS.library, storedBuffs);
         }
         renderStoredBuffs();
 
@@ -771,7 +771,7 @@ document.addEventListener("DOMContentLoaded", () => {
             buffModal.close();
         }
 
-        showToast(isEditing ? TEXT.toastUpdated : TEXT.toastRegistered, "success");
+        showToast(isEditing ? BUFF_TEXT.toastUpdated : BUFF_TEXT.toastRegistered, "success");
     });
 
     buffModal.addEventListener("close", () => {
@@ -790,16 +790,16 @@ document.addEventListener("DOMContentLoaded", () => {
     renderActiveBuffs();
 
     nameInput?.addEventListener("input", () => {
-        validateRequired(nameInput, "name", TEXT.fieldLabels.name);
+        validateRequired(nameInput, "name", BUFF_TEXT.fieldLabels.name);
     });
     descriptionInput?.addEventListener("input", () => {
-        validateRequired(descriptionInput, "description", TEXT.fieldLabels.description);
+        validateRequired(descriptionInput, "description", BUFF_TEXT.fieldLabels.description);
     });
     commandInput?.addEventListener("input", () => {
-        validateNumberRange(commandInput, "command", TEXT.fieldLabels.command);
+        validateNumberRange(commandInput, "command", BUFF_TEXT.fieldLabels.command);
     });
     extraTextInput?.addEventListener("input", () => {
-        validateNumberRange(extraTextInput, "extraText", TEXT.fieldLabels.extraText);
+        validateNumberRange(extraTextInput, "extraText", BUFF_TEXT.fieldLabels.extraText);
     });
 
     const turnButtons = {
@@ -811,12 +811,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const durationFromLabel = (label) => {
         const text = label?.trim();
         switch (text) {
-            case TEXT.durationPermanent:
+            case BUFF_TEXT.durationPermanent:
                 return "permanent";
-            case TEXT.durationTurnEnd:
+            case BUFF_TEXT.durationTurnEnd:
                 return "until-turn-end";
-            case TEXT.durationNextTurn:
-            case TEXT.durationNextTurnAlt:
+            case BUFF_TEXT.durationNextTurn:
+            case BUFF_TEXT.durationNextTurnAlt:
                 return "until-next-turn-start";
             default:
                 return "";

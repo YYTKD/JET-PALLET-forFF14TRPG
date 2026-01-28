@@ -1,10 +1,10 @@
-const STORAGE_KEYS = {
+const ABILITY_STORAGE_KEYS = {
     abilities: "jet-pallet-abilities",
     rows: "jet-pallet-ability-rows",
     positions: "jet-pallet-ability-positions",
 };
 
-const SELECTORS = {
+const ABILITY_SELECTORS = {
     abilityModal: "#addAbilityModal",
     addButton: ".form__button--add",
     iconInput: "[data-ability-icon-input]",
@@ -62,7 +62,7 @@ const SELECTORS = {
     buffExtraText: "[data-buff-extra-text]",
 };
 
-const DATA_ATTRIBUTES = {
+const ABILITY_DATA_ATTRIBUTES = {
     abilityArea: "ability-area",
     abilityRowAdd: "ability-row-add",
     abilitySubcategory: "ability-subcategory",
@@ -81,7 +81,7 @@ const DATA_ATTRIBUTES = {
     uploaded: "uploaded",
 };
 
-const DATASET_KEYS = {
+const ABILITY_DATASET_KEYS = {
     abilityArea: "abilityArea",
     abilityRowAdd: "abilityRowAdd",
     abilitySubcategory: "abilitySubcategory",
@@ -99,13 +99,13 @@ const DATASET_KEYS = {
     uploaded: "uploaded",
 };
 
-const DRAG_CLASSES = {
+const ABILITY_DRAG_CLASSES = {
     bodyDragging: "is-ability-dragging",
     areaDragging: "is-dragging",
     dropIndicator: "ability-drop-indicator",
 };
 
-const TEXT = {
+const ABILITY_TEXT = {
     defaultIcon: "assets/dummy_icon.png",
     uploadedImageLabel: "アップロード画像",
     tagSeparator: "・",
@@ -138,22 +138,22 @@ const TEXT = {
     toastRegister: "アビリティを登録しました。",
 };
 
-const buildDataSelector = (attribute, value) =>
+const buildAbilityDataSelector = (attribute, value) =>
     value === undefined ? `[data-${attribute}]` : `[data-${attribute}="${value}"]`;
 
 const buildAbilityAreaSelector = (areaKey) => {
     if (!areaKey) {
-        return `${SELECTORS.abilityArea}${buildDataSelector(DATA_ATTRIBUTES.abilityArea)}`;
+        return `${ABILITY_SELECTORS.abilityArea}${buildAbilityDataSelector(ABILITY_DATA_ATTRIBUTES.abilityArea)}`;
     }
-    return `${SELECTORS.abilityArea}${buildDataSelector(
-        DATA_ATTRIBUTES.abilityArea,
+    return `${ABILITY_SELECTORS.abilityArea}${buildAbilityDataSelector(
+        ABILITY_DATA_ATTRIBUTES.abilityArea,
         CSS.escape(areaKey),
     )}`;
 };
 
 const buildAbilityIdSelector = (abilityId) =>
-    `${SELECTORS.abilityElement}${buildDataSelector(
-        DATA_ATTRIBUTES.abilityId,
+    `${ABILITY_SELECTORS.abilityElement}${buildAbilityDataSelector(
+        ABILITY_DATA_ATTRIBUTES.abilityId,
         CSS.escape(abilityId),
     )}`;
 
@@ -165,36 +165,36 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!modal) {
             return null;
         }
-        const addButton = modal.querySelector(SELECTORS.addButton);
+        const addButton = modal.querySelector(ABILITY_SELECTORS.addButton);
         if (!addButton) {
             return null;
         }
-        const iconInput = modal.querySelector(SELECTORS.iconInput);
-        const iconPreview = modal.querySelector(SELECTORS.iconPreview);
-        const iconSelect = modal.querySelector(SELECTORS.iconSelect);
-        const previewIcon = modal.querySelector(SELECTORS.previewIcon);
-        const typeSelect = modal.querySelector(SELECTORS.typeSelect);
-        const nameInput = modal.querySelector(SELECTORS.nameInput);
-        const stackInput = modal.querySelector(SELECTORS.stackInput);
-        const prerequisiteInput = modal.querySelector(SELECTORS.prerequisiteInput);
-        const timingInput = modal.querySelector(SELECTORS.timingInput);
-        const costInput = modal.querySelector(SELECTORS.costInput);
-        const limitInput = modal.querySelector(SELECTORS.limitInput);
-        const targetInput = modal.querySelector(SELECTORS.targetInput);
-        const rangeInput = modal.querySelector(SELECTORS.rangeInput);
-        const judgeInput = modal.querySelector(SELECTORS.judgeInput);
-        const judgeAttributeSelect = modal.querySelector(SELECTORS.judgeAttributeSelect);
-        const baseDamageInput = modal.querySelector(SELECTORS.baseDamageInput);
-        const directHitInput = modal.querySelector(SELECTORS.directHitInput);
-        const descriptionInput = modal.querySelector(SELECTORS.descriptionInput);
-        const tagInput = modal.querySelector(SELECTORS.tagInput);
-        const tagAddButton = modal.querySelector(SELECTORS.tagAddButton);
-        const tagGroup = tagInput?.closest(SELECTORS.formGroup);
-        const tagContainer = tagGroup?.querySelector(SELECTORS.formRow);
+        const iconInput = modal.querySelector(ABILITY_SELECTORS.iconInput);
+        const iconPreview = modal.querySelector(ABILITY_SELECTORS.iconPreview);
+        const iconSelect = modal.querySelector(ABILITY_SELECTORS.iconSelect);
+        const previewIcon = modal.querySelector(ABILITY_SELECTORS.previewIcon);
+        const typeSelect = modal.querySelector(ABILITY_SELECTORS.typeSelect);
+        const nameInput = modal.querySelector(ABILITY_SELECTORS.nameInput);
+        const stackInput = modal.querySelector(ABILITY_SELECTORS.stackInput);
+        const prerequisiteInput = modal.querySelector(ABILITY_SELECTORS.prerequisiteInput);
+        const timingInput = modal.querySelector(ABILITY_SELECTORS.timingInput);
+        const costInput = modal.querySelector(ABILITY_SELECTORS.costInput);
+        const limitInput = modal.querySelector(ABILITY_SELECTORS.limitInput);
+        const targetInput = modal.querySelector(ABILITY_SELECTORS.targetInput);
+        const rangeInput = modal.querySelector(ABILITY_SELECTORS.rangeInput);
+        const judgeInput = modal.querySelector(ABILITY_SELECTORS.judgeInput);
+        const judgeAttributeSelect = modal.querySelector(ABILITY_SELECTORS.judgeAttributeSelect);
+        const baseDamageInput = modal.querySelector(ABILITY_SELECTORS.baseDamageInput);
+        const directHitInput = modal.querySelector(ABILITY_SELECTORS.directHitInput);
+        const descriptionInput = modal.querySelector(ABILITY_SELECTORS.descriptionInput);
+        const tagInput = modal.querySelector(ABILITY_SELECTORS.tagInput);
+        const tagAddButton = modal.querySelector(ABILITY_SELECTORS.tagAddButton);
+        const tagGroup = tagInput?.closest(ABILITY_SELECTORS.formGroup);
+        const tagContainer = tagGroup?.querySelector(ABILITY_SELECTORS.formRow);
         const defaultIconSrc =
             iconPreview?.getAttribute("src") ??
             previewIcon?.getAttribute("src") ??
-            TEXT.defaultIcon;
+            ABILITY_TEXT.defaultIcon;
         const defaultTagMarkup = tagContainer?.innerHTML ?? "";
 
         return {
@@ -226,25 +226,25 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const getMenuElements = () => {
-        const contextMenu = document.querySelector(SELECTORS.abilityContextMenu);
+        const contextMenu = document.querySelector(ABILITY_SELECTORS.abilityContextMenu);
         const contextMenuItems =
-            contextMenu?.querySelectorAll(SELECTORS.abilityContextMenuItems) ?? [];
-        const sectionMenu = document.querySelector(SELECTORS.sectionSettingsMenu);
-        const sectionMenuItems = sectionMenu?.querySelectorAll(SELECTORS.sectionMenuItems) ?? [];
+            contextMenu?.querySelectorAll(ABILITY_SELECTORS.abilityContextMenuItems) ?? [];
+        const sectionMenu = document.querySelector(ABILITY_SELECTORS.sectionSettingsMenu);
+        const sectionMenuItems = sectionMenu?.querySelectorAll(ABILITY_SELECTORS.sectionMenuItems) ?? [];
         return { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems };
     };
 
     const collectElements = () => {
-        const abilityModal = document.querySelector(SELECTORS.abilityModal);
+        const abilityModal = document.querySelector(ABILITY_SELECTORS.abilityModal);
         const modalElements = getAbilityModalElements(abilityModal);
         const { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems } = getMenuElements();
-        const subcategoryTemplate = document.querySelector(SELECTORS.abilitySubcategoryTemplate);
-        const abilityAreas = document.querySelectorAll(SELECTORS.abilityAreaWithData);
-        const abilityRowAddButtons = document.querySelectorAll(SELECTORS.abilityRowAddButtons);
-        const commandSection = document.querySelector(SELECTORS.commandSection);
-        const judgeOutput = commandSection?.querySelector(SELECTORS.judgeOutput) ?? null;
-        const attackOutput = commandSection?.querySelector(SELECTORS.attackOutput) ?? null;
-        const phaseButton = document.querySelector(SELECTORS.phaseButton);
+        const subcategoryTemplate = document.querySelector(ABILITY_SELECTORS.abilitySubcategoryTemplate);
+        const abilityAreas = document.querySelectorAll(ABILITY_SELECTORS.abilityAreaWithData);
+        const abilityRowAddButtons = document.querySelectorAll(ABILITY_SELECTORS.abilityRowAddButtons);
+        const commandSection = document.querySelector(ABILITY_SELECTORS.commandSection);
+        const judgeOutput = commandSection?.querySelector(ABILITY_SELECTORS.judgeOutput) ?? null;
+        const attackOutput = commandSection?.querySelector(ABILITY_SELECTORS.attackOutput) ?? null;
+        const phaseButton = document.querySelector(ABILITY_SELECTORS.phaseButton);
         return {
             abilityModal,
             modalElements,
@@ -354,21 +354,21 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const loadStoredAbilityRows = () => {
-        const parsed = readStorageJson(STORAGE_KEYS.rows, {});
+        const parsed = readStorageJson(ABILITY_STORAGE_KEYS.rows, {});
         return parsed && typeof parsed === "object" ? parsed : {};
     };
 
     const saveStoredAbilityRows = (rowsByArea) => {
-        writeStorageJson(STORAGE_KEYS.rows, rowsByArea, "ability rows");
+        writeStorageJson(ABILITY_STORAGE_KEYS.rows, rowsByArea, "ability rows");
     };
 
     const loadStoredAbilityPositions = () => {
-        const parsed = readStorageJson(STORAGE_KEYS.positions, {});
+        const parsed = readStorageJson(ABILITY_STORAGE_KEYS.positions, {});
         return parsed && typeof parsed === "object" ? parsed : {};
     };
 
     const saveStoredAbilityPositions = (positionsByIdentity) => {
-        writeStorageJson(STORAGE_KEYS.positions, positionsByIdentity, "ability positions");
+        writeStorageJson(ABILITY_STORAGE_KEYS.positions, positionsByIdentity, "ability positions");
     };
 
     const applyAbilityRows = (abilityArea, rows) => {
@@ -390,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const abilityRowsByArea = loadStoredAbilityRows();
     const abilityPositionsByIdentity = loadStoredAbilityPositions();
     abilityAreas.forEach((abilityArea) => {
-        const areaKey = abilityArea.dataset[DATASET_KEYS.abilityArea];
+        const areaKey = abilityArea.dataset[ABILITY_DATASET_KEYS.abilityArea];
         if (!areaKey) {
             return;
         }
@@ -426,11 +426,11 @@ document.addEventListener("DOMContentLoaded", () => {
         sectionMenu.classList.add("is-open");
         sectionMenu.setAttribute("aria-hidden", "false");
 
-        const canAddSubcategory = Boolean(button.dataset[DATASET_KEYS.abilitySubcategory]);
+        const canAddSubcategory = Boolean(button.dataset[ABILITY_DATASET_KEYS.abilitySubcategory]);
         const sectionElement = button.closest("section");
-        const existingSubcategory = sectionElement?.querySelector(SELECTORS.abilityAreaOther);
+        const existingSubcategory = sectionElement?.querySelector(ABILITY_SELECTORS.abilityAreaOther);
         sectionMenuItems.forEach((item) => {
-            if (item.dataset[DATASET_KEYS.sectionAction] !== "add-subcategory") {
+            if (item.dataset[ABILITY_DATASET_KEYS.sectionAction] !== "add-subcategory") {
                 item.hidden = false;
                 item.disabled = false;
                 return;
@@ -506,7 +506,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const uploadedOption = document.createElement("option");
                     uploadedOption.value = result;
                     uploadedOption.textContent = file.name;
-                    uploadedOption.dataset[DATASET_KEYS.uploaded] = "true";
+                    uploadedOption.dataset[ABILITY_DATASET_KEYS.uploaded] = "true";
                     iconSelect.appendChild(uploadedOption);
                     iconSelect.value = result;
                 }
@@ -560,7 +560,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const removeButton = document.createElement("span");
         removeButton.setAttribute("type", "button");
-        removeButton.dataset[DATASET_KEYS.tagRemove] = "true";
+        removeButton.dataset[ABILITY_DATASET_KEYS.tagRemove] = "true";
         removeButton.textContent = "x";
         tag.appendChild(removeButton);
 
@@ -577,7 +577,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const existingTags = Array.from(tagContainer.querySelectorAll(SELECTORS.tagElement)).map(
+        const existingTags = Array.from(tagContainer.querySelectorAll(ABILITY_SELECTORS.tagElement)).map(
             (tag) =>
             getTagLabel(tag),
         );
@@ -592,7 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const buildTagText = (typeLabel) => {
-        const tagElements = Array.from(abilityModal.querySelectorAll(SELECTORS.tagElement));
+        const tagElements = Array.from(abilityModal.querySelectorAll(ABILITY_SELECTORS.tagElement));
         const tagTexts = tagElements
             .map((tag) => {
                 return getTagLabel(tag);
@@ -603,11 +603,11 @@ document.addEventListener("DOMContentLoaded", () => {
             tagTexts.push(typeLabel);
         }
 
-        return tagTexts.join(TEXT.tagSeparator);
+        return tagTexts.join(ABILITY_TEXT.tagSeparator);
     };
 
     const formatJudgeAttribute = (value) => {
-        if (!value || value === TEXT.judgeNone) {
+        if (!value || value === ABILITY_TEXT.judgeNone) {
             return "";
         }
         if (value.startsWith("【") && value.endsWith("】")) {
@@ -636,10 +636,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const ensureStackBadge = (abilityElement) => {
-        let badge = abilityElement.querySelector(SELECTORS.abilityStack);
+        let badge = abilityElement.querySelector(ABILITY_SELECTORS.abilityStack);
         if (!badge) {
             badge = document.createElement("span");
-            badge.className = SELECTORS.abilityStack.slice(1);
+            badge.className = ABILITY_SELECTORS.abilityStack.slice(1);
             abilityElement.appendChild(badge);
         }
         return badge;
@@ -649,15 +649,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityElement) {
             return;
         }
-        const max = Number(abilityElement.dataset[DATASET_KEYS.stackMax]);
-        const current = Number(abilityElement.dataset[DATASET_KEYS.stackCurrent]);
+        const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
+        const current = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent]);
         if (!Number.isFinite(max) || max <= 0) {
-            abilityElement.querySelector(SELECTORS.abilityStack)?.remove();
+            abilityElement.querySelector(ABILITY_SELECTORS.abilityStack)?.remove();
             return;
         }
         const badge = ensureStackBadge(abilityElement);
         const safeCurrent = Number.isFinite(current) ? Math.max(0, current) : max;
-        abilityElement.dataset[DATASET_KEYS.stackCurrent] = String(safeCurrent);
+        abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(safeCurrent);
         badge.textContent = String(safeCurrent);
     };
 
@@ -666,8 +666,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const initialCurrent = Number.isFinite(stackCurrent) ? stackCurrent : stackMax;
-        abilityElement.dataset[DATASET_KEYS.stackMax] = String(stackMax);
-        abilityElement.dataset[DATASET_KEYS.stackCurrent] = String(initialCurrent);
+        abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax] = String(stackMax);
+        abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(initialCurrent);
         updateStackBadge(abilityElement);
     };
 
@@ -685,12 +685,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!safeRow || !safeCol) {
             abilityElement.style.gridRow = "";
             abilityElement.style.gridColumn = "";
-            delete abilityElement.dataset[DATASET_KEYS.abilityRow];
-            delete abilityElement.dataset[DATASET_KEYS.abilityCol];
+            delete abilityElement.dataset[ABILITY_DATASET_KEYS.abilityRow];
+            delete abilityElement.dataset[ABILITY_DATASET_KEYS.abilityCol];
             return;
         }
-        abilityElement.dataset[DATASET_KEYS.abilityRow] = String(safeRow);
-        abilityElement.dataset[DATASET_KEYS.abilityCol] = String(safeCol);
+        abilityElement.dataset[ABILITY_DATASET_KEYS.abilityRow] = String(safeRow);
+        abilityElement.dataset[ABILITY_DATASET_KEYS.abilityCol] = String(safeCol);
         abilityElement.style.gridRow = String(safeRow);
         abilityElement.style.gridColumn = String(safeCol);
     };
@@ -700,9 +700,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityArea) {
             return occupied;
         }
-        abilityArea.querySelectorAll(SELECTORS.abilityElement).forEach((abilityElement) => {
-            const row = parseGridCoordinate(abilityElement.dataset[DATASET_KEYS.abilityRow]);
-            const col = parseGridCoordinate(abilityElement.dataset[DATASET_KEYS.abilityCol]);
+        abilityArea.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+            const row = parseGridCoordinate(abilityElement.dataset[ABILITY_DATASET_KEYS.abilityRow]);
+            const col = parseGridCoordinate(abilityElement.dataset[ABILITY_DATASET_KEYS.abilityCol]);
             if (!row || !col) {
                 return;
             }
@@ -715,16 +715,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityArea) {
             return false;
         }
-        return Array.from(abilityArea.querySelectorAll(SELECTORS.abilityElement)).some(
+        return Array.from(abilityArea.querySelectorAll(ABILITY_SELECTORS.abilityElement)).some(
             (abilityElement) => {
                 if (excludeElement && abilityElement === excludeElement) {
                     return false;
                 }
                 const abilityRow = parseGridCoordinate(
-                    abilityElement.dataset[DATASET_KEYS.abilityRow],
+                    abilityElement.dataset[ABILITY_DATASET_KEYS.abilityRow],
                 );
                 const abilityCol = parseGridCoordinate(
-                    abilityElement.dataset[DATASET_KEYS.abilityCol],
+                    abilityElement.dataset[ABILITY_DATASET_KEYS.abilityCol],
                 );
                 return abilityRow === row && abilityCol === col;
             },
@@ -766,14 +766,14 @@ document.addEventListener("DOMContentLoaded", () => {
         abilityElement.className = "ability";
         abilityElement.setAttribute("draggable", "true");
         if (abilityId) {
-            abilityElement.dataset[DATASET_KEYS.abilityId] = abilityId;
+            abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] = abilityId;
         }
 
         const tagText = data.tags ?? "";
         const metaBlocks = [
-            createStatBlock(TEXT.labelCost, data.cost),
-            createStatBlock(TEXT.labelTarget, data.target),
-            createStatBlock(TEXT.labelRange, data.range),
+            createStatBlock(ABILITY_TEXT.labelCost, data.cost),
+            createStatBlock(ABILITY_TEXT.labelTarget, data.target),
+            createStatBlock(ABILITY_TEXT.labelRange, data.range),
         ]
             .filter(Boolean)
             .join("");
@@ -789,17 +789,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const judgeSection = data.judge
             ? `
                 <div class="card__stat--judge">
-                    <span class="card__label">${TEXT.labelJudge}</span>
+                    <span class="card__label">${ABILITY_TEXT.labelJudge}</span>
                     <span class="card__value">${data.judge}</span>
                 </div>
             `
             : "";
 
         const bodyBlocks = [
-            createStatBlock(TEXT.labelBaseEffect, data.description),
-            createStatBlock(TEXT.labelBaseDamage, data.baseDamage),
-            createStatBlock(TEXT.labelDirectHit, data.directHit),
-            createStatBlock(TEXT.labelLimit, data.limit),
+            createStatBlock(ABILITY_TEXT.labelBaseEffect, data.description),
+            createStatBlock(ABILITY_TEXT.labelBaseDamage, data.baseDamage),
+            createStatBlock(ABILITY_TEXT.labelDirectHit, data.directHit),
+            createStatBlock(ABILITY_TEXT.labelLimit, data.limit),
         ]
             .filter(Boolean)
             .join("");
@@ -817,8 +817,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="card__title">
                         <span class="card__name">${data.name}<span class="card__tags">${tagText}</span></span>
                     </div>
-                    ${createTriggerBlock(TEXT.labelPrerequisite, data.prerequisite)}
-                    ${createTriggerBlock(TEXT.labelTiming, data.timing)}
+                    ${createTriggerBlock(ABILITY_TEXT.labelPrerequisite, data.prerequisite)}
+                    ${createTriggerBlock(ABILITY_TEXT.labelTiming, data.timing)}
                     ${metaSection}
                     ${judgeSection}
                 </div>
@@ -838,7 +838,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const parseTagList = (tagText) => {
         return (tagText ?? "")
-            .split(TEXT.tagSeparator)
+            .split(ABILITY_TEXT.tagSeparator)
             .map((tag) => tag.trim())
             .filter(Boolean);
     };
@@ -857,11 +857,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityElement) {
             return "";
         }
-        const statElements = abilityElement.querySelectorAll(SELECTORS.cardBodyStat);
+        const statElements = abilityElement.querySelectorAll(ABILITY_SELECTORS.cardBodyStat);
         for (const statElement of statElements) {
-            const label = statElement.querySelector(SELECTORS.cardLabel);
+            const label = statElement.querySelector(ABILITY_SELECTORS.cardLabel);
             if (label?.textContent?.trim() === labelText) {
-                return statElement.querySelector(SELECTORS.cardValue)?.textContent?.trim() ?? "";
+                return statElement.querySelector(ABILITY_SELECTORS.cardValue)?.textContent?.trim() ?? "";
             }
         }
         return "";
@@ -898,19 +898,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const uploadedOption = document.createElement("option");
         uploadedOption.value = iconSrc;
-        uploadedOption.textContent = TEXT.uploadedImageLabel;
-        uploadedOption.dataset[DATASET_KEYS.uploaded] = "true";
+        uploadedOption.textContent = ABILITY_TEXT.uploadedImageLabel;
+        uploadedOption.dataset[ABILITY_DATASET_KEYS.uploaded] = "true";
         iconSelect.appendChild(uploadedOption);
     };
 
     const getDamageBuffData = () => {
-        const buffElements = Array.from(document.querySelectorAll(SELECTORS.buffElements));
+        const buffElements = Array.from(document.querySelectorAll(ABILITY_SELECTORS.buffElements));
         return buffElements.reduce(
             (acc, buffElement) => {
                 const targetLabel =
-                    buffElement.querySelector(SELECTORS.buffTarget)?.textContent?.trim() ?? "";
+                    buffElement.querySelector(ABILITY_SELECTORS.buffTarget)?.textContent?.trim() ?? "";
                 let targetValue = "";
-                const storage = buffElement.dataset[DATASET_KEYS.buffStorage];
+                const storage = buffElement.dataset[ABILITY_DATASET_KEYS.buffStorage];
                 if (storage) {
                     try {
                         targetValue = JSON.parse(storage)?.targetValue ?? "";
@@ -918,11 +918,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         console.warn("Failed to parse buff storage.", error);
                     }
                 }
-                if (targetLabel !== TEXT.buffTargetDamage && targetValue !== "damage") {
+                if (targetLabel !== ABILITY_TEXT.buffTargetDamage && targetValue !== "damage") {
                     return acc;
                 }
                 const commandText =
-                    buffElement.querySelector(SELECTORS.buffCommand)?.textContent?.trim() ?? "";
+                    buffElement.querySelector(ABILITY_SELECTORS.buffCommand)?.textContent?.trim() ?? "";
                 const match = commandText.match(/[+-]?\d+/);
                 if (match) {
                     const numericValue = Number(match[0]);
@@ -931,7 +931,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
                 const extraText =
-                    buffElement.querySelector(SELECTORS.buffExtraText)?.textContent?.trim() ?? "";
+                    buffElement.querySelector(ABILITY_SELECTORS.buffExtraText)?.textContent?.trim() ?? "";
                 if (extraText) {
                     acc.extraTexts.push(extraText);
                 }
@@ -942,13 +942,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const getJudgeBuffData = () => {
-        const buffElements = Array.from(document.querySelectorAll(SELECTORS.buffElements));
+        const buffElements = Array.from(document.querySelectorAll(ABILITY_SELECTORS.buffElements));
         return buffElements.reduce(
             (acc, buffElement) => {
                 const targetLabel =
-                    buffElement.querySelector(SELECTORS.buffTarget)?.textContent?.trim() ?? "";
+                    buffElement.querySelector(ABILITY_SELECTORS.buffTarget)?.textContent?.trim() ?? "";
                 let targetValue = "";
-                const storage = buffElement.dataset[DATASET_KEYS.buffStorage];
+                const storage = buffElement.dataset[ABILITY_DATASET_KEYS.buffStorage];
                 if (storage) {
                     try {
                         targetValue = JSON.parse(storage)?.targetValue ?? "";
@@ -956,11 +956,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         console.warn("Failed to parse buff storage.", error);
                     }
                 }
-                if (targetLabel !== TEXT.buffTargetJudge && targetValue !== "judge") {
+                if (targetLabel !== ABILITY_TEXT.buffTargetJudge && targetValue !== "judge") {
                     return acc;
                 }
                 const commandText =
-                    buffElement.querySelector(SELECTORS.buffCommand)?.textContent?.trim() ?? "";
+                    buffElement.querySelector(ABILITY_SELECTORS.buffCommand)?.textContent?.trim() ?? "";
                 const match = commandText.match(/[+-]?\d+/);
                 if (match) {
                     const numericValue = Number(match[0]);
@@ -969,7 +969,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
                 const extraText =
-                    buffElement.querySelector(SELECTORS.buffExtraText)?.textContent?.trim() ?? "";
+                    buffElement.querySelector(ABILITY_SELECTORS.buffExtraText)?.textContent?.trim() ?? "";
                 if (extraText) {
                     acc.extraTexts.push(extraText);
                 }
@@ -1019,15 +1019,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const buildCommandFromAbility = (abilityElement) => {
         const name =
-            abilityElement?.querySelector(SELECTORS.cardName)?.childNodes?.[0]?.textContent?.trim() ??
+            abilityElement?.querySelector(ABILITY_SELECTORS.cardName)?.childNodes?.[0]?.textContent?.trim() ??
             "";
         const judge = abilityElement
-            ?.querySelector(SELECTORS.cardJudgeValue)
+            ?.querySelector(ABILITY_SELECTORS.cardJudgeValue)
             ?.textContent?.trim() ?? "";
-        const baseDamage = findCardStatValue(abilityElement, TEXT.labelBaseDamage);
-        const directHit = findCardStatValue(abilityElement, TEXT.labelDirectHit);
+        const baseDamage = findCardStatValue(abilityElement, ABILITY_TEXT.labelBaseDamage);
+        const directHit = findCardStatValue(abilityElement, ABILITY_TEXT.labelDirectHit);
         const directHitEnabled =
-            document.querySelector(SELECTORS.commandDirectHitOption)?.checked ?? false;
+            document.querySelector(ABILITY_SELECTORS.commandDirectHitOption)?.checked ?? false;
 
         const parsedJudge = parseJudgeText(judge);
         const judgeBuffData = getJudgeBuffData();
@@ -1078,10 +1078,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         if (judgeOutput) {
-            judgeOutput.textContent = judgeCommand || TEXT.commandJudgePlaceholder;
+            judgeOutput.textContent = judgeCommand || ABILITY_TEXT.commandJudgePlaceholder;
         }
         if (attackOutput) {
-            attackOutput.textContent = damageCommand || TEXT.commandDamagePlaceholder;
+            attackOutput.textContent = damageCommand || ABILITY_TEXT.commandDamagePlaceholder;
         }
     };
 
@@ -1091,8 +1091,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const commandPlaceholders = new Set([
-        TEXT.commandJudgePlaceholder,
-        TEXT.commandDamagePlaceholder,
+        ABILITY_TEXT.commandJudgePlaceholder,
+        ABILITY_TEXT.commandDamagePlaceholder,
     ]);
 
     const isGeneratedCommand = (commandText) => {
@@ -1161,15 +1161,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const getAbilityAreaKey = (abilityArea) => {
-        return abilityArea?.dataset?.[DATASET_KEYS.abilityArea] ?? TEXT.defaultAbilityArea;
+        return abilityArea?.dataset?.[ABILITY_DATASET_KEYS.abilityArea] ?? ABILITY_TEXT.defaultAbilityArea;
     };
 
     const isUserCreatedAbility = (abilityElement) =>
-        abilityElement?.dataset?.[DATASET_KEYS.userCreated] === "true";
+        abilityElement?.dataset?.[ABILITY_DATASET_KEYS.userCreated] === "true";
 
     const buildAbilitySignature = (data, area) => {
         const normalized = {
-            area: area || TEXT.defaultAbilityArea,
+            area: area || ABILITY_TEXT.defaultAbilityArea,
             name: data?.name ?? "",
             iconSrc: data?.iconSrc ?? "",
             tags: data?.tags ?? "",
@@ -1193,7 +1193,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const buildAbilityIdentity = (data, area) => {
         const normalized = {
-            area: area || TEXT.defaultAbilityArea,
+            area: area || ABILITY_TEXT.defaultAbilityArea,
             name: data?.name ?? "",
             iconSrc: data?.iconSrc ?? "",
             tags: data?.tags ?? "",
@@ -1213,17 +1213,17 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const loadStoredAbilities = () => {
-        const parsed = readStorageJson(STORAGE_KEYS.abilities, []);
+        const parsed = readStorageJson(ABILITY_STORAGE_KEYS.abilities, []);
         if (!Array.isArray(parsed)) {
             return [];
         }
         const defaultAbilitySignatures = new Set(
-            Array.from(document.querySelectorAll(SELECTORS.abilityElement))
+            Array.from(document.querySelectorAll(ABILITY_SELECTORS.abilityElement))
                 .filter((abilityElement) => !isUserCreatedAbility(abilityElement))
                 .map((abilityElement) =>
                     buildAbilitySignature(
                         extractAbilityData(abilityElement),
-                        getAbilityAreaKey(abilityElement.closest(SELECTORS.abilityArea)),
+                        getAbilityAreaKey(abilityElement.closest(ABILITY_SELECTORS.abilityArea)),
                     ),
                 ),
         );
@@ -1241,7 +1241,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const filtered = normalized.filter(
             (entry) =>
                 !defaultAbilitySignatures.has(
-                    buildAbilitySignature(entry.data, entry.area || TEXT.defaultAbilityArea),
+                    buildAbilitySignature(entry.data, entry.area || ABILITY_TEXT.defaultAbilityArea),
                 ),
         );
         const needsSave =
@@ -1255,7 +1255,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const saveStoredAbilities = (abilities) => {
-        writeStorageJson(STORAGE_KEYS.abilities, abilities, "abilities");
+        writeStorageJson(ABILITY_STORAGE_KEYS.abilities, abilities, "abilities");
     };
 
     const renderStoredAbilities = () => {
@@ -1271,9 +1271,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const abilityArea =
                 document.querySelector(
-                    buildAbilityAreaSelector(entry.area || TEXT.defaultAbilityArea),
+                    buildAbilityAreaSelector(entry.area || ABILITY_TEXT.defaultAbilityArea),
                 ) ||
-                document.querySelector(buildAbilityAreaSelector(TEXT.defaultAbilityArea));
+                document.querySelector(buildAbilityAreaSelector(ABILITY_TEXT.defaultAbilityArea));
             if (!abilityArea) {
                 return;
             }
@@ -1310,7 +1310,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
             const abilityElement = createAbilityElement(entry.data, entry.id);
-            abilityElement.dataset[DATASET_KEYS.userCreated] = "true";
+            abilityElement.dataset[ABILITY_DATASET_KEYS.userCreated] = "true";
             abilityArea.appendChild(abilityElement);
         });
         if (needsSave) {
@@ -1353,7 +1353,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (iconSelect) {
             iconSelect
-                .querySelectorAll(`option${buildDataSelector(DATA_ATTRIBUTES.uploaded, "true")}`)
+                .querySelectorAll(`option${buildAbilityDataSelector(ABILITY_DATA_ATTRIBUTES.uploaded, "true")}`)
                 .forEach((option) => {
                 option.remove();
             });
@@ -1394,7 +1394,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const getAbilityName = (abilityElement) => {
         return (
-            abilityElement?.querySelector(SELECTORS.cardName)?.childNodes?.[0]?.textContent?.trim() ??
+            abilityElement?.querySelector(ABILITY_SELECTORS.cardName)?.childNodes?.[0]?.textContent?.trim() ??
             ""
         );
     };
@@ -1403,41 +1403,41 @@ document.addEventListener("DOMContentLoaded", () => {
         const optionalValue = (value) => normalizeOptionalText(value);
         const triggerStats = Array.from(
             abilityElement?.querySelectorAll(
-                `${SELECTORS.cardTrigger} ${SELECTORS.cardStat}`,
+                `${ABILITY_SELECTORS.cardTrigger} ${ABILITY_SELECTORS.cardStat}`,
             ) ?? [],
         );
         let prerequisite = null;
         let timing = null;
         triggerStats.forEach((stat) => {
-            const label = stat.querySelector(SELECTORS.cardLabel)?.textContent?.trim();
-            const value = stat.querySelector(SELECTORS.cardValue)?.textContent?.trim() ?? "";
-            if (label === TEXT.labelPrerequisite) {
+            const label = stat.querySelector(ABILITY_SELECTORS.cardLabel)?.textContent?.trim();
+            const value = stat.querySelector(ABILITY_SELECTORS.cardValue)?.textContent?.trim() ?? "";
+            if (label === ABILITY_TEXT.labelPrerequisite) {
                 prerequisite = optionalValue(value);
             }
-            if (label === TEXT.labelTiming) {
+            if (label === ABILITY_TEXT.labelTiming) {
                 timing = optionalValue(value);
             }
         });
         return {
             iconSrc: abilityElement?.querySelector("img")?.getAttribute("src") ?? defaultIconSrc,
             name: getAbilityName(abilityElement),
-            tags: abilityElement?.querySelector(SELECTORS.cardTags)?.textContent?.trim() ?? "",
-            stackMax: optionalValue(abilityElement?.dataset[DATASET_KEYS.stackMax]),
-            stackCurrent: optionalValue(abilityElement?.dataset[DATASET_KEYS.stackCurrent]),
+            tags: abilityElement?.querySelector(ABILITY_SELECTORS.cardTags)?.textContent?.trim() ?? "",
+            stackMax: optionalValue(abilityElement?.dataset[ABILITY_DATASET_KEYS.stackMax]),
+            stackCurrent: optionalValue(abilityElement?.dataset[ABILITY_DATASET_KEYS.stackCurrent]),
             prerequisite,
             timing,
-            cost: optionalValue(findCardStatValue(abilityElement, TEXT.labelCost)),
-            limit: optionalValue(findCardStatValue(abilityElement, TEXT.labelLimit)),
-            target: optionalValue(findCardStatValue(abilityElement, TEXT.labelTarget)),
-            range: optionalValue(findCardStatValue(abilityElement, TEXT.labelRange)),
+            cost: optionalValue(findCardStatValue(abilityElement, ABILITY_TEXT.labelCost)),
+            limit: optionalValue(findCardStatValue(abilityElement, ABILITY_TEXT.labelLimit)),
+            target: optionalValue(findCardStatValue(abilityElement, ABILITY_TEXT.labelTarget)),
+            range: optionalValue(findCardStatValue(abilityElement, ABILITY_TEXT.labelRange)),
             judge: optionalValue(
-                abilityElement?.querySelector(SELECTORS.cardJudgeValue)?.textContent?.trim(),
+                abilityElement?.querySelector(ABILITY_SELECTORS.cardJudgeValue)?.textContent?.trim(),
             ),
-            baseDamage: optionalValue(findCardStatValue(abilityElement, TEXT.labelBaseDamage)),
-            directHit: optionalValue(findCardStatValue(abilityElement, TEXT.labelDirectHit)),
-            description: optionalValue(findCardStatValue(abilityElement, TEXT.labelBaseEffect)),
-            row: abilityElement?.dataset[DATASET_KEYS.abilityRow] ?? "",
-            col: abilityElement?.dataset[DATASET_KEYS.abilityCol] ?? "",
+            baseDamage: optionalValue(findCardStatValue(abilityElement, ABILITY_TEXT.labelBaseDamage)),
+            directHit: optionalValue(findCardStatValue(abilityElement, ABILITY_TEXT.labelDirectHit)),
+            description: optionalValue(findCardStatValue(abilityElement, ABILITY_TEXT.labelBaseEffect)),
+            row: abilityElement?.dataset[ABILITY_DATASET_KEYS.abilityRow] ?? "",
+            col: abilityElement?.dataset[ABILITY_DATASET_KEYS.abilityCol] ?? "",
         };
     };
 
@@ -1552,8 +1552,8 @@ document.addEventListener("DOMContentLoaded", () => {
             baseDamage: optionalValue(baseDamageInput?.value),
             directHit: optionalValue(directHitInput?.value),
             description: optionalValue(descriptionInput?.value),
-            row: abilityElement?.dataset[DATASET_KEYS.abilityRow] ?? "",
-            col: abilityElement?.dataset[DATASET_KEYS.abilityCol] ?? "",
+            row: abilityElement?.dataset[ABILITY_DATASET_KEYS.abilityRow] ?? "",
+            col: abilityElement?.dataset[ABILITY_DATASET_KEYS.abilityCol] ?? "",
         };
     };
 
@@ -1587,14 +1587,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityElement || !abilityModal) {
             return;
         }
-        const abilityId = abilityElement.dataset[DATASET_KEYS.abilityId] || generateAbilityId();
-        abilityElement.dataset[DATASET_KEYS.abilityId] = abilityId;
+        const abilityId = abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] || generateAbilityId();
+        abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] = abilityId;
         editingAbilityId = abilityId;
         editingAbilityElement = abilityElement;
-        addButton.textContent = TEXT.buttonLabelUpdate;
+        addButton.textContent = ABILITY_TEXT.buttonLabelUpdate;
         const abilityArea = abilityElement.closest(".ability-area");
-        const areaValue = abilityArea?.dataset[DATASET_KEYS.abilityArea] ?? TEXT.defaultAbilityArea;
-        abilityModal.dataset[DATASET_KEYS.targetArea] = areaValue;
+        const areaValue = abilityArea?.dataset[ABILITY_DATASET_KEYS.abilityArea] ?? ABILITY_TEXT.defaultAbilityArea;
+        abilityModal.dataset[ABILITY_DATASET_KEYS.targetArea] = areaValue;
         populateAbilityForm(extractAbilityData(abilityElement), areaValue);
         if (typeof abilityModal.showModal === "function") {
             abilityModal.showModal();
@@ -1604,7 +1604,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const resetEditingState = () => {
         editingAbilityId = null;
         editingAbilityElement = null;
-        addButton.textContent = TEXT.buttonLabelRegister;
+        addButton.textContent = ABILITY_TEXT.buttonLabelRegister;
     };
 
     const insertAbilityAfter = (referenceElement, newElement) => {
@@ -1639,7 +1639,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const persistAbilityPosition = (abilityElement) => {
-        const abilityArea = abilityElement?.closest(SELECTORS.abilityArea);
+        const abilityArea = abilityElement?.closest(ABILITY_SELECTORS.abilityArea);
         if (!abilityArea) {
             return;
         }
@@ -1682,10 +1682,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const ensureDropIndicator = (abilityArea) => {
-        let indicator = abilityArea.querySelector(`.${DRAG_CLASSES.dropIndicator}`);
+        let indicator = abilityArea.querySelector(`.${ABILITY_DRAG_CLASSES.dropIndicator}`);
         if (!(indicator instanceof HTMLElement)) {
             indicator = document.createElement("div");
-            indicator.className = DRAG_CLASSES.dropIndicator;
+            indicator.className = ABILITY_DRAG_CLASSES.dropIndicator;
             abilityArea.appendChild(indicator);
         }
         return indicator;
@@ -1698,8 +1698,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const clearDropIndicator = (abilityArea) => {
-        abilityArea.classList.remove(DRAG_CLASSES.areaDragging);
-        const indicator = abilityArea.querySelector(`.${DRAG_CLASSES.dropIndicator}`);
+        abilityArea.classList.remove(ABILITY_DRAG_CLASSES.areaDragging);
+        const indicator = abilityArea.querySelector(`.${ABILITY_DRAG_CLASSES.dropIndicator}`);
         if (indicator instanceof HTMLElement) {
             indicator.style.removeProperty("--drop-row");
             indicator.style.removeProperty("--drop-col");
@@ -1766,7 +1766,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 clearDropIndicator(abilityArea);
                 return;
             }
-            abilityArea.classList.add(DRAG_CLASSES.areaDragging);
+            abilityArea.classList.add(ABILITY_DRAG_CLASSES.areaDragging);
             updateDropIndicator(abilityArea, row, col);
         });
 
@@ -1819,14 +1819,14 @@ document.addEventListener("DOMContentLoaded", () => {
             container = document.createElement("div");
             container.className = "ability-area--other";
             container.innerHTML = `
-                <input class="other-action-title" type="text" value="${TEXT.subcategoryPlaceholder}" aria-label="${TEXT.subcategoryInputLabel}" />
-                <div class="ability-area" data-${DATA_ATTRIBUTES.abilityArea}=""></div>
+                <input class="other-action-title" type="text" value="${ABILITY_TEXT.subcategoryPlaceholder}" aria-label="${ABILITY_TEXT.subcategoryInputLabel}" />
+                <div class="ability-area" data-${ABILITY_DATA_ATTRIBUTES.abilityArea}=""></div>
             `;
         }
-        container.dataset[DATASET_KEYS.abilitySubcategory] = areaKey;
-        const abilityArea = container.querySelector(SELECTORS.abilityArea);
+        container.dataset[ABILITY_DATASET_KEYS.abilitySubcategory] = areaKey;
+        const abilityArea = container.querySelector(ABILITY_SELECTORS.abilityArea);
         if (abilityArea instanceof HTMLElement) {
-            abilityArea.dataset[DATASET_KEYS.abilityArea] = areaKey;
+            abilityArea.dataset[ABILITY_DATASET_KEYS.abilityArea] = areaKey;
             registerAbilityArea(abilityArea);
             const storedRows = parseAbilityRowCount(abilityRowsByArea[areaKey]);
             if (storedRows) {
@@ -1838,11 +1838,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     renderStoredAbilities();
 
-    document.querySelectorAll(SELECTORS.abilityElement).forEach((abilityElement) => {
+    document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
         if (isUserCreatedAbility(abilityElement)) {
             return;
         }
-        const abilityArea = abilityElement.closest(SELECTORS.abilityArea);
+        const abilityArea = abilityElement.closest(ABILITY_SELECTORS.abilityArea);
         if (!abilityArea) {
             return;
         }
@@ -1863,9 +1863,9 @@ document.addEventListener("DOMContentLoaded", () => {
         applyAbilityPosition(abilityElement, row, col);
     });
 
-    document.querySelectorAll(SELECTORS.abilityElement).forEach((abilityElement) => {
-        if (!abilityElement.dataset[DATASET_KEYS.abilityId]) {
-            abilityElement.dataset[DATASET_KEYS.abilityId] = generateAbilityId();
+    document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+        if (!abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId]) {
+            abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] = generateAbilityId();
         }
     });
 
@@ -1892,11 +1892,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!(target instanceof HTMLElement)) {
                 return;
             }
-            if (!target.matches(SELECTORS.tagRemoveTrigger)) {
+            if (!target.matches(ABILITY_SELECTORS.tagRemoveTrigger)) {
                 return;
             }
 
-            const tagElement = target.closest(SELECTORS.tagElement);
+            const tagElement = target.closest(ABILITY_SELECTORS.tagElement);
             if (tagElement) {
                 tagElement.remove();
             }
@@ -1909,11 +1909,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!contextMenuTarget) {
                     return;
                 }
-                const action = item.dataset[DATASET_KEYS.abilityAction];
-                const abilityId = contextMenuTarget.dataset[DATASET_KEYS.abilityId];
+                const action = item.dataset[ABILITY_DATASET_KEYS.abilityAction];
+                const abilityId = contextMenuTarget.dataset[ABILITY_DATASET_KEYS.abilityId];
                 const abilityArea = contextMenuTarget.closest(".ability-area");
                 const areaValue =
-                    abilityArea?.dataset[DATASET_KEYS.abilityArea] ?? TEXT.defaultAbilityArea;
+                    abilityArea?.dataset[ABILITY_DATASET_KEYS.abilityArea] ?? ABILITY_TEXT.defaultAbilityArea;
                 if (action === "edit") {
                     closeContextMenu();
                     startEditingAbility(contextMenuTarget);
@@ -1924,12 +1924,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     const data = extractAbilityData(contextMenuTarget);
                     const newAbilityId = generateAbilityId();
                     const newElement = createAbilityElement(data, newAbilityId);
-                    newElement.dataset[DATASET_KEYS.userCreated] = "true";
+                    newElement.dataset[ABILITY_DATASET_KEYS.userCreated] = "true";
                     insertAbilityAfter(contextMenuTarget, newElement);
                     if (isUserCreatedAbility(newElement)) {
                         upsertStoredAbility(newAbilityId, areaValue, data);
                     }
-                    showToast(TEXT.toastDuplicate, "success");
+                    showToast(ABILITY_TEXT.toastDuplicate, "success");
                     return;
                 }
                 if (action === "delete") {
@@ -1938,7 +1938,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (abilityId) {
                         removeStoredAbility(abilityId);
                     }
-                    showToast(TEXT.toastDelete, "success");
+                    showToast(ABILITY_TEXT.toastDelete, "success");
                 }
             });
         });
@@ -1953,8 +1953,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (item.disabled) {
                     return;
                 }
-                const action = item.dataset[DATASET_KEYS.sectionAction];
-                const areaKey = sectionMenuTarget.dataset[DATASET_KEYS.abilityRowAdd];
+                const action = item.dataset[ABILITY_DATASET_KEYS.sectionAction];
+                const areaKey = sectionMenuTarget.dataset[ABILITY_DATASET_KEYS.abilityRowAdd];
                 if (action === "add-row") {
                     closeSectionMenu();
                     if (!areaKey) {
@@ -1969,28 +1969,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     applyAbilityRows(abilityArea, nextRows);
                     abilityRowsByArea[areaKey] = nextRows;
                     saveStoredAbilityRows(abilityRowsByArea);
-                    showToast(TEXT.toastAddRow, "success");
+                    showToast(ABILITY_TEXT.toastAddRow, "success");
                     return;
                 }
                 if (action === "add-subcategory") {
                     closeSectionMenu();
                     const subcategoryKey =
-                        sectionMenuTarget.dataset[DATASET_KEYS.abilitySubcategory] ??
-                        sectionMenuTarget.dataset[DATASET_KEYS.abilityRowAdd];
+                        sectionMenuTarget.dataset[ABILITY_DATASET_KEYS.abilitySubcategory] ??
+                        sectionMenuTarget.dataset[ABILITY_DATASET_KEYS.abilityRowAdd];
                     const sectionElement = sectionMenuTarget.closest("section");
                     if (!subcategoryKey || !sectionElement) {
                         return;
                     }
-                    if (sectionElement.querySelector(SELECTORS.abilityAreaOther)) {
+                    if (sectionElement.querySelector(ABILITY_SELECTORS.abilityAreaOther)) {
                         return;
                     }
                     const subcategory = createSubcategoryBlock(subcategoryKey);
                     if (!subcategory) {
                         return;
                     }
-                    const sectionBody = sectionElement.querySelector(SELECTORS.sectionBody);
+                    const sectionBody = sectionElement.querySelector(ABILITY_SELECTORS.sectionBody);
                     sectionBody?.appendChild(subcategory);
-                    showToast(TEXT.toastAddSubcategory, "success");
+                    showToast(ABILITY_TEXT.toastAddSubcategory, "success");
                 }
             });
         });
@@ -2001,16 +2001,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = buildAbilityDataFromForm(editingAbilityElement);
 
         if (!data.description) {
-            data.description = TEXT.descriptionFallback;
+            data.description = ABILITY_TEXT.descriptionFallback;
         }
 
         const targetArea =
-            abilityModal.dataset[DATASET_KEYS.targetArea] ||
+            abilityModal.dataset[ABILITY_DATASET_KEYS.targetArea] ||
             typeSelect?.value ||
-            TEXT.defaultAbilityArea;
+            ABILITY_TEXT.defaultAbilityArea;
         const abilityArea =
             document.querySelector(buildAbilityAreaSelector(targetArea)) ||
-            document.querySelector(buildAbilityAreaSelector(TEXT.defaultAbilityArea));
+            document.querySelector(buildAbilityAreaSelector(ABILITY_TEXT.defaultAbilityArea));
 
         if (!abilityArea) {
             return;
@@ -2019,12 +2019,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (editingAbilityElement) {
             const abilityId =
                 editingAbilityId ??
-                editingAbilityElement.dataset[DATASET_KEYS.abilityId] ??
+                editingAbilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] ??
                 generateAbilityId();
             const updatedElement = createAbilityElement(data, abilityId);
             const shouldPersist = isUserCreatedAbility(editingAbilityElement);
             if (shouldPersist) {
-                updatedElement.dataset[DATASET_KEYS.userCreated] = "true";
+                updatedElement.dataset[ABILITY_DATASET_KEYS.userCreated] = "true";
             }
             editingAbilityElement.replaceWith(updatedElement);
             if (shouldPersist) {
@@ -2035,7 +2035,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (typeof abilityModal.close === "function") {
                 abilityModal.close();
             }
-            showToast(TEXT.toastUpdate, "success");
+            showToast(ABILITY_TEXT.toastUpdate, "success");
             return;
         }
 
@@ -2060,7 +2060,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         const abilityElement = createAbilityElement(data, abilityId);
-        abilityElement.dataset[DATASET_KEYS.userCreated] = "true";
+        abilityElement.dataset[ABILITY_DATASET_KEYS.userCreated] = "true";
         abilityArea.appendChild(abilityElement);
         if (isUserCreatedAbility(abilityElement)) {
             upsertStoredAbility(abilityId, targetArea, data);
@@ -2071,12 +2071,12 @@ document.addEventListener("DOMContentLoaded", () => {
             abilityModal.close();
         }
 
-        showToast(TEXT.toastRegister, "success");
+        showToast(ABILITY_TEXT.toastRegister, "success");
     });
 
     const clearDragState = () => {
-        document.body.classList.remove(DRAG_CLASSES.bodyDragging);
-        document.querySelectorAll(SELECTORS.abilityArea).forEach((abilityArea) => {
+        document.body.classList.remove(ABILITY_DRAG_CLASSES.bodyDragging);
+        document.querySelectorAll(ABILITY_SELECTORS.abilityArea).forEach((abilityArea) => {
             clearDropIndicator(abilityArea);
         });
     };
@@ -2090,21 +2090,21 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityElement || !event.dataTransfer) {
             return;
         }
-        const abilityId = abilityElement.dataset[DATASET_KEYS.abilityId] || generateAbilityId();
-        abilityElement.dataset[DATASET_KEYS.abilityId] = abilityId;
+        const abilityId = abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] || generateAbilityId();
+        abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] = abilityId;
         const abilityArea = abilityElement.closest(".ability-area");
         const areaValue = getAbilityAreaKey(abilityArea);
         const payload = JSON.stringify({ id: abilityId, area: areaValue });
         event.dataTransfer.setData("application/json", payload);
         event.dataTransfer.setData("text/plain", payload);
         event.dataTransfer.effectAllowed = "move";
-        document.body.classList.add(DRAG_CLASSES.bodyDragging);
+        document.body.classList.add(ABILITY_DRAG_CLASSES.bodyDragging);
     });
 
     document.addEventListener("dragend", clearDragState);
     document.addEventListener("drop", clearDragState);
 
-    document.querySelectorAll(SELECTORS.abilityArea).forEach((abilityArea) => {
+    document.querySelectorAll(ABILITY_SELECTORS.abilityArea).forEach((abilityArea) => {
         registerAbilityArea(abilityArea);
     });
 
@@ -2196,24 +2196,24 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityElement) {
             return;
         }
-        const max = Number(abilityElement.dataset[DATASET_KEYS.stackMax]);
+        const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
         if (!Number.isFinite(max) || max <= 0) {
             return;
         }
-        const current = Number(abilityElement.dataset[DATASET_KEYS.stackCurrent]);
+        const current = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent]);
         const nextValue = Math.max(0, (Number.isFinite(current) ? current : max) - 1);
-        abilityElement.dataset[DATASET_KEYS.stackCurrent] = String(nextValue);
+        abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(nextValue);
         updateStackBadge(abilityElement);
     });
 
     if (phaseButton) {
         phaseButton.addEventListener("click", () => {
-            document.querySelectorAll(SELECTORS.abilityElement).forEach((abilityElement) => {
-                const max = Number(abilityElement.dataset[DATASET_KEYS.stackMax]);
+            document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+                const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
                 if (!Number.isFinite(max) || max <= 0) {
                     return;
                 }
-                abilityElement.dataset[DATASET_KEYS.stackCurrent] = String(max);
+                abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(max);
                 updateStackBadge(abilityElement);
             });
         });

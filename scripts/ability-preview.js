@@ -1,4 +1,4 @@
-const SELECTORS = {
+const ABILITY_PREVIEW_SELECTORS = {
     abilityModal: "#addAbilityModal",
     previewIcon: "[data-ability-preview-icon]",
     previewName: "[data-ability-preview-name]",
@@ -33,17 +33,17 @@ const SELECTORS = {
     tagElement: ".tag",
 };
 
-const DATASET_KEYS = {
+const ABILITY_PREVIEW_DATASET_KEYS = {
     tagRemove: "tagRemove",
 };
 
-const TEXT = {
+const ABILITY_PREVIEW_TEXT = {
     placeholder: "未入力",
     tagSeparator: "・",
     judgeNone: "なし",
 };
 
-const TYPE_LABELS = {
+const ABILITY_PREVIEW_TYPE_LABELS = {
     main: "メイン",
     sub: "サブ",
     instant: "インスタント",
@@ -52,41 +52,41 @@ const TYPE_LABELS = {
 
 document.addEventListener("DOMContentLoaded", () => {
     const collectElements = () => {
-        const abilityModal = document.querySelector(SELECTORS.abilityModal);
+        const abilityModal = document.querySelector(ABILITY_PREVIEW_SELECTORS.abilityModal);
         const previewElements = {
-            icon: abilityModal?.querySelector(SELECTORS.previewIcon) ?? null,
-            name: abilityModal?.querySelector(SELECTORS.previewName) ?? null,
-            tags: abilityModal?.querySelector(SELECTORS.previewTags) ?? null,
-            prerequisite: abilityModal?.querySelector(SELECTORS.previewPrerequisite) ?? null,
-            timing: abilityModal?.querySelector(SELECTORS.previewTiming) ?? null,
-            cost: abilityModal?.querySelector(SELECTORS.previewCost) ?? null,
-            limit: abilityModal?.querySelector(SELECTORS.previewLimit) ?? null,
-            target: abilityModal?.querySelector(SELECTORS.previewTarget) ?? null,
-            range: abilityModal?.querySelector(SELECTORS.previewRange) ?? null,
-            judge: abilityModal?.querySelector(SELECTORS.previewJudge) ?? null,
-            effect: abilityModal?.querySelector(SELECTORS.previewEffect) ?? null,
-            directHit: abilityModal?.querySelector(SELECTORS.previewDirectHit) ?? null,
+            icon: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewIcon) ?? null,
+            name: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewName) ?? null,
+            tags: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewTags) ?? null,
+            prerequisite: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewPrerequisite) ?? null,
+            timing: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewTiming) ?? null,
+            cost: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewCost) ?? null,
+            limit: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewLimit) ?? null,
+            target: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewTarget) ?? null,
+            range: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewRange) ?? null,
+            judge: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewJudge) ?? null,
+            effect: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewEffect) ?? null,
+            directHit: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewDirectHit) ?? null,
         };
         const inputElements = {
-            iconSelect: abilityModal?.querySelector(SELECTORS.iconSelect) ?? null,
-            iconInput: abilityModal?.querySelector(SELECTORS.iconInput) ?? null,
-            type: abilityModal?.querySelector(SELECTORS.typeSelect) ?? null,
-            name: abilityModal?.querySelector(SELECTORS.nameInput) ?? null,
-            prerequisite: abilityModal?.querySelector(SELECTORS.prerequisiteInput) ?? null,
-            timing: abilityModal?.querySelector(SELECTORS.timingInput) ?? null,
-            cost: abilityModal?.querySelector(SELECTORS.costInput) ?? null,
-            limit: abilityModal?.querySelector(SELECTORS.limitInput) ?? null,
-            target: abilityModal?.querySelector(SELECTORS.targetInput) ?? null,
-            range: abilityModal?.querySelector(SELECTORS.rangeInput) ?? null,
-            judge: abilityModal?.querySelector(SELECTORS.judgeInput) ?? null,
-            judgeAttribute: abilityModal?.querySelector(SELECTORS.judgeAttributeSelect) ?? null,
-            effect: abilityModal?.querySelector(SELECTORS.effectInput) ?? null,
-            directHit: abilityModal?.querySelector(SELECTORS.directHitInput) ?? null,
-            tagInput: abilityModal?.querySelector(SELECTORS.tagInput) ?? null,
-            tagAddButton: abilityModal?.querySelector(SELECTORS.tagAddButton) ?? null,
+            iconSelect: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.iconSelect) ?? null,
+            iconInput: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.iconInput) ?? null,
+            type: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.typeSelect) ?? null,
+            name: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.nameInput) ?? null,
+            prerequisite: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.prerequisiteInput) ?? null,
+            timing: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.timingInput) ?? null,
+            cost: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.costInput) ?? null,
+            limit: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.limitInput) ?? null,
+            target: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.targetInput) ?? null,
+            range: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.rangeInput) ?? null,
+            judge: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.judgeInput) ?? null,
+            judgeAttribute: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.judgeAttributeSelect) ?? null,
+            effect: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.effectInput) ?? null,
+            directHit: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.directHitInput) ?? null,
+            tagInput: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.tagInput) ?? null,
+            tagAddButton: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.tagAddButton) ?? null,
         };
         const tagContainer =
-            inputElements.tagInput?.closest(SELECTORS.formGroup)?.querySelector(SELECTORS.formRow) ??
+            inputElements.tagInput?.closest(ABILITY_PREVIEW_SELECTORS.formGroup)?.querySelector(ABILITY_PREVIEW_SELECTORS.formRow) ??
             null;
         return { abilityModal, previewElements, inputElements, tagContainer };
     };
@@ -101,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const { previewElements, inputElements, tagContainer } = elements;
 
     const defaultIconSrc = previewElements.icon?.getAttribute("src") ?? "";
-    const normalizeValue = (value, placeholder = TEXT.placeholder) => {
+    const normalizeValue = (value, placeholder = ABILITY_PREVIEW_TEXT.placeholder) => {
         const trimmed = value?.trim();
         return trimmed ? trimmed : placeholder;
     };
@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const formatJudgeAttribute = (value) => {
-        if (!value || value === TEXT.judgeNone) {
+        if (!value || value === ABILITY_PREVIEW_TEXT.judgeNone) {
             return "";
         }
         if (value.startsWith("【") && value.endsWith("】")) {
@@ -144,11 +144,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const buildTagText = ({ tagList, typeValue }) => {
         const tagTexts = [...tagList];
-        const typeLabel = typeValue ? TYPE_LABELS[typeValue] : null;
+        const typeLabel = typeValue ? ABILITY_PREVIEW_TYPE_LABELS[typeValue] : null;
         if (typeLabel && !tagTexts.includes(typeLabel)) {
             tagTexts.push(typeLabel);
         }
-        return tagTexts.join(TEXT.tagSeparator);
+        return tagTexts.join(ABILITY_PREVIEW_TEXT.tagSeparator);
     };
 
     const createTagState = () => ({
@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const deriveTagListFromContainer = (container) =>
-        Array.from(container?.querySelectorAll(SELECTORS.tagElement) ?? [])
+        Array.from(container?.querySelectorAll(ABILITY_PREVIEW_SELECTORS.tagElement) ?? [])
             .map((tag) => getTagLabel(tag))
             .filter(Boolean);
 
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const normalized = normalizeValue(value);
-        const tagElement = element.querySelector(SELECTORS.previewTags);
+        const tagElement = element.querySelector(ABILITY_PREVIEW_SELECTORS.previewTags);
         const textNode = Array.from(element.childNodes).find(
             (node) => node.nodeType === Node.TEXT_NODE,
         );
@@ -277,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const isAddButton = event.target === inputElements.tagAddButton;
             const isRemoveButton =
                 event.target instanceof HTMLElement &&
-                event.target.dataset[DATASET_KEYS.tagRemove] === "true";
+                event.target.dataset[ABILITY_PREVIEW_DATASET_KEYS.tagRemove] === "true";
             if (!isAddButton && !isRemoveButton) {
                 return;
             }

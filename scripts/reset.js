@@ -1,5 +1,5 @@
 (() => {
-    const STORAGE_KEYS = [
+    const RESET_STORAGE_KEYS = [
         "jet-pallet-abilities",
         "jet-pallet-ability-rows",
         "jet-pallet-buff-library",
@@ -7,7 +7,7 @@
         "jet-pallet-resources",
     ];
 
-    const TEXT = {
+    const RESET_TEXT = {
         confirmReset:
             "保存データをすべて初期化しますか？\nこの操作は元に戻せません。",
     };
@@ -24,7 +24,7 @@
         if (!isLocalStorageAvailable()) {
             return false;
         }
-        STORAGE_KEYS.forEach((key) => {
+        RESET_STORAGE_KEYS.forEach((key) => {
             window.localStorage.removeItem(key);
         });
         return true;
@@ -32,7 +32,7 @@
 
     const handleResetClick = (event) => {
         event.preventDefault();
-        const confirmed = window.confirm(TEXT.confirmReset);
+        const confirmed = window.confirm(RESET_TEXT.confirmReset);
         if (!confirmed) {
             return;
         }
