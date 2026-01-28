@@ -117,11 +117,11 @@ const ensureResourceStore = () => {
 
 const createStackIcon = (isActive) => {
     const icon = document.createElement("img");
-    icon.className = "resource__icon--arrow";
+    icon.className = "resource__icon--arrow svg-inject";
     if (isActive) {
         icon.classList.add("resource__icon--active");
     }
-    icon.setAttribute("src", "assets/resource--stack.png");
+    icon.setAttribute("src", "assets/resource--stack.svg");
     icon.setAttribute("alt", "");
     return icon;
 };
@@ -134,12 +134,23 @@ const renderStackIcons = (container, resource) => {
     }
 };
 
+const injectSvgIcons = (root) => {
+    if (typeof window.SVGInject !== "function") {
+        return;
+    }
+    const targets = root.querySelectorAll("img.svg-inject");
+    if (targets.length === 0) {
+        return;
+    }
+    window.SVGInject(targets);
+};
+
 const renderGauge = (container, resource) => {
     const max = Math.max(RESOURCE_DEFAULTS.max, resource.max);
     const current = clamp(resource.current, RESOURCE_DEFAULTS.min, max);
     const gaugeIcon = document.createElement("img");
-    gaugeIcon.className = "resource__icon--gauge";
-    gaugeIcon.setAttribute("src", "assets/resource--gauge.png");
+    gaugeIcon.className = "resource__icon--gauge svg-inject";
+    gaugeIcon.setAttribute("src", "assets/resource--gauge.svg");
     gaugeIcon.setAttribute("alt", "");
 
     const gaugeValue = document.createElement("span");
@@ -232,6 +243,7 @@ const renderResources = (root) => {
             }),
         );
     });
+    injectSvgIcons(root);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -247,4 +259,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document
         .querySelectorAll("[data-trait-resource-root]")
         .forEach((root) => renderResources(root));
+
+    injectSvgIcons(document);
 });
