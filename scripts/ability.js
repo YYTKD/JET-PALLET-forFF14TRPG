@@ -1752,17 +1752,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function registerAbilityArea(abilityArea) {
         abilityArea.addEventListener("dragover", (event) => {
-            const dataTransfer = event.dataTransfer;
-            const types = dataTransfer?.types ? Array.from(dataTransfer.types) : [];
-            const hasDragPayloadType =
-                types.includes("application/json") || types.includes("text/plain");
-            if (!hasDragPayloadType) {
+            const payload = getDragPayload(event);
+            if (!payload) {
                 return;
             }
-            const payload = getDragPayload(event);
             if (payload && payload.area !== getAbilityAreaKey(abilityArea)) {
                 clearDropIndicator(abilityArea);
                 return;
+            }
+            event.preventDefault();
+            const dataTransfer = event.dataTransfer;
+            if (dataTransfer) {
+                dataTransfer.dropEffect = "move";
             }
             const { row, col } = getGridCoordinateFromEvent(abilityArea, event);
             const draggedElement = payload?.id
@@ -1771,10 +1772,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isCellOccupied(abilityArea, row, col, draggedElement)) {
                 clearDropIndicator(abilityArea);
                 return;
-            }
-            event.preventDefault();
-            if (dataTransfer) {
-                dataTransfer.dropEffect = "move";
             }
             abilityArea.classList.add(DRAG_CLASSES.areaDragging);
             updateDropIndicator(abilityArea, row, col);
