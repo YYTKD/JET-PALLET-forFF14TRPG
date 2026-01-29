@@ -12,8 +12,10 @@ const ABILITY_PREVIEW_SELECTORS = {
     previewJudge: "[data-ability-preview-judge]",
     previewEffect: "[data-ability-preview-effect]",
     previewDirectHit: "[data-ability-preview-direct-hit]",
+    previewToggle: "[data-ability-preview-toggle]",
     iconSelect: "[data-ability-icon-select]",
     iconInput: "[data-ability-icon-input]",
+    iconPreview: "#iconpreview",
     typeSelect: "[data-ability-type]",
     nameInput: "[data-ability-name]",
     prerequisiteInput: "[data-ability-prerequisite]",
@@ -68,8 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
             directHit: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewDirectHit) ?? null,
         };
         const inputElements = {
+            previewToggle: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.previewToggle) ?? null,
             iconSelect: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.iconSelect) ?? null,
             iconInput: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.iconInput) ?? null,
+            iconPreview: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.iconPreview) ?? null,
             type: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.typeSelect) ?? null,
             name: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.nameInput) ?? null,
             prerequisite: abilityModal?.querySelector(ABILITY_PREVIEW_SELECTORS.prerequisiteInput) ?? null,
@@ -98,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    const { previewElements, inputElements, tagContainer } = elements;
+    const { abilityModal, previewElements, inputElements, tagContainer } = elements;
 
     const defaultIconSrc = previewElements.icon?.getAttribute("src") ?? "";
     const normalizeValue = (value, placeholder = ABILITY_PREVIEW_TEXT.placeholder) => {
@@ -196,9 +200,15 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const resolveIconSource = () => {
-        const selectValue = inputElements.iconSelect?.value;
+        const selectValue = inputElements.iconSelect?.value?.trim();
         if (selectValue) {
             return selectValue;
+        }
+
+        const previewSource =
+            inputElements.iconPreview?.getAttribute("src") ?? inputElements.iconPreview?.src ?? "";
+        if (previewSource) {
+            return previewSource;
         }
 
         const file = inputElements.iconInput?.files?.[0];
@@ -311,6 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     inputElements.iconSelect?.addEventListener("change", updatePreview);
     inputElements.iconInput?.addEventListener("change", updatePreview);
+    inputElements.previewToggle?.addEventListener("change", updatePreview);
     inputElements.tagInput?.addEventListener("input", updatePreview);
     inputElements.tagAddButton?.addEventListener("click", handleTagInteraction);
     inputElements.tagInput?.addEventListener("keydown", (event) => {
@@ -327,6 +338,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         tagObserver.observe(tagContainer, { childList: true });
     }
+
+    const isModalOpen = () => {
+        if (!abilityModal) {
+            return false;
+        }
+        if (typeof HTMLDialogElement !== "undefined" && abilityModal instanceof HTMLDialogElement) {
+            return abilityModal.open;
+        }
+        return abilityModal.hasAttribute("open") || abilityModal.classList.contains("is-open");
+    };
+
+    const handleModalOpen = () => {
+        if (!isModalOpen()) {
+            return;
+        }
+        syncTagState(tagState, tagContainer);
+        updatePreview();
+    };
+
+    const modalObserver = new MutationObserver(() => {
+        handleModalOpen();
+    });
+    modalObserver.observe(abilityModal, {
+        attributes: true,
+        attributeFilter: ["open", "class", "aria-hidden"],
+    });
+    abilityModal.addEventListener("show", handleModalOpen);
+    abilityModal.addEventListener("showmodal", handleModalOpen);
+    abilityModal.addEventListener("toggle", handleModalOpen);
 
     syncTagState(tagState, tagContainer);
     updatePreview();
