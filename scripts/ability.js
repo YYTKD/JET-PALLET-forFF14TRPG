@@ -2000,6 +2000,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     closeContextMenu();
                     const data = extractAbilityData(contextMenuTarget);
                     const newAbilityId = generateAbilityId();
+                    const occupiedCells = buildOccupiedCellMap(abilityArea);
+                    const hasRow = parseGridCoordinate(data.row);
+                    const hasCol = parseGridCoordinate(data.col);
+                    if (!hasRow || !hasCol || occupiedCells.has(`${hasRow}-${hasCol}`)) {
+                        const emptyCell = findFirstEmptyCell(abilityArea, occupiedCells);
+                        if (emptyCell) {
+                            data.row = String(emptyCell.row);
+                            data.col = String(emptyCell.col);
+                        } else {
+                            data.row = "";
+                            data.col = "";
+                        }
+                    }
                     const newElement = createAbilityElement(data, newAbilityId);
                     newElement.dataset[ABILITY_DATASET_KEYS.userCreated] = "true";
                     insertAbilityAfter(contextMenuTarget, newElement);
