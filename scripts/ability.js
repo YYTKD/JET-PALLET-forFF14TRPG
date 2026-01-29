@@ -2042,22 +2042,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (contextMenuItems.length > 0) {
         contextMenuItems.forEach((item) => {
             item.addEventListener("click", () => {
-                if (!contextMenuTarget) {
+                // Preserve the current target because closeContextMenu clears the shared reference.
+                const target = contextMenuTarget;
+                if (!target) {
                     return;
                 }
                 const action = item.dataset[ABILITY_DATASET_KEYS.abilityAction];
-                const abilityId = contextMenuTarget.dataset[ABILITY_DATASET_KEYS.abilityId];
-                const abilityArea = contextMenuTarget.closest(".ability-area");
+                const abilityId = target.dataset[ABILITY_DATASET_KEYS.abilityId];
+                const abilityArea = target.closest(".ability-area");
                 const areaValue =
                     abilityArea?.dataset[ABILITY_DATASET_KEYS.abilityArea] ?? ABILITY_TEXT.defaultAbilityArea;
                 if (action === "edit") {
                     closeContextMenu();
-                    startEditingAbility(contextMenuTarget);
+                    startEditingAbility(target);
                     return;
                 }
                 if (action === "duplicate") {
                     closeContextMenu();
-                    const data = extractAbilityData(contextMenuTarget);
+                    const data = extractAbilityData(target);
                     const newAbilityId = generateAbilityId();
                     const occupiedCells = buildOccupiedCellMap(abilityArea);
                     const hasRow = parseGridCoordinate(data.row);
@@ -2074,7 +2076,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     const newElement = createAbilityElement(data, newAbilityId);
                     newElement.dataset[ABILITY_DATASET_KEYS.userCreated] = "true";
-                    insertAbilityAfter(contextMenuTarget, newElement);
+                    insertAbilityAfter(target, newElement);
                     if (isUserCreatedAbility(newElement)) {
                         upsertStoredAbility(newAbilityId, areaValue, data);
                     }
@@ -2083,7 +2085,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 if (action === "delete") {
                     closeContextMenu();
-                    contextMenuTarget.remove();
+                    target.remove();
                     if (abilityId) {
                         removeStoredAbility(abilityId);
                     }
