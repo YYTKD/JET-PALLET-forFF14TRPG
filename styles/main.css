@@ -1655,11 +1655,11 @@ details:not([open]) summary {
 .resource__options {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 4px;
+    gap: 6px;
+    padding: 6px;
     margin-left: 16px;
     min-width: 0;
-    border: 1px solid var(--border-gold);
+    border: 1px solid transparent;
     border-radius: 4px;
 }
 
