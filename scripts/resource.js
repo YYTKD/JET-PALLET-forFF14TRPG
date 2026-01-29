@@ -614,6 +614,89 @@ document.addEventListener("DOMContentLoaded", () => {
     const resourceListRoot = document.querySelector(resourceSelectors.list);
     let editingResourceId = null;
 
+    const getResourceById = (id) => readResources().find((entry) => entry.id === id);
+
+    const rerenderResourceListAndDisplays = (keepEditingId = null) => {
+        if (!resourceListRoot) {
+            return;
+        }
+        renderResourceList(resourceListRoot, {
+            onEdit: handleEdit,
+            onDelete: handleDelete,
+            onCreate: handleCreate,
+        });
+        refreshResourceDisplays();
+
+        if (!keepEditingId) {
+            return;
+        }
+        const targetResource = getResourceById(keepEditingId);
+        const options = resourceListRoot.querySelector(
+            `[data-resource-options="${keepEditingId}"]`,
+        );
+        if (!targetResource || !options) {
+            return;
+        }
+        handleEdit(targetResource, options);
+    };
+
+    const parseNumberInput = (value, fallback) => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    const bindResourceFormEditEvents = (container, resourceId) => {
+        const elements = getResourceFormElements(container);
+        if (!elements || !resourceId) {
+            return;
+        }
+
+        const upsertFromForm = () => {
+            const values = extractResourceFormValues(container);
+            if (!values) {
+                return;
+            }
+            upsertResource({ ...values, id: resourceId });
+        };
+
+        const commitUpdate = (updates) => {
+            upsertFromForm();
+            updateResource(resourceId, updates);
+            // 即時反映のためにリストと表示を再描画する。
+            rerenderResourceListAndDisplays(resourceId);
+        };
+
+        elements.nameInput?.addEventListener("input", upsertFromForm);
+        elements.currentInput?.addEventListener("input", upsertFromForm);
+        elements.maxInput?.addEventListener("input", upsertFromForm);
+        elements.nameInput?.addEventListener("change", () => {
+            commitUpdate({ name: elements.nameInput?.value?.trim() ?? "" });
+        });
+        elements.currentInput?.addEventListener("change", () => {
+            commitUpdate({
+                current: parseNumberInput(
+                    elements.currentInput?.value,
+                    defaultResourceForm.current,
+                ),
+            });
+        });
+        elements.maxInput?.addEventListener("change", () => {
+            commitUpdate({
+                max: parseNumberInput(elements.maxInput?.value, defaultResourceForm.max),
+            });
+        });
+        elements.styleSelect?.addEventListener("change", () => {
+            commitUpdate({
+                style: elements.styleSelect?.value ?? defaultResourceForm.style,
+            });
+        });
+        elements.colorSelect?.addEventListener("change", () => {
+            commitUpdate({
+                color: elements.colorSelect?.value ?? defaultResourceForm.color,
+            });
+        });
+    };
+
     const handleEdit = (resource, optionsContainer) => {
         if (!resource?.id || !resourceListRoot || !optionsContainer) {
             return;
@@ -631,18 +714,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 upsertResource({ ...values, id: editingResourceId ?? createResourceId() });
                 editingResourceId = null;
                 closeAllResourceForms(resourceListRoot);
-                renderResourceList(resourceListRoot, {
-                    onEdit: handleEdit,
-                    onDelete: handleDelete,
-                    onCreate: handleCreate,
-                });
-                refreshResourceDisplays();
+                rerenderResourceListAndDisplays();
             },
             onCancel: () => {
                 editingResourceId = null;
                 closeAllResourceForms(resourceListRoot);
             },
         });
+        bindResourceFormEditEvents(optionsContainer, editingResourceId);
     };
 
     const handleDelete = (resource) => {
@@ -658,12 +737,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (editingResourceId === resource.id) {
             editingResourceId = null;
         }
-        renderResourceList(resourceListRoot, {
-            onEdit: handleEdit,
-            onDelete: handleDelete,
-            onCreate: handleCreate,
-        });
-        refreshResourceDisplays();
+        rerenderResourceListAndDisplays();
     };
 
     const handleCreate = (optionsContainer) => {
@@ -682,12 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 upsertResource({ ...values, id: createResourceId() });
                 closeAllResourceForms(resourceListRoot);
-                renderResourceList(resourceListRoot, {
-                    onEdit: handleEdit,
-                    onDelete: handleDelete,
-                    onCreate: handleCreate,
-                });
-                refreshResourceDisplays();
+                rerenderResourceListAndDisplays();
             },
             onCancel: () => {
                 closeAllResourceForms(resourceListRoot);
