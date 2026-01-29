@@ -521,7 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const label = document.createElement("span");
         label.className = "resource__label";
-        label.textContent = "新規リソース";
+        label.textContent = "新規リソースを追加";
 
         const control = document.createElement("div");
         control.className = "resource__control resource__control--list";
@@ -586,15 +586,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const resources = readResources();
         root.innerHTML = "";
-        root.appendChild(createResourceAddItem(handlers));
+        resources.forEach((resource) => {
+            root.appendChild(createResourceListItem(resource, handlers));
+        });
         if (resources.length === 0) {
             const emptyMessage = document.createElement("p");
             emptyMessage.textContent = "登録済みのリソースはありません。";
             root.appendChild(emptyMessage);
         }
-        resources.forEach((resource) => {
-            root.appendChild(createResourceListItem(resource, handlers));
-        });
+        root.appendChild(createResourceAddItem(handlers));
         injectSvgIcons(root);
     };
 
