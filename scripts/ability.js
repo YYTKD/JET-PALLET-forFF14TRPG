@@ -6,6 +6,8 @@ const ABILITY_STORAGE_KEYS = {
 
 const ABILITY_SELECTORS = {
     abilityModal: "#addAbilityModal",
+    abilityModalOpenButtons: 'button[command="show-modal"][commandfor="addAbilityModal"]',
+    abilityModalCloseButtons: 'button[command="close"][commandfor="addAbilityModal"]',
     addButton: ".form__button--add",
     iconInput: "[data-ability-icon-input]",
     iconPreview: "#iconpreview",
@@ -241,6 +243,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const collectElements = () => {
         const abilityModal = document.querySelector(ABILITY_SELECTORS.abilityModal);
         const modalElements = getAbilityModalElements(abilityModal);
+        const abilityModalOpenButtons = document.querySelectorAll(ABILITY_SELECTORS.abilityModalOpenButtons);
+        const abilityModalCloseButtons = document.querySelectorAll(ABILITY_SELECTORS.abilityModalCloseButtons);
         const { contextMenu, contextMenuItems, sectionMenu, sectionMenuItems } = getMenuElements();
         const subcategoryTemplate = document.querySelector(ABILITY_SELECTORS.abilitySubcategoryTemplate);
         const abilityAreas = document.querySelectorAll(ABILITY_SELECTORS.abilityAreaWithData);
@@ -252,6 +256,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
             abilityModal,
             modalElements,
+            abilityModalOpenButtons,
+            abilityModalCloseButtons,
             contextMenu,
             contextMenuItems,
             sectionMenu,
@@ -312,6 +318,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const {
         abilityModal,
+        abilityModalOpenButtons,
+        abilityModalCloseButtons,
         contextMenu,
         contextMenuItems,
         sectionMenu,
@@ -1645,6 +1653,59 @@ document.addEventListener("DOMContentLoaded", () => {
         contextMenu.setAttribute("aria-hidden", "false");
     };
 
+    const openAbilityModal = () => {
+        if (!abilityModal) {
+            return;
+        }
+        const isDialogElement =
+            typeof HTMLDialogElement !== "undefined" && abilityModal instanceof HTMLDialogElement;
+        const isAlreadyOpen = isDialogElement ? abilityModal.open : abilityModal.hasAttribute("open");
+        if (isAlreadyOpen) {
+            return;
+        }
+        const openWithDialogApi = (methodName) => {
+            if (typeof abilityModal[methodName] !== "function") {
+                return false;
+            }
+            try {
+                abilityModal[methodName]();
+                return true;
+            } catch (error) {
+                console.warn(`Failed to open ability modal via ${methodName}. Falling back.`, error);
+                return false;
+            }
+        };
+        if (openWithDialogApi("showModal") || openWithDialogApi("show")) {
+            return;
+        }
+        // Fallback for browsers without dialog APIs while keeping existing command="show-modal" behavior.
+        abilityModal.setAttribute("open", "");
+        abilityModal.setAttribute("aria-hidden", "false");
+        abilityModal.classList.add("is-open");
+    };
+
+    const closeAbilityModal = () => {
+        if (!abilityModal) {
+            return;
+        }
+        let closedWithDialogApi = false;
+        if (typeof abilityModal.close === "function") {
+            try {
+                abilityModal.close();
+                closedWithDialogApi = true;
+            } catch (error) {
+                console.warn("Failed to close ability modal via close(). Falling back.", error);
+            }
+        }
+        if (closedWithDialogApi) {
+            return;
+        }
+        abilityModal.removeAttribute("open");
+        abilityModal.setAttribute("aria-hidden", "true");
+        abilityModal.classList.remove("is-open");
+        abilityModal.dispatchEvent(new Event("close"));
+    };
+
     const startEditingAbility = (abilityElement) => {
         if (!abilityElement || !abilityModal) {
             return;
@@ -1658,9 +1719,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const areaValue = abilityArea?.dataset[ABILITY_DATASET_KEYS.abilityArea] ?? ABILITY_TEXT.defaultAbilityArea;
         abilityModal.dataset[ABILITY_DATASET_KEYS.targetArea] = areaValue;
         populateAbilityForm(extractAbilityData(abilityElement), areaValue);
-        if (typeof abilityModal.showModal === "function") {
-            abilityModal.showModal();
-        }
+        openAbilityModal();
     };
 
     const resetEditingState = () => {
@@ -2086,6 +2145,26 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    if (abilityModalOpenButtons.length > 0) {
+        abilityModalOpenButtons.forEach((button) => {
+            button.addEventListener("click", (event) => {
+                // Use a unified entry point so dialog API gaps don't break the command="show-modal" flow.
+                event.preventDefault();
+                openAbilityModal();
+            });
+        });
+    }
+
+    if (abilityModalCloseButtons.length > 0) {
+        abilityModalCloseButtons.forEach((button) => {
+            button.addEventListener("click", (event) => {
+                // Keep manual close buttons working even when dialog APIs are missing.
+                event.preventDefault();
+                closeAbilityModal();
+            });
+        });
+    }
+
     addButton.addEventListener("click", (event) => {
         event.preventDefault();
         const data = buildAbilityDataFromForm(editingAbilityElement);
@@ -2122,9 +2201,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             resetAbilityForm();
             resetEditingState();
-            if (typeof abilityModal.close === "function") {
-                abilityModal.close();
-            }
+            closeAbilityModal();
             showToast(ABILITY_TEXT.toastUpdate, "success");
             return;
         }
@@ -2157,9 +2234,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         resetAbilityForm();
 
-        if (typeof abilityModal.close === "function") {
-            abilityModal.close();
-        }
+        closeAbilityModal();
 
         showToast(ABILITY_TEXT.toastRegister, "success");
     });
