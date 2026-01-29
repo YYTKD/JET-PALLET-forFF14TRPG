@@ -107,6 +107,8 @@ const ABILITY_DRAG_CLASSES = {
 
 const ABILITY_DRAG_PAYLOAD_TYPES = ["application/json", "text/plain"];
 
+let activeDragPayload = null;
+
 const ABILITY_TEXT = {
     defaultIcon: "assets/dummy_icon.png",
     uploadedImageLabel: "アップロード画像",
@@ -1745,6 +1747,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     };
 
+    const resolveDragPayload = (event) => getDragPayload(event) ?? activeDragPayload;
+
     const hasDragPayloadType = (dataTransfer) => {
         const types = Array.from(dataTransfer?.types ?? []);
         return ABILITY_DRAG_PAYLOAD_TYPES.some((type) => types.includes(type));
@@ -1756,7 +1760,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (hasDragPayloadType(dataTransfer)) {
                 event.preventDefault();
             }
-            const payload = getDragPayload(event);
+            const payload = resolveDragPayload(event);
             if (!payload) {
                 return;
             }
@@ -1788,7 +1792,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         abilityArea.addEventListener("drop", (event) => {
-            const payload = getDragPayload(event);
+            const payload = resolveDragPayload(event);
             if (!payload) {
                 return;
             }
@@ -2085,6 +2089,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const clearDragState = () => {
         document.body.classList.remove(ABILITY_DRAG_CLASSES.bodyDragging);
+        activeDragPayload = null;
         document.querySelectorAll(ABILITY_SELECTORS.abilityArea).forEach((abilityArea) => {
             clearDropIndicator(abilityArea);
         });
@@ -2103,7 +2108,9 @@ document.addEventListener("DOMContentLoaded", () => {
         abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] = abilityId;
         const abilityArea = abilityElement.closest(".ability-area");
         const areaValue = getAbilityAreaKey(abilityArea);
-        const payload = JSON.stringify({ id: abilityId, area: areaValue });
+        const payloadObject = { id: abilityId, area: areaValue };
+        const payload = JSON.stringify(payloadObject);
+        activeDragPayload = payloadObject;
         event.dataTransfer.setData("application/json", payload);
         event.dataTransfer.setData("text/plain", payload);
         event.dataTransfer.effectAllowed = "move";
