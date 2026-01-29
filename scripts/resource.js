@@ -209,6 +209,7 @@ const createResourceIcon = (resource) => {
 const createResourceGroup = (resource, onChange) => {
     const group = document.createElement("div");
     group.className = "resource__group";
+    group.dataset.resourceId = resource.id;
 
     const label = document.createElement("span");
     label.className = "resource__label";
@@ -243,6 +244,63 @@ const createResourceGroup = (resource, onChange) => {
     return group;
 };
 
+const getResourceGroupById = (root, resourceId) => {
+    if (!root || !resourceId) {
+        return null;
+    }
+    const safeId =
+        typeof CSS !== "undefined" && typeof CSS.escape === "function"
+            ? CSS.escape(resourceId)
+            : resourceId;
+    return root.querySelector(`[data-resource-id="${safeId}"]`);
+};
+
+const updateResourceGroupDisplay = (group, resource) => {
+    if (!group || !resource) {
+        return;
+    }
+    const label = group.querySelector(".resource__label");
+    if (label) {
+        label.textContent = resource.name ?? "";
+    }
+
+    const control = group.querySelector(".resource__control");
+    if (control) {
+        const decrementButton = control.querySelector("button:nth-of-type(1)");
+        const incrementButton = control.querySelector("button:nth-of-type(2)");
+        if (decrementButton) {
+            decrementButton.setAttribute("aria-label", `${resource.name ?? ""}を減らす`);
+        }
+        if (incrementButton) {
+            incrementButton.setAttribute("aria-label", `${resource.name ?? ""}を増やす`);
+        }
+    }
+
+    const existingIcon = group.querySelector(".resource__icon");
+    const nextIcon = createResourceIcon(resource);
+    if (existingIcon) {
+        existingIcon.replaceWith(nextIcon);
+    } else if (control) {
+        group.insertBefore(nextIcon, control);
+    } else {
+        group.appendChild(nextIcon);
+    }
+    injectSvgIcons(group);
+};
+
+const updateResourceDisplayById = (root, resourceId) => {
+    const resources = readResources();
+    const target = resources.find((resource) => resource.id === resourceId);
+    if (!target) {
+        return;
+    }
+    const group = getResourceGroupById(root, target.id);
+    if (!group) {
+        return;
+    }
+    updateResourceGroupDisplay(group, target);
+};
+
 const renderResources = (root) => {
     if (!root) {
         return;
@@ -264,7 +322,7 @@ const renderResources = (root) => {
                         ? target.max
                         : RESOURCE_DEFAULTS.min;
                 updateResource(id, { current: nextValue });
-                renderResources(root);
+                updateResourceDisplayById(root, id);
             }),
         );
     });
