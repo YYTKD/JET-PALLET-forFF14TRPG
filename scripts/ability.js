@@ -371,8 +371,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return parsed && typeof parsed === "object" ? parsed : {};
     };
 
-    const saveStoredAbilityPositions = (positionsByIdentity) => {
-        writeStorageJson(ABILITY_STORAGE_KEYS.positions, positionsByIdentity, "ability positions");
+    const saveStoredAbilityPositions = (positionsById) => {
+        writeStorageJson(ABILITY_STORAGE_KEYS.positions, positionsById, "ability positions");
     };
 
     const applyAbilityRows = (abilityArea, rows) => {
@@ -392,7 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const abilityRowsByArea = loadStoredAbilityRows();
-    const abilityPositionsByIdentity = loadStoredAbilityPositions();
+    let abilityPositionsById = {};
     abilityAreas.forEach((abilityArea) => {
         const areaKey = abilityArea.dataset[ABILITY_DATASET_KEYS.abilityArea];
         if (!areaKey) {
@@ -462,6 +462,19 @@ document.addEventListener("DOMContentLoaded", () => {
             return window.crypto.randomUUID();
         }
         return `ability-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    };
+
+    const ensureAbilityId = (abilityElement) => {
+        if (!abilityElement) {
+            return null;
+        }
+        const existingId = abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId];
+        if (existingId) {
+            return existingId;
+        }
+        const generatedId = generateAbilityId();
+        abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] = generatedId;
+        return generatedId;
     };
 
     const setIconPreview = (src) => {
@@ -1195,7 +1208,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return JSON.stringify(normalized);
     };
 
-    const buildAbilityIdentity = (data, area) => {
+    const buildLegacyAbilityIdentity = (data, area) => {
         const normalized = {
             area: area || ABILITY_TEXT.defaultAbilityArea,
             name: data?.name ?? "",
@@ -1445,6 +1458,51 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     };
 
+    const buildLegacyIdentityMap = () => {
+        const identityMap = new Map();
+        document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+            const abilityArea = abilityElement.closest(ABILITY_SELECTORS.abilityArea);
+            const areaKey = getAbilityAreaKey(abilityArea);
+            const abilityId = ensureAbilityId(abilityElement);
+            if (!abilityId) {
+                return;
+            }
+            const identity = buildLegacyAbilityIdentity(extractAbilityData(abilityElement), areaKey);
+            if (!identity) {
+                return;
+            }
+            identityMap.set(identity, abilityId);
+        });
+        return identityMap;
+    };
+
+    const migrateStoredAbilityPositions = () => {
+        const storedPositions = loadStoredAbilityPositions();
+        const entries = Object.entries(storedPositions);
+        if (entries.length === 0) {
+            abilityPositionsById = storedPositions;
+            return;
+        }
+        const identityMap = buildLegacyIdentityMap();
+        const migrated = {};
+        let didMigrate = false;
+        entries.forEach(([key, value]) => {
+            if (identityMap.has(key)) {
+                const abilityId = identityMap.get(key);
+                if (abilityId) {
+                    migrated[abilityId] = value;
+                    didMigrate = true;
+                    return;
+                }
+            }
+            migrated[key] = value;
+        });
+        if (didMigrate) {
+            saveStoredAbilityPositions(migrated);
+        }
+        abilityPositionsById = migrated;
+    };
+
     const populateAbilityForm = (data, areaValue) => {
         const judgeMatch = parseJudgeText(data.judge).baseCommand.match(
             /([+-]?(?:\d+)?d\d+)\+\{([^}]+)\}/i,
@@ -1649,20 +1707,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const areaKey = getAbilityAreaKey(abilityArea);
         const data = extractAbilityData(abilityElement);
-        const identity = buildAbilityIdentity(data, areaKey);
-        if (!identity) {
+        const abilityId = ensureAbilityId(abilityElement);
+        if (!abilityId) {
             return;
         }
         if (data.row && data.col) {
-            abilityPositionsByIdentity[identity] = {
+            abilityPositionsById[abilityId] = {
                 row: data.row,
                 col: data.col,
                 area: areaKey,
             };
         } else {
-            delete abilityPositionsByIdentity[identity];
+            delete abilityPositionsById[abilityId];
         }
-        saveStoredAbilityPositions(abilityPositionsByIdentity);
+        saveStoredAbilityPositions(abilityPositionsById);
     };
 
     const parseCssNumber = (value) => {
@@ -1852,6 +1910,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderStoredAbilities();
 
     document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+        ensureAbilityId(abilityElement);
+    });
+
+    migrateStoredAbilityPositions();
+
+    document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
         if (isUserCreatedAbility(abilityElement)) {
             return;
         }
@@ -1860,9 +1924,15 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         const areaKey = getAbilityAreaKey(abilityArea);
-        const identity = buildAbilityIdentity(extractAbilityData(abilityElement), areaKey);
-        const storedPosition = abilityPositionsByIdentity[identity];
+        const abilityId = abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId];
+        if (!abilityId) {
+            return;
+        }
+        const storedPosition = abilityPositionsById[abilityId];
         if (!storedPosition) {
+            return;
+        }
+        if (storedPosition.area && storedPosition.area !== areaKey) {
             return;
         }
         const row = parseGridCoordinate(storedPosition.row);
@@ -1874,12 +1944,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         applyAbilityPosition(abilityElement, row, col);
-    });
-
-    document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
-        if (!abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId]) {
-            abilityElement.dataset[ABILITY_DATASET_KEYS.abilityId] = generateAbilityId();
-        }
     });
 
     if (tagAddButton) {
