@@ -18,6 +18,8 @@ const RESOURCE_COLORS = Object.freeze({
     purple: "purple",
 });
 
+const RESOURCE_GAUGE_FRAME_ICON = "assets/resource--gauge-frame.svg";
+
 const DEFAULT_RESOURCES = Object.freeze([
     {
         id: "resource-mp",
@@ -166,7 +168,7 @@ const renderGauge = (container, resource) => {
     const current = clamp(resource.current, RESOURCE_DEFAULTS.min, max);
     const gaugeIcon = document.createElement("img");
     gaugeIcon.className = "resource__icon--gauge js-svg-inject";
-    gaugeIcon.setAttribute("src", "assets/resource--gauge.svg");
+    gaugeIcon.setAttribute("src", RESOURCE_GAUGE_FRAME_ICON);
     gaugeIcon.setAttribute("alt", "");
 
     const gaugeValue = document.createElement("span");
