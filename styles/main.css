@@ -28,6 +28,7 @@
     /* 金枠：金属感のあるベージュ〜ゴールド */
     --border-gold: #b3a170;
     --border-gold-bright: #e5d098;
+    --border-gold-hiight: #f7f1e0;
     --border-gold-dark: #7a6a42;
     --border-turn-start: #4fbf7a;
     --border-turn-end: #d96b6b;
@@ -44,8 +45,9 @@
     --inner-shadow: rgba(0, 0, 0, 0.9);
 
     /*エフェクト*/
-    --shadow: 1px 1px 12px rgba(0, 0, 0, 0.8);
+    --shadow: 0 1px 2px 0 #000;
     --gradation: linear-gradient(180deg, var(--bg-light) 10%, var(--bg-main) 90%);
+    --panel-light: inset 0 16px 6px  rgba(255, 255, 255, 0.12);
 
     /* Buff slot sizing */
     --buff-slot-width: 30px;
@@ -164,16 +166,18 @@ button {
     cursor: pointer;
     outline: none;
     border-width: 1px;
-    border-color: linear-gradient(-45deg, var(--bg-light) 45%, var(--bg-dark) 55%);
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-main);
-    background: linear-gradient(to bottom, var(--bg-hilight) 45%, var(--bg-light) 55%);
+    background: linear-gradient(to bottom, var(--bg-hilight) 45%, var(--bg-main) 55%);
     border-radius: 999px;
     padding: 4px 8px;
     z-index: 100;
     user-select: none;
+    box-shadow: var(--shadow),
+                inset 0 2px 1px rgba(255, 255, 255, 0.4);
 
     max-height: min-content;
 
@@ -181,9 +185,44 @@ button {
     -moz-appearance: none;
 }
 
-button:hover {
-    background: linear-gradient(180deg, #555 0%, #333 100%);
+button:hover,
+select:hover {
+    filter: brightness(130%);
     cursor: pointer;
+}
+
+select {
+    cursor: pointer;
+    outline: none;
+    border-width: 1px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    background: linear-gradient(to bottom, var(--bg-hilight) 45%, var(--bg-main) 55%);
+    border-radius: 999px;
+    padding: 4px 8px;
+    z-index: 100;
+    user-select: none;
+    box-shadow: var(--shadow),
+                inset 0 2px 1px rgba(255, 255, 255, 0.4);
+
+    max-height: min-content;
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+option {
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    font-size: 14px;
+}
+
+optgroup {
+    background-color: var(--bg-light);
+    color: var(--text-sub);
 }
 
 details summary::marker {
@@ -193,6 +232,25 @@ details summary::marker {
 .tooltip {
     display: none;
 }
+
+/*表のスタイル*/
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-color: var(--bg-hilight);
+    
+}
+
+td {
+    justify-items: center;
+    justify-content: center;
+    justify-self: center;
+}
+
+table tr:nth-child(odd) td {
+  background: var(--bg-light);
+}
+
 
 body.is-ability-dragging .card--tooltip {
     display: none !important;
@@ -402,6 +460,8 @@ section {
     display: flex;
     align-items: center;
     height: 100%;
+    gap: 8px;
+    margin-right: 8px;
 }
 
 
@@ -441,7 +501,11 @@ section {
     align-items: center;
     border: 1px solid var(--border-gold);
     outline: 1px solid var(--border-gold-bright);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow),
+                var(--panel-light),
+                0 0 8px rgba(0, 0, 0, 0.45),
+                inset 0 0 2px #000,
+                inset 0 0 2px #000;
     padding: 4px;
 }
 
@@ -455,13 +519,15 @@ section {
     padding-bottom: 4px;
 }
 
-.section__header--title h3 {
+.section__header--title h3,
+.section__header--title h2 {
     font-family: "Antonio", sans-serif;
     font-weight: 200;
 }
 
 .section__header--buttons {
     display: flex;
+    gap: 2px;
 }
 
 .section__header--buttons button {
@@ -478,19 +544,19 @@ section {
 }
 
 .section__header--MAIN {
-    background: palevioletred;
+    background: #df6474;
 }
 
 .section__header--SUB {
-    background: palegreen;
+    background: #5cb97b;
 }
 
 .section__header--INSTANT {
-    background: paleturquoise;
+    background: #6d74b8;
 }
 
 .section__header--COMMAND {
-    background: var(--gradation);
+    background: var(--bg-main);
 }
 
 .section--TRAIT {
@@ -591,20 +657,21 @@ section {
 
 .ability__stack {
     position: absolute;
-    right: 2px;
-    bottom: 2px;
-    min-width: 18px;
-    padding: 1px 4px;
+    right: 4px;
+    bottom: 0px;
+    padding: 1px;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.8);
     color: #fff;
-    font-size: 12px;
+    font-family: "ZenDots", sans-serif;
+    font-size: 18px;
     font-weight: 700;
+    text-shadow: 0 0 1px #000,
+                 0 0 4px #000;
+    background: rgba(0, 0, 0, 0.2);
     text-align: center;
     line-height: 1.2;
     z-index: 2;
     pointer-events: none;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
 }
 
 .ability:hover .card--tooltip {
@@ -649,14 +716,15 @@ section {
 .context-menu {
     position: fixed;
     z-index: 10000;
-    min-width: 140px;
+    min-width: 100px;
     padding: 6px;
-    border-radius: 8px;
-    background: rgba(10, 10, 10, 0.96);
+    border-radius: 4px;
+    background: var(--bg-light);
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
     display: none;
     flex-direction: column;
+    align-items: start;
     gap: 4px;
 }
 
@@ -665,13 +733,15 @@ section {
 }
 
 .context-menu__item {
-    padding: 8px 10px;
+    padding: 2px 10px;
     border-radius: 6px;
     border: none;
+    box-shadow: none;
     background: transparent;
-    color: #f5f5f5;
+    font-size: 16px;
+    color: var(--border-gold-hiight);
     text-align: left;
-    font-size: 14px;
+    text-shadow: 0 1px 2px #000;
     cursor: pointer;
 }
 
@@ -793,30 +863,43 @@ section {
     display: flex;
     width: 100%;
     padding: 4px 8px 0;
+    filter: drop-shadow(0 1px 2px #000);
 }
 
 .command-tab {
     flex: 1;
     justify-content: center;
-    padding: 6px 8px;
-    border-radius: 6px 6px 0 0;
-    background: var(--bg-dark);
-    color: var(--text-sub);
-    border: 1px solid transparent;
+    align-items: baseline;
+    line-height: 12px;
+    padding: 8px 8px;
+    background: linear-gradient(to bottom, var(--bg-main) 45%, var(--bg-dark) 55%);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    border: none;
     border-bottom: none;
+    border-radius: 0%;
+    box-shadow: var(--panel-light);
+    outline: 2px solid rgba(0, 0, 0, 0.2);
+    outline-offset: -2px;
+
+    clip-path: polygon(
+    0% 60%,    /* 左の尖った部分 */
+    8% 0%,      /* 左上 */
+    92% 0%,     /* 右上 */
+    100% 40%,   /* 右の尖った部分 */
+    92% 100%,   /* 右下 */
+    8% 100%     /* 左下 */
+);
+
 }
+
 
 .command-tab[aria-selected="true"] {
-    background: var(--bg-light);
-    color: var(--text-main);
-    border-color: var(--border-gold-bright);
-    box-shadow: inset 0 -2px 0 var(--border-gold-bright);
+    background: linear-gradient(to bottom, var(--bg-hilight) 45%, var(--bg-light) 55%);
 }
 
-.command-tab:focus-visible {
-    outline: 2px solid var(--border-gold-bright);
-    outline-offset: 2px;
-}
+
 
 .command-panel {
     display: none;
@@ -908,13 +991,10 @@ section {
     position: absolute;
     top: 12px;
     right: 8px;
-    background: var(--accent-blue);
     max-height: 40px;
-    color: var(--bg-dark);
-    border: none;
     border-radius: 4px;
     padding: 4px 10px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     cursor: pointer;
 }
@@ -979,13 +1059,15 @@ dialog h3 {
     z-index: 200;
     display: flex;
     justify-content: space-between;
-    background: var(--gradation);
-    border-bottom: 1px solid var(--border-gold-dark);
+    align-items: center;
+    background: var(--bg-main);
+    border-bottom: 1px solid var(--bg-dark);
     font-weight: bold;
-    color: var(--text-gold);
+    color: var(--border-gold-hiight);
     text-shadow: 1px 1px 2px #000;
-    padding: 8px;
+    padding: 4px 8px;
     height: 48px;
+    box-shadow: var(--panel-light);
 }
 
 .dialog__header button {
@@ -1002,7 +1084,7 @@ dialog h3 {
     z-index: 200;
     display: flex;
     justify-content: center;
-    background: var(--gradation);
+    background: var(--bg-main);
     border-top: 1px solid var(--border-gold-dark);
     padding: 8px;
     height: 48px;
@@ -1018,7 +1100,7 @@ dialog h3 {
     flex-direction: column;
     gap: 8px;
     overflow: auto;
-    background: var(--gradation);
+    background: var(--bg-main);
     padding: 16px;
 }
 
@@ -1050,6 +1132,11 @@ dialog h3 {
     border: 2px solid var(--border-gold-bright);
     border-radius: 6px;
     padding: 6px;
+}
+
+.form__option--button:hover {
+    filter: brightness(130%);
+    cursor: pointer;
 }
 
 .form__option--checkbox {
@@ -1122,7 +1209,7 @@ select {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    z-index: 10000;
+    z-index: 100000;
     max-width: min(360px, calc(100vw - 32px));
 }
 
@@ -1320,7 +1407,18 @@ details:not([open]) summary {
     flex-shrink: 0;
 }
 
-.block__select,
+.block__select {
+    padding: 4px 12px;
+    background: var(--color-bg-darker);
+    border: 1px solid var(--color-yellow);
+    border-radius: 12px;
+    color: var(--color-yellow);
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+
 .block__input,
 .block__textbox {
     padding: 2px 4px;
@@ -1406,7 +1504,7 @@ details:not([open]) summary {
     margin-top: 8px;
     padding: 8px;
     background: transparent;
-    border: 2px dashed var(--color-selection);
+    border: 2px solid var(--color-selection);
     border-radius: 4px;
     color: var(--color-current-line);
     font-size: 12px;
@@ -1439,8 +1537,6 @@ details:not([open]) summary {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 0;
-    margin: 8px 0;
 }
 
 .connector-select--group {
@@ -1459,14 +1555,11 @@ details:not([open]) summary {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 8px 0;
-    margin: 4px 0;
 }
 
 .connector-line-vertical {
     width: 2px;
-    height: 12px;
+    height: 8px;
     background: var(--color-green);
 }
 
@@ -1513,11 +1606,10 @@ details:not([open]) summary {
     flex: 1;
     min-width: 140px;
     padding: 10px 12px;
-    background: var(--color-bg-light);
-    border: 2px dashed var(--color-selection);
+    border: 2px solid var(--color-selection);
     border-radius: 6px;
     color: var(--color-foreground);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -1642,23 +1734,6 @@ details:not([open]) summary {
     font-size: 12px;
     color: var(--color-current-line);
     font-style: italic;
-}
-
-/* ========================================
-           Drag Indicator
-           ======================================== */
-.block__drag-handle {
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-current-line);
-    cursor: grab;
-    font-size: 16px;
-}
-
-.block {
-    padding-left: 32px;
 }
 
 /* ========================================
@@ -1827,11 +1902,11 @@ details:not([open]) summary {
 .resource__gauge-fill {
     height: 100%;
     width: clamp(0%, var(--resource-percent), 100%);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--resource-accent) 80%, white) 0%, var(--resource-accent) 100%);
-    box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.35), 0 0 8px rgba(0, 0, 0, 0.45),
-    inset 0 0 3px #000,
-    0 4px 1px #000;
-}
+    background: var(--resource-accent);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.45),
+                inset 0 0 4px #000,
+                0 4px 1px #000;
+            }
 
 .resource__icon--gauge-value {
     position: absolute;

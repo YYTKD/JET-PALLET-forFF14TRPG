@@ -114,15 +114,6 @@ const DEFAULT_RESOURCES = Object.freeze([
         shape: RESOURCE_STACK_SHAPES.arrow,
         color: RESOURCE_COLORS.red,
     },
-    {
-        id: "resource-toki",
-        name: "闘気",
-        current: 0,
-        max: 5,
-        style: RESOURCE_STYLES.stack,
-        shape: RESOURCE_STACK_SHAPES.arrow,
-        color: RESOURCE_COLORS.yellow,
-    },
 ]);
 
 // Clamp numeric values to keep resources within valid bounds.

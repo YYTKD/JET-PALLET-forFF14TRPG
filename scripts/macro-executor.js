@@ -740,7 +740,20 @@
                 return resourceState.get(id) ?? resourceState.get(label) ?? null;
             }
             if (target.kind === "buff") {
-                return buffState.get(id) ?? buffState.get(label) ?? null;
+                const hit = buffState.get(id) ?? buffState.get(label) ?? null;
+                if (hit) return hit;
+
+                // ★追加：DOMに無い=0個として扱う。ただし定義があるバフだけ許可
+                const resolved = typeof window.buffStore?.resolveData === "function"
+                    ? window.buffStore.resolveData(target)
+                    : null;
+
+                if (!resolved) return null; // 定義も無いなら従来通り「解決不能」
+
+                const entry = { value: 0, min: DEFAULT_LIMITS.min, max: DEFAULT_LIMITS.max };
+                if (id) buffState.set(id, entry);
+                if (label) buffState.set(label, entry);
+                return entry;
             }
             return null;
         };

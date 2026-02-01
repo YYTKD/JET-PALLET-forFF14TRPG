@@ -42,6 +42,7 @@
 
     const STORAGE_KEYS = Object.freeze({
         characterMacros: "jet-pallet-character-macros",
+        characterMeta: "jet-pallet-character-meta",
     });
 
     window.storageUtils = {

@@ -123,7 +123,7 @@ const COMMAND_TEXT_CONFIG = {
 };
 
 const ABILITY_TEXT = {
-    defaultIcon: "assets/dummy_icon.png",
+    defaultIcon: "assets/images/icon/sample/Frame 261.png",
     uploadedImageLabel: "アップロード画像",
     tagSeparator: "・",
     judgeNone: "なし",
@@ -750,7 +750,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const existingTags = Array.from(tagContainer.querySelectorAll(ABILITY_SELECTORS.tagElement)).map(
             (tag) =>
-            getTagLabel(tag),
+                getTagLabel(tag),
         );
 
         if (existingTags.includes(rawValue)) {
@@ -1491,9 +1491,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const failures =
                 typeof window.macroExecutor.collectConditionFailures === "function"
                     ? window.macroExecutor.collectConditionFailures(
-                          macroPayload.conditions,
-                          context,
-                      )
+                        macroPayload.conditions,
+                        context,
+                    )
                     : [];
             if (failures.length > 0) {
                 showMacroConditionWarnings(failures);
@@ -1502,8 +1502,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const result =
                 typeof window.macroExecutor.executeMacro === "function"
                     ? window.macroExecutor.executeMacro(macroPayload, context, {
-                          applyState: true,
-                      })
+                        applyState: true,
+                    })
                     : null;
             if (result?.errors?.length) {
                 showMacroInvalidTargetWarnings(result.errors);
@@ -1930,8 +1930,8 @@ document.addEventListener("DOMContentLoaded", () => {
             iconSelect
                 .querySelectorAll(`option${buildAbilityDataSelector(ABILITY_DATA_ATTRIBUTES.uploaded, "true")}`)
                 .forEach((option) => {
-                option.remove();
-            });
+                    option.remove();
+                });
             iconSelect.selectedIndex = 0;
         }
 
@@ -2736,6 +2736,53 @@ document.addEventListener("DOMContentLoaded", () => {
                     showToast(ABILITY_TEXT.toastAddRow, "success");
                     return;
                 }
+                if (action === "remove-row") {
+                    closeSectionMenu();
+                    if (!areaKey) {
+                        return;
+                    }
+
+                    const abilityArea = document.querySelector(buildAbilityAreaSelector(areaKey));
+                    if (!abilityArea) {
+                        return;
+                    }
+
+                    const currentRows = getCurrentAbilityRows(abilityArea);
+                    if (currentRows <= 1) {
+                        showToast("これ以上減らせません。", "info");
+                        return;
+                    }
+
+                    const nextRows = currentRows - 1;
+                    applyAbilityRows(abilityArea, nextRows);
+                    abilityRowsByArea[areaKey] = nextRows;
+                    saveStoredAbilityRows(abilityRowsByArea);
+
+                    abilityArea.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+                        const row = parseGridCoordinate(abilityElement.dataset[ABILITY_DATASET_KEYS.abilityRow]);
+                        if (!row || row <= nextRows) {
+                            return;
+                        }
+
+                        applyAbilityPosition(abilityElement, "", "");
+
+                        const abilityId = ensureAbilityId(abilityElement);
+                        if (!abilityId) {
+                            return;
+                        }
+
+                        const updatedData = extractAbilityData(abilityElement);
+                        if (isUserCreatedAbility(abilityElement)) {
+                            upsertStoredAbility(abilityId, areaKey, updatedData);
+                        } else {
+                            persistAbilityPosition(abilityElement);
+                        }
+                    });
+
+                    showToast("行を減らしました。", "success");
+                    return;
+                }
+
             });
         });
     }

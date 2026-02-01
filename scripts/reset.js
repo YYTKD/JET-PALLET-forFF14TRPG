@@ -1,11 +1,14 @@
 (() => {
+    const storageKeys = window.storageUtils?.storageKeys;
+
     const RESET_STORAGE_KEYS = [
         "jet-pallet-abilities",
         "jet-pallet-ability-rows",
         "jet-pallet-buff-library",
         "jet-pallet-active-buffs",
         "jet-pallet-resources",
-        "jet-pallet-character-macros",
+        storageKeys?.characterMacros ?? "jet-pallet-character-macros",
++       storageKeys?.characterMeta ?? "jet-pallet-character-meta",
     ];
 
     const RESET_TEXT = {

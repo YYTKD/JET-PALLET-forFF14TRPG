@@ -26,8 +26,7 @@
     <footer>
         <div class="footer__character-controls">
             <button class="character__banner" command="show-modal" commandfor="characterSettingModal">
-                <span class="character__job">モンク</span>
-                <span class="character__level">Lv50</span>
+                <span class="character__name" id="character__button">ジョブ名Lv.n</span>
             </button>
 
         </div>
@@ -37,7 +36,8 @@
                 <span data-turn-icon>hourglass_top</span>
                 <h6 data-turn-label>ターン開始</h6>
             </button>
-            <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="round-end">refresh<h6>ラウンド終了</h6></button>
+            <button class="button__footer button__footer--turn material-symbols-rounded"
+                data-turn-action="round-end">refresh<h6>ラウンド終了</h6></button>
             <button class="button__footer button__footer--turn material-symbols-rounded"
                 data-turn-action="phase">calendar_clock<h6>フェイズ更新</h6></button>
         </div>
@@ -182,7 +182,10 @@
     <dialog class="dialog--AB" id="addAbilityModal" closedby="any">
         <div class="dialog__main">
             <div class="dialog__header">
-                <div class="section__header--title">アビリティ登録</div>
+                <div class="section__header--title">
+                    <h2>ABILITY CONFIG</h2>
+                    <h5>アビリティ管理</h5>
+                </div>
                 <button class="material-symbols-rounded" command="close" commandfor="addAbilityModal">close</button>
             </div>
             <div class="dialog__body">
@@ -198,11 +201,9 @@
                     <div class="form__group">
                         <span class="form__label">アイコン</span>
                         <div class="form__row">
-                            <img id="iconpreview" class="card__icon--image" src="assets/dummy_icon.png" />
+                            <img id="iconpreview" class="card__icon--image"
+                                src="assets/images/icon/sample/Frame 261.png" />
                             <div class="form__row">
-                                <select class="form__option--type" data-ability-icon-select>
-                                    <option value="">アイコンを選択</option>
-                                </select>
                                 <label class="form__option--button">
                                     <input type="file" class="form__input--icon" data-ability-icon-input>
                                     <h4>ファイルを選択</h4>
@@ -288,6 +289,9 @@
                             <input type="text" class="form__input--normal" data-ability-judge>
                             <select data-ability-judge-attribute>
                                 <option>+{STR}</option>
+                                <option>+{DEX}</option>
+                                <option>+{INT}</option>
+                                <option>+{MND}</option>
                                 <option>なし</option>
                             </select>
                         </div>
@@ -323,7 +327,8 @@
         <div class="dialog__preview card card__preview--AB">
             <div class="card__header">
                 <div class="card__icon">
-                    <img class="card__icon--image" src="assets/dummy_icon.png" data-ability-preview-icon />
+                    <img class="card__icon--image" src="assets/images/icon/sample/Frame 261.png"
+                        data-ability-preview-icon />
                 </div>
                 <div class="card__title">
                     <span class="card__name" data-ability-preview-name><span class="card__tags"
@@ -389,7 +394,8 @@
 
                 <!--編集中アビリティ-->
                 <div class="form__row">
-                    <img class="card__icon--image" data-macro-ability-icon src="assets/dummy_icon.png" />
+                    <img class="card__icon--image" data-macro-ability-icon
+                        src="assets/images/icon/sample/Frame 261.png" />
                     <h2 data-macro-ability-name></h2>
                 </div>
 
@@ -478,6 +484,8 @@
         <button class="context-menu__item" type="button" role="menuitem" data-section-action="add-row">
             行を追加
         </button>
+        <button class="context-menu__item" type="button" role="menuitem" data-section-action="remove-row">行を減らす</button>
+
     </div>
     <div class="context-menu" id="buffContextMenu" role="menu" aria-hidden="true">
         <button class="context-menu__item" type="button" role="menuitem" data-buff-menu-action="open-library">
@@ -497,7 +505,10 @@
     <dialog class="dialog--BUFF" id="addBuffModal" closedby="any">
         <div class="dialog__main">
             <div class="dialog__header">
-                <div class="section__header--title">バフ・デバフ登録</div>
+                <div class="section__header--title">
+                    <h2>BUFFS CONFIG</h2>
+                    <h5>バフ・デバフ登録</h5>
+                </div>
                 <button class="material-symbols-rounded" command="close" commandfor="addBuffModal">close</button>
             </div>
             <div class="dialog__body">
@@ -513,7 +524,8 @@
                 <div class="form__group">
                     <span class="form__label">アイコン</span>
                     <div class="form__row">
-                        <img id="iconpreview" class="AB__icon" data-buff-icon-preview src="assets/dummy_icon.png" />
+                        <img id="iconpreview" class="AB__icon" data-buff-icon-preview
+                            src="assets/images/icon/sample/Frame 261.png" />
                         <label class="form__option--button">
                             <input type="file" class="form__input--icon" data-buff-icon>
                             <h4>ファイルを選択</h4>
@@ -591,12 +603,16 @@
     <dialog class="dialog--BUFF-library" id="BuffLibraryModal" closedby="any">
         <div class="dialog__main">
             <div class="dialog__header">
-                <div class="section__header--title">バフ・デバフ管理</div>
+                <div class="section__header--title">
+                    <h2>BUFFS LIBRARY</h2>
+                    <h5>バフ・デバフ管理</h5>
+                </div>
                 <button class="material-symbols-rounded" command="close" commandfor="BuffLibraryModal">close</button>
             </div>
             <div class="dialog__body">
                 <div class="form__options">
-                    <button class="form__option--button" data-buff-library-add>新規バフ登録</button>
+                    <button class="form__option--button" command="show-modal" commandfor="addBuffModal"
+                        data-buff-library-add>新規バフ登録</button>
                 </div>
 
                 <table border="1" data-buff-library>
@@ -618,7 +634,10 @@
     <dialog class="dialog--TRAIT" id="addTRAITModal" closedby="any">
         <div class="dialog__main">
             <div class="dialog__header">
-                <div class="section__header--title">特性・リソース管理</div>
+                <div class="section__header--title">
+                    <h2>TRAIT CONFIG</h2>
+                    <h5>特性・リソース管理</h5>
+                </div>
                 <button class="material-symbols-rounded" command="close" commandfor="addTRAITModal">close</button>
             </div>
             <div class="dialog__body">
@@ -631,7 +650,10 @@
     <dialog class="dialog--Chara" id="characterSettingModal" closedby="any">
         <div class="dialog__main">
             <div class="dialog__header">
-                <div class="section__header--title">キャラクター設定</div>
+                <div class="section__header--title">
+                    <h2>CHARACTER CONFIG</h2>
+                    <h5>キャラクター設定</h5>
+                </div>
                 <button class="material-symbols-rounded" command="close"
                     commandfor="characterSettingModal">close</button>
             </div>
@@ -641,9 +663,9 @@
                     <!--ジョブ-->
                     <div class="form__group">
                         <span class="form__label">ジョブ名及びレベル</span>
-                        <input type="text" class="form__input--normal" characterNAME>
+                        <input type="text" class="form__input--normal" id="characterNAME" value="ジョブ名Lv.n">
                     </div>
-                    <!--使用ステータス-->
+                    <!--使用ステータス
                     <div class="form__group">
                         <span class="form__label">使用ステータス</span>
                         <select class="form__option--type">
@@ -652,7 +674,7 @@
                             <option class="dammy">INT</option>
                             <option class="dammy">MND</option>
                         </select>
-                    </div>
+                    </div>-->
                 </div>
                 <button class="dialog__footer__button form__button--add">更新</button>
 
@@ -674,7 +696,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <h5>ターン終了時アクション</h5>
                 <div class="form__group" data-character-macro-scope="turn-end">
                     <div class="block-builder">
@@ -709,28 +731,28 @@
                     </div>
                 </div>
                 <button class="form__button--add" data-macro-apply>更新</button>
-                    <h3>データ管理</h3>
-                    <div class="form__group">
-                        <label class="form__label">クリップボードから貼り付けて読み込み:</label>
-                        <textarea id="importText" placeholder='.txtまたは.jsonファイルを直接ドロップしても読み込めます'></textarea>
-                    </div>
-                    <div class="form__row">
-                        <button id="importConfirm">
-                            <span class="material-symbols-rounded">download</span>
-                            <span>このデータを読み込み</span>
-                        </button>
-                        <button id="exportToClipboard">
-                            <span class="material-symbols-rounded">content_copy</span>
-                            <span>現在の設定をクリップボードにコピー</span>
-                        </button>
-                    </div>
-                    <button id="resetBtn">
-                        <span class="material-symbols-rounded">delete_forever</span>
-                        <span>すべて初期化</span>
-                    </button>
-
+                <h3>データ管理</h3>
+                <div class="form__group">
+                    <label class="form__label">クリップボードから貼り付けて読み込み:</label>
+                    <textarea id="importText" placeholder='.txtまたは.jsonファイルを直接ドロップしても読み込めます'></textarea>
                 </div>
+                <div class="form__row">
+                    <button id="importConfirm">
+                        <span class="material-symbols-rounded">download</span>
+                        <span>このデータを読込</span>
+                    </button>
+                    <button id="exportToClipboard">
+                        <span class="material-symbols-rounded">content_copy</span>
+                        <span>現在の設定をクリップボードにコピー</span>
+                    </button>
+                </div>
+                <button id="resetBtn">
+                    <span class="material-symbols-rounded">delete_forever</span>
+                    <span>すべて初期化</span>
+                </button>
+
             </div>
+        </div>
     </dialog>
 
 </main>
@@ -743,6 +765,7 @@
 <script src="scripts/character-macro-store.js"></script>
 <script src="scripts/reset.js"></script>
 <script src="scripts/toast-utils.js"></script>
+<script src="scripts/data-management.js"></script>
 <script src="scripts/resource.js"></script>
 <script src="scripts/macro-schema.js"></script>
 <script src="scripts/macro-executor.js"></script>
@@ -756,6 +779,7 @@
 <script src="scripts/buff.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
+
         const abilityModal = document.getElementById("addAbilityModal");
         if (!abilityModal) {
             return;
@@ -813,6 +837,23 @@
                 setModalTargetArea(targetArea);
             });
         }
+
+        const meta = window.characterMetaStore?.loadCharacterMeta();
+        const nameButton = document.getElementById("characterNAME");
+
+        if (meta?.name && nameButton) {
+            nameButton.textContent = meta.name;
+        }
+    });
+
+
+</script>
+<script>
+    const input = document.getElementById('characterNAME');
+    const label = document.getElementById('character__button');
+
+    input.addEventListener('input', () => {
+        label.textContent = input.value;
     });
 </script>
 </body>

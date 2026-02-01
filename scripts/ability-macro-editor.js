@@ -829,7 +829,7 @@
                 const deleteButton = `
                     <button class="block__btn block__btn--danger" data-macro-action="remove-condition"
                         data-condition-scope="${scopeId}" data-group-id="${group.id}" data-condition-id="${condition.id}">
-                        削除
+                        ✕
                     </button>
                 `;
                 const connector =
@@ -881,7 +881,7 @@
         return `
             <details class="block block--condition" data-group-id="${group.id}" data-condition-scope="${scopeId}">
                 <summary class="block__header">
-                    <span class="block__drag-handle">⋮⋮</span>
+                    
                     <span class="block__type">条件グループ ${groupIndex + 1}</span>
                     <span class="block__overview" data-group-overview>${summary}</span>
                     <div class="block__controls">
@@ -890,7 +890,7 @@
                         <button class="block__btn" data-macro-action="move-group-down" data-condition-scope="${scopeId}"
                             data-group-id="${group.id}">↓</button>
                         <button class="block__btn block__btn--danger" data-macro-action="remove-group"
-                            data-condition-scope="${scopeId}" data-group-id="${group.id}">削除</button>
+                            data-condition-scope="${scopeId}" data-group-id="${group.id}">✕</button>
                     </div>
                 </summary>
                 <div class="block__content">
@@ -961,7 +961,7 @@
                                                 data-option-action-id="${nestedAction.id}">↓</button>
                                             <button class="block__btn block__btn--danger" data-macro-action="remove-option-action"
                                                 data-block-id="${blockId}" data-option-id="${option.id}"
-                                                data-option-action-id="${nestedAction.id}">削除</button>
+                                                data-option-action-id="${nestedAction.id}">✕</button>
                                         </div>
                                     </div>
                                     <div class="block__content">
@@ -980,7 +980,7 @@
                                 <button class="block__btn" title="アクションを追加" data-macro-action="add-option-action"
                                     data-block-id="${blockId}" data-option-id="${option.id}">＋</button>
                                 <button class="block__btn block__btn--danger" data-macro-action="remove-option"
-                                    data-block-id="${blockId}" data-option-id="${option.id}">削除</button>
+                                    data-block-id="${blockId}" data-option-id="${option.id}">✕</button>
                             </div>
                             ${actionsMarkup}
                         </div>
@@ -1153,14 +1153,14 @@
         return `
             <details class="block block--action${nestedClass}" data-block-id="${block.id}">
                 <summary class="block__header">
-                    <span class="block__drag-handle">⋮⋮</span>
+                    
                     <span class="block__type">アクション</span>
                     <span class="block__overview" data-action-overview>${summary}</span>
                     <div class="block__controls">
                         <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
                         <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
                         <button class="block__btn block__btn--danger" data-macro-action="remove-block"
-                            data-block-id="${block.id}">削除</button>
+                            data-block-id="${block.id}">✕</button>
                     </div>
                 </summary>
                 <div class="block__content">
@@ -1194,14 +1194,14 @@
         return `
             <details class="block block--condition" data-block-id="${block.id}" data-condition-scope="${block.id}">
                 <summary class="block__header">
-                    <span class="block__drag-handle">⋮⋮</span>
+                    
                     <span class="block__type">条件グループ ${index + 1}</span>
                     <span class="block__overview" data-group-overview>${summary}</span>
                     <div class="block__controls">
                         <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
                         <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
                         <button class="block__btn block__btn--danger" data-macro-action="remove-block"
-                            data-block-id="${block.id}">削除</button>
+                            data-block-id="${block.id}">✕</button>
                     </div>
                 </summary>
                 <div class="block__content">

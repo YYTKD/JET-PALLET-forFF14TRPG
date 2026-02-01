@@ -1,4 +1,7 @@
 (() => {
+
+
+
     const macroDefinition = window.macroDefinition;
     const characterMacroStore = window.characterMacroStore;
     const toastUtils = window.toastUtils;
@@ -350,10 +353,10 @@
                     label: option.label ?? "",
                     actions: Array.isArray(option.actions)
                         ? option.actions.map((nestedAction) =>
-                            ({
-                                ...normalizeAction(nestedAction, defaultTarget),
-                                id: nestedAction?.id ?? createId("option-action"),
-                            }),
+                        ({
+                            ...normalizeAction(nestedAction, defaultTarget),
+                            id: nestedAction?.id ?? createId("option-action"),
+                        }),
                         )
                         : [],
                 })),
@@ -503,7 +506,7 @@
         return `
             <details class="block block--condition"${attributeMarkup}>
                 <summary class="block__header">
-                    <span class="block__drag-handle">⋮⋮</span>
+                    
                     <span class="block__type">${summaryTitle}</span>
                     <span class="block__overview" data-group-overview>${overviewText}</span>
                     <div class="block__controls">
@@ -542,7 +545,7 @@
                 const deleteButton = `
                     <button class="block__btn block__btn--danger" data-macro-action="remove-condition"
                         data-condition-scope="${scopeId}" data-group-id="${group.id}" data-condition-id="${condition.id}">
-                        削除
+                        ✕
                     </button>
                 `;
                 const connectorSelect =
@@ -595,7 +598,7 @@
             </button>
             <button class="block__btn block__btn--danger" data-macro-action="remove-group"
                 data-condition-scope="${scopeId}" data-group-id="${group.id}">
-                削除
+                ✕
             </button>
         `;
         const contentMarkup = `
@@ -608,15 +611,15 @@
         return `
             ${connectorMarkup}
             ${createConditionDetailsMarkup({
-                summaryTitle: groupTitle,
-                overviewText: summary,
-                controlsMarkup,
-                contentMarkup,
-                dataAttributes: {
-                    "data-group-id": group.id,
-                    "data-condition-scope": scopeId,
-                },
-            })}
+            summaryTitle: groupTitle,
+            overviewText: summary,
+            controlsMarkup,
+            contentMarkup,
+            dataAttributes: {
+                "data-group-id": group.id,
+                "data-condition-scope": scopeId,
+            },
+        })}
         `;
     };
 
@@ -670,7 +673,7 @@
                                             data-option-id="${option.id}" data-option-action-id="${optionAction.id}">
                                         <button class="block__btn block__btn--danger" data-macro-action="remove-option-action"
                                             data-block-id="${blockId}" data-option-id="${option.id}" data-option-action-id="${optionAction.id}">
-                                            削除
+                                            ✕
                                         </button>
                                     </div>
                                 </div>
@@ -733,14 +736,14 @@
         return `
             <details class="block block--action${nestedClass}" data-block-id="${block.id}">
                 <summary class="block__header">
-                    <span class="block__drag-handle">⋮⋮</span>
+                    
                     <span class="block__type">アクション</span>
                     <span class="block__overview" data-action-overview>${summary}</span>
                     <div class="block__controls">
                         <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
                         <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
                         <button class="block__btn block__btn--danger" data-macro-action="remove-block"
-                            data-block-id="${block.id}">削除</button>
+                            data-block-id="${block.id}">✕</button>
                     </div>
                 </summary>
                 <div class="block__content">
@@ -775,7 +778,7 @@
             <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
             <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
             <button class="block__btn block__btn--danger" data-macro-action="remove-block"
-                data-block-id="${block.id}">削除</button>
+                data-block-id="${block.id}">✕</button>
         `;
         const contentMarkup = `
             ${conditionMarkup}
@@ -1713,6 +1716,7 @@
             });
         });
     };
+
 
     const sectionStates = new Map();
 
