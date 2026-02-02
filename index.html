@@ -126,9 +126,15 @@
             <div class="section__body section__body--command">
                 <div class="command-tabs" role="tablist" aria-label="コマンド出力タブ">
                     <button class="command-tab" id="command-tab-judge" data-command-tab="judge" role="tab"
-                        aria-selected="true" aria-controls="command-panel-judge" tabindex="0">判定</button>
+                        aria-selected="true" aria-controls="command-panel-judge" tabindex="0">
+                        <div class="tab__lamp"></div>
+                        判定
+                    </button>
                     <button class="command-tab" id="command-tab-attack" data-command-tab="attack" role="tab"
-                        aria-selected="false" aria-controls="command-panel-attack" tabindex="-1">ダメージ</button>
+                        aria-selected="false" aria-controls="command-panel-attack" tabindex="-1">
+                        <div class="tab__lamp"></div>
+                        ダメージ
+                    </button>
                 </div>
                 <div class="command-panel is-active" data-command-panel="judge" role="tabpanel" id="command-panel-judge"
                     aria-labelledby="command-tab-judge" tabindex="0">
@@ -209,8 +215,10 @@
                                     <h4>ファイルを選択</h4>
                                 </label>
                             </div>
+
                         </div>
                     </div>
+
                     <div class="form__group">
                         <span class="form__label">種別</span>
                         <select class="form__option--type" data-ability-type>
@@ -530,6 +538,7 @@
                             <input type="file" class="form__input--icon" data-buff-icon>
                             <h4>ファイルを選択</h4>
                         </label>
+
                     </div>
                 </div>
                 <!--名前-->
