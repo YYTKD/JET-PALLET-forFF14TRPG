@@ -379,6 +379,16 @@ if (nameInput && window.characterMetaStore) {
         };
     };
 
+    const resolveBlockAction = (block) => {
+        if (block?.action) {
+            return block.action;
+        }
+        if (Array.isArray(block?.actions) && block.actions.length > 0) {
+            return block.actions[0];
+        }
+        return block;
+    };
+
     const normalizeBlocks = (section, defaultTarget) => {
         const blocks = Array.isArray(section?.blocks)
             ? section.blocks
@@ -400,7 +410,7 @@ if (nameInput && window.characterMetaStore) {
                 id: block?.id ?? createId("block"),
                 type: "action",
                 parentConditionId: block?.parentConditionId ?? null,
-                action: normalizeAction(block.action ?? block, defaultTarget),
+                action: normalizeAction(resolveBlockAction(block), defaultTarget),
             };
         });
 
@@ -1336,7 +1346,7 @@ if (nameInput && window.characterMetaStore) {
                 }
                 return {
                     type: "action",
-                    actions: [sanitizedAction],
+                    action: sanitizedAction,
                 };
             })
             .filter(Boolean);

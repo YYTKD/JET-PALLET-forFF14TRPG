@@ -475,6 +475,16 @@
         };
     };
 
+    const resolveBlockAction = (block) => {
+        if (block?.action) {
+            return block.action;
+        }
+        if (Array.isArray(block?.actions) && block.actions.length > 0) {
+            return block.actions[0];
+        }
+        return block;
+    };
+
     const normalizeBlocks = (macro, defaultTarget) => {
         const blocks = Array.isArray(macro?.blocks)
             ? macro.blocks
@@ -496,7 +506,7 @@
                 id: block?.id ?? createId("block"),
                 type: "action",
                 parentConditionId: block?.parentConditionId ?? null,
-                action: normalizeAction(block.action ?? block, defaultTarget),
+                action: normalizeAction(resolveBlockAction(block), defaultTarget),
             };
         });
         for (let index = 0; index < normalized.length; index += 1) {
@@ -2169,7 +2179,7 @@
                 }
                 return {
                     type: "action",
-                    actions: [sanitizedAction],
+                    action: sanitizedAction,
                 };
             })
             .filter(Boolean);
