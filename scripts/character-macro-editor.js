@@ -16,6 +16,16 @@
         return;
     }
 
+    const nameInput = characterModal.querySelector("[data-character-name]");
+
+if (nameInput && window.characterMetaStore) {
+    nameInput.addEventListener("input", () => {
+        window.characterMetaStore.saveCharacterMeta({
+            name: nameInput.value,
+        });
+    });
+}
+
     const SECTION_SELECTOR = "[data-character-macro-scope]";
     const BLOCK_BUILDER_SELECTOR = ".block-builder";
 

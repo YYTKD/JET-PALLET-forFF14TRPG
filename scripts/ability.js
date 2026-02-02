@@ -246,6 +246,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const copyButtons = Array.from(document.querySelectorAll(".button--copy"));
     const copyTimers = new WeakMap();
 
+    const meta = window.characterMetaStore?.loadCharacterMeta();
+    const nameButton = document.getElementById("character__button");
+
+    if (meta?.name && nameButton) {
+        nameButton.textContent = meta.name;
+    }
+
     // Gather modal controls so downstream logic can fail fast if markup changes.
     const getAbilityModalElements = (modal) => {
         if (!modal) {

@@ -481,7 +481,9 @@ section {
     outline-offset: -1px;
 }
 
-.button__footer--hubs {}
+.button__footer {
+    padding: 4px 12px;
+}
 
 .button__footer--buffs {}
 
