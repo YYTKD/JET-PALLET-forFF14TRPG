@@ -29,7 +29,6 @@
 
     const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-    // Keep command additions consistently sign-prefixed to avoid ambiguous rolls.
     const normalizeCommandAddition = (value) => {
         if (value === null || value === undefined) {
             return "";
@@ -329,12 +328,71 @@
         result.commandEffects.effectTexts.push(text);
     };
 
-    const resolveChoiceOption = (action, context, options, result) => {
+    // モーダル選択肢表示（非同期）
+    const openChoiceModal = (question, options) => {
+        return new Promise((resolve) => {
+            const modal = document.getElementById("macroChoiceModal");
+            if (!modal) {
+                console.warn("Choice modal not found, falling back to first option.");
+                resolve(0);
+                return;
+            }
+
+            const questionElement = modal.querySelector("[data-choice-question]");
+            const optionsContainer = modal.querySelector("[data-choice-options]");
+
+            if (!questionElement || !optionsContainer) {
+                console.warn("Choice modal elements not found.");
+                resolve(0);
+                return;
+            }
+
+            // 質問文を設定
+            questionElement.textContent = question || "選択してください";
+
+            // 既存のボタンをクリア
+            optionsContainer.innerHTML = "";
+
+            // 選択肢ボタンを生成
+            options.forEach((option, index) => {
+                const button = document.createElement("button");
+                button.className = "choice__button";
+                button.textContent = option.label || `選択肢 ${index + 1}`;
+                button.addEventListener("click", () => {
+                    if (typeof modal.close === "function") {
+                        modal.close();
+                    } else {
+                        modal.removeAttribute("open");
+                    }
+                    resolve(index);
+                }, { once: true });
+                optionsContainer.appendChild(button);
+            });
+
+            // モーダルを開く
+            if (typeof modal.showModal === "function") {
+                modal.showModal();
+            } else {
+                modal.setAttribute("open", "");
+            }
+
+            // モーダルが閉じられた場合（ESCなど）は最初の選択肢を返す
+            const handleClose = () => {
+                resolve(0);
+                modal.removeEventListener("close", handleClose);
+            };
+            modal.addEventListener("close", handleClose);
+        });
+    };
+
+    const resolveChoiceOption = async (action, context, options, result) => {
         const optionsList = Array.isArray(action?.options) ? action.options : [];
         if (optionsList.length === 0) {
             addWarning(result, "Choice action has no options.");
             return null;
         }
+        
+        // カスタムの選択関数が提供されている場合
         if (typeof options?.chooseOption === "function") {
             try {
                 const selection = options.chooseOption(action, optionsList);
@@ -348,24 +406,31 @@
                 addWarning(result, "Choice resolver threw an error.", error);
             }
         }
+        
+        // プレビューモードでは実行しない
         if (options?.mode === "preview") {
             addWarning(result, "Choice action skipped in preview mode.", action);
             return null;
         }
-        if (typeof window !== "undefined" && typeof window.prompt === "function") {
-            const labels = optionsList.map((option, index) => `${index + 1}: ${option.label ?? ""}`);
-            const response = window.prompt(
-                `${action?.question ?? "選択してください"}\n${labels.join("\n")}`,
-            );
-            const index = response ? Number(response) - 1 : -1;
-            if (Number.isFinite(index) && optionsList[index]) {
-                return optionsList[index];
+
+        // モーダル選択（非同期）
+        if (typeof window !== "undefined" && document.getElementById("macroChoiceModal")) {
+            try {
+                const selectedIndex = await openChoiceModal(
+                    action?.question ?? "選択してください",
+                    optionsList
+                );
+                return optionsList[selectedIndex] ?? optionsList[0] ?? null;
+            } catch (error) {
+                addWarning(result, "Choice modal failed.", error);
             }
         }
+
+        // 最終フォールバック
         return optionsList[0] ?? null;
     };
 
-    const executeAction = (action, context, options, result) => {
+    const executeAction = async (action, context, options, result) => {
         if (!action?.type) {
             addWarning(result, "Action is missing a type.");
             return;
@@ -418,14 +483,14 @@
                 applyEffectTextAddition(action, result);
                 return;
             case "show-choice": {
-                const selected = resolveChoiceOption(action, context, options, result);
+                const selected = await resolveChoiceOption(action, context, options, result);
                 if (!selected) {
                     return;
                 }
                 const nestedActions = Array.isArray(selected.actions) ? selected.actions : [];
-                nestedActions.forEach((nestedAction) =>
-                    executeAction(nestedAction, context, options, result),
-                );
+                for (const nestedAction of nestedActions) {
+                    await executeAction(nestedAction, context, options, result);
+                }
                 return;
             }
             default:
@@ -592,7 +657,7 @@
         return [];
     };
 
-    const executeMacroBlocks = (macro, context, options, result) => {
+    const executeMacroBlocks = async (macro, context, options, result) => {
         const blocks = normalizeMacroBlocks(macro);
         for (let index = 0; index < blocks.length; index += 1) {
             const block = blocks[index];
@@ -612,19 +677,21 @@
                     nextIndex += 1;
                 }
                 if (matched) {
-                    actionBlocks.forEach((actionBlock) => {
-                        extractActionsFromBlock(actionBlock).forEach((action) =>
-                            executeAction(action, context, options, result),
-                        );
-                    });
+                    for (const actionBlock of actionBlocks) {
+                        const actions = extractActionsFromBlock(actionBlock);
+                        for (const action of actions) {
+                            await executeAction(action, context, options, result);
+                        }
+                    }
                 }
                 index = nextIndex - 1;
                 continue;
             }
             if (blockType === "action") {
-                extractActionsFromBlock(block).forEach((action) =>
-                    executeAction(action, context, options, result),
-                );
+                const actions = extractActionsFromBlock(block);
+                for (const action of actions) {
+                    await executeAction(action, context, options, result);
+                }
             }
         }
     };
@@ -743,12 +810,11 @@
                 const hit = buffState.get(id) ?? buffState.get(label) ?? null;
                 if (hit) return hit;
 
-                // ★追加：DOMに無い=0個として扱う。ただし定義があるバフだけ許可
                 const resolved = typeof window.buffStore?.resolveData === "function"
                     ? window.buffStore.resolveData(target)
                     : null;
 
-                if (!resolved) return null; // 定義も無いなら従来通り「解決不能」
+                if (!resolved) return null;
 
                 const entry = { value: 0, min: DEFAULT_LIMITS.min, max: DEFAULT_LIMITS.max };
                 if (id) buffState.set(id, entry);
@@ -800,7 +866,7 @@
         };
     };
 
-    const executeMacro = (macro, context = null, options = {}) => {
+    const executeMacro = async (macro, context = null, options = {}) => {
         const runtimeContext =
             context ?? createDomContext({ applyState: options?.applyState === true });
         const result = createExecutionResult();
@@ -811,7 +877,7 @@
             });
             return result;
         }
-        executeMacroBlocks(macro, runtimeContext, options, result);
+        await executeMacroBlocks(macro, runtimeContext, options, result);
         return result;
     };
 
@@ -820,7 +886,30 @@
             return createCommandEffects();
         }
         const context = options?.context ?? createDomContext({ applyState: false });
-        const result = executeMacro(macro, context, { ...options, mode: "preview" });
+        // collectCommandEffectsは非同期化しない（プレビュー用）
+        const result = createExecutionResult();
+        // 同期的な簡易実行（選択肢は最初のオプションを使用）
+        const blocks = normalizeMacroBlocks(macro);
+        blocks.forEach((block) => {
+            const blockType = resolveBlockType(block);
+            if (blockType === "action") {
+                extractActionsFromBlock(block).forEach((action) => {
+                    if (action.type === "add-judge-damage") {
+                        applyCommandAddition(action, result);
+                    } else if (action.type === "add-effect-text") {
+                        applyEffectTextAddition(action, result);
+                    } else if (action.type === "change") {
+                        const numericValue = coerceNumber(action.value);
+                        if (numericValue === null || 
+                            (action?.target?.kind !== "buff" && 
+                             action?.target?.kind !== "resource" && 
+                             action?.target?.kind !== "ability")) {
+                            applyCommandReplacement(action, result);
+                        }
+                    }
+                });
+            }
+        });
         return result.commandEffects;
     };
 

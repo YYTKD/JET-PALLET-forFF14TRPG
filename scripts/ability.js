@@ -1477,7 +1477,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.addEventListener(buffUpdatedEvent, handleBuffUpdated);
     }
 
-    const executeAbilityMacro = (abilityElement) => {
+    const executeAbilityMacro = async (abilityElement) => {
         const macroPayload = getMacroPayload(abilityElement);
         if (!macroPayload || !window.macroExecutor) {
             return { macroEffects: null, conditionsFailed: false };
@@ -1508,7 +1508,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const result =
                 typeof window.macroExecutor.executeMacro === "function"
-                    ? window.macroExecutor.executeMacro(macroPayload, context, {
+                    ? await window.macroExecutor.executeMacro(macroPayload, context, {
                         applyState: true,
                     })
                     : null;
@@ -2957,7 +2957,7 @@ document.addEventListener("DOMContentLoaded", () => {
         registerAbilityArea(abilityArea);
     });
 
-    document.addEventListener("click", (event) => {
+    document.addEventListener("click", async (event) => {
         const target = event.target;
         if (!(target instanceof Element)) {
             return;
@@ -2966,7 +2966,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityElement) {
             return;
         }
-        const { macroEffects } = executeAbilityMacro(abilityElement);
+        const { macroEffects } = await executeAbilityMacro(abilityElement);
         updateAllAbilityMacroStates();
         handleAbilitySelect(abilityElement, macroEffects);
         lastSelectedAbility = abilityElement;

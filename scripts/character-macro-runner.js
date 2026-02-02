@@ -55,19 +55,19 @@
         return section;
     };
 
-    const executeSection = (sectionKey) => {
+    const executeSection = async (sectionKey) => {
         const section = loadSection(sectionKey);
         if (!section) {
             return;
         }
-        const result = macroExecutor.executeMacro(section, null, { applyState: true });
+        const result = await macroExecutor.executeMacro(section, null, { applyState: true });
         if (result?.errors?.length) {
             notify(`${SECTION_LABELS[sectionKey]}マクロに無効な対象があります。`, "error");
             console.warn("Character macro execution returned errors.", result.errors);
         }
     };
 
-    const handleTurnToggle = (event) => {
+    const handleTurnToggle = async (event) => {
         const button = event.currentTarget;
         if (!(button instanceof HTMLElement)) {
             return;
@@ -78,11 +78,11 @@
             console.warn("Turn state does not map to a macro section.", state);
             return;
         }
-        executeSection(sectionKey);
+        await executeSection(sectionKey);
     };
 
-    const handleRoundEnd = () => {
-        executeSection("roundEnd");
+    const handleRoundEnd = async () => {
+        await executeSection("roundEnd");
     };
 
     document.addEventListener("DOMContentLoaded", () => {

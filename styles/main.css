@@ -1713,6 +1713,26 @@ details:not([open]) summary {
     overflow: scroll;
 }
 
+/* マクロ選択肢モーダル */
+.dialog--MACRO-CHOICE .dialog__main {
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.dialog--MACRO-CHOICE .dialog__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+}
+
+.dialog--MACRO-CHOICE .choice__button {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    text-align: left;
+}
+
 /* ========================================
            Action Buttons
            ======================================== */
