@@ -155,7 +155,10 @@ if (nameInput && window.characterMetaStore) {
         id: createId("block"),
         type: "condition",
         parentConditionId: null,
-        conditions: createDefaultConditions(),
+        conditions: {
+            groups: [createConditionGroup(defaultTarget)],
+            groupConnectors: [],
+        },
     });
 
     const readStoredBuffs = () => {
@@ -342,6 +345,20 @@ if (nameInput && window.characterMetaStore) {
         };
     };
 
+    const normalizeConditionBlockConditions = (conditions, defaultTarget) => {
+        const normalized = normalizeConditions(conditions, defaultTarget);
+        if (normalized.groups.length === 0) {
+            normalized.groups = [createConditionGroup(defaultTarget)];
+            normalized.groupConnectors = [];
+            return normalized;
+        }
+        if (normalized.groups.length > 1) {
+            normalized.groups = [normalized.groups[0]];
+            normalized.groupConnectors = [];
+        }
+        return normalized;
+    };
+
     const normalizeAction = (action, defaultTarget) => {
         if (!action || !ACTION_TYPES.includes(action.type)) {
             if (action?.type && invalidActionTypesDuringLoad) {
@@ -403,7 +420,10 @@ if (nameInput && window.characterMetaStore) {
                     id: block?.id ?? createId("block"),
                     type: "condition",
                     parentConditionId: null,
-                    conditions: normalizeConditions(block.conditions ?? block, defaultTarget),
+                    conditions: normalizeConditionBlockConditions(
+                        block.conditions ?? block,
+                        defaultTarget,
+                    ),
                 };
             }
             return {
@@ -540,9 +560,11 @@ if (nameInput && window.characterMetaStore) {
         `;
     };
 
-    const createConditionGroupMarkup = (group, scopeId, groupIndex, totalGroups, groupConnectors) => {
-        const summary = buildConditionSummary(group);
-        const conditionRows = group.conditions
+    const createConditionRowsMarkup = (group, scopeId) => {
+        if (!group || !Array.isArray(group.conditions)) {
+            return "";
+        }
+        return group.conditions
             .map((condition, index) => {
                 const targetValue = buildTargetValue(condition.target);
                 const targetSelect = `
@@ -591,6 +613,11 @@ if (nameInput && window.characterMetaStore) {
                 `;
             })
             .join("");
+    };
+
+    const createConditionGroupMarkup = (group, scopeId, groupIndex, totalGroups, groupConnectors) => {
+        const summary = buildConditionSummary(group);
+        const conditionRows = createConditionRowsMarkup(group, scopeId);
 
         const connectorMarkup =
             groupIndex > 0
@@ -777,23 +804,15 @@ if (nameInput && window.characterMetaStore) {
         `<div class="block-builder__empty is-placeholder">${CONDITION_EMPTY_TEXT}</div>`;
 
     const createConditionBlockMarkup = (block, index, totalBlocks) => {
-        const summary = block.conditions.groups
-            .map((group) => buildConditionSummary(group))
-            .join(" / ");
-        const conditionMarkup =
-            block.conditions.groups.length > 0
-                ? block.conditions.groups
-                    .map((group, groupIndex) =>
-                        createConditionGroupMarkup(
-                            group,
-                            block.id,
-                            groupIndex,
-                            block.conditions.groups.length,
-                            block.conditions.groupConnectors,
-                        ),
-                    )
-                    .join("")
-                : createConditionEmptyStateMarkup();
+        const defaultTarget = findDefaultTarget(currentTargets);
+        const primaryGroup = normalizeConditionBlockConditions(
+            block.conditions,
+            defaultTarget,
+        ).groups[0];
+        const summary = primaryGroup ? buildConditionSummary(primaryGroup) : "";
+        const conditionMarkup = primaryGroup
+            ? createConditionRowsMarkup(primaryGroup, block.id)
+            : createConditionEmptyStateMarkup();
         const controlsMarkup = `
             <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
             <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
@@ -802,9 +821,9 @@ if (nameInput && window.characterMetaStore) {
         `;
         const contentMarkup = `
             ${conditionMarkup}
-            <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-group"
-                data-condition-scope="${block.id}">
-                ＋ 条件グループを追加
+            <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-condition"
+                data-condition-scope="${block.id}" data-group-id="${primaryGroup?.id ?? ""}">
+                ＋ 条件を追加
             </button>
             <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-nested-action"
                 data-block-id="${block.id}">
