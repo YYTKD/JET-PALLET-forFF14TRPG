@@ -218,7 +218,10 @@
         id: createId("block"),
         type: "condition",
         parentConditionId: null,
-        conditions: createDefaultConditions(),
+        conditions: {
+            groups: [createConditionGroup(defaultTarget)],
+            groupConnectors: [],
+        },
     });
 
     const createEmptyMacroState = () => ({
@@ -422,6 +425,20 @@
         };
     };
 
+    const normalizeConditionBlockConditions = (conditions, defaultTarget) => {
+        const normalized = normalizeConditions(conditions, defaultTarget);
+        if (normalized.groups.length === 0) {
+            normalized.groups = [createConditionGroup(defaultTarget)];
+            normalized.groupConnectors = [];
+            return normalized;
+        }
+        if (normalized.groups.length > 1) {
+            normalized.groups = [normalized.groups[0]];
+            normalized.groupConnectors = [];
+        }
+        return normalized;
+    };
+
     const normalizeAction = (action, defaultTarget) => {
         if (!action || !ACTION_TYPES.includes(action.type)) {
             return createDefaultAction(defaultTarget);
@@ -475,6 +492,16 @@
         };
     };
 
+    const resolveBlockAction = (block) => {
+        if (block?.action) {
+            return block.action;
+        }
+        if (Array.isArray(block?.actions) && block.actions.length > 0) {
+            return block.actions[0];
+        }
+        return block;
+    };
+
     const normalizeBlocks = (macro, defaultTarget) => {
         const blocks = Array.isArray(macro?.blocks)
             ? macro.blocks
@@ -489,14 +516,17 @@
                     id: block?.id ?? createId("block"),
                     type: "condition",
                     parentConditionId: null,
-                    conditions: normalizeConditions(block.conditions ?? block, defaultTarget),
+                    conditions: normalizeConditionBlockConditions(
+                        block.conditions ?? block,
+                        defaultTarget,
+                    ),
                 };
             }
             return {
                 id: block?.id ?? createId("block"),
                 type: "action",
                 parentConditionId: block?.parentConditionId ?? null,
-                action: normalizeAction(block.action ?? block, defaultTarget),
+                action: normalizeAction(resolveBlockAction(block), defaultTarget),
             };
         });
         for (let index = 0; index < normalized.length; index += 1) {
@@ -804,9 +834,11 @@
         return `[${label}]${action.type === "decrease" ? "-" : "+"}[${amount}]`;
     };
 
-    const createConditionGroupMarkup = (group, scopeId, groupIndex, totalGroups, groupConnectors) => {
-        const summary = buildConditionSummary(group);
-        const conditionRows = group.conditions
+    const createConditionRowsMarkup = (group, scopeId) => {
+        if (!group || !Array.isArray(group.conditions)) {
+            return "";
+        }
+        return group.conditions
             .map((condition, index) => {
                 const targetValue = buildTargetValue(condition.target);
                 const targetSelect = `
@@ -862,6 +894,11 @@
                 `;
             })
             .join("");
+    };
+
+    const createConditionGroupMarkup = (group, scopeId, groupIndex, totalGroups, groupConnectors) => {
+        const summary = buildConditionSummary(group);
+        const conditionRows = createConditionRowsMarkup(group, scopeId);
 
         const connectorValue = groupConnectors?.[groupIndex] ?? "AND";
         const groupConnector =
@@ -1174,23 +1211,15 @@
         `<div class="block-builder__empty is-placeholder">${CONDITION_EMPTY_TEXT}</div>`;
 
     const createConditionBlockMarkup = (block, index, totalBlocks) => {
-        const summary = block.conditions.groups
-            .map((group) => buildConditionSummary(group))
-            .join(" / ");
-        const conditionMarkup =
-            block.conditions.groups.length > 0
-                ? block.conditions.groups
-                    .map((group, groupIndex) =>
-                        createConditionGroupMarkup(
-                            group,
-                            block.id,
-                            groupIndex,
-                            block.conditions.groups.length,
-                            block.conditions.groupConnectors,
-                        ),
-                    )
-                    .join("")
-                : createConditionEmptyStateMarkup();
+        const defaultTarget = findDefaultTarget(currentTargets);
+        const primaryGroup = normalizeConditionBlockConditions(
+            block.conditions,
+            defaultTarget,
+        ).groups[0];
+        const summary = primaryGroup ? buildConditionSummary(primaryGroup) : "";
+        const conditionMarkup = primaryGroup
+            ? createConditionRowsMarkup(primaryGroup, block.id)
+            : createConditionEmptyStateMarkup();
         return `
             <details class="block block--condition" data-block-id="${block.id}" data-condition-scope="${block.id}">
                 <summary class="block__header">
@@ -1206,9 +1235,9 @@
                 </summary>
                 <div class="block__content">
                     ${conditionMarkup}
-                    <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-group"
-                        data-condition-scope="${block.id}">
-                        ＋ 条件グループを追加
+                    <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-condition"
+                        data-condition-scope="${block.id}" data-group-id="${primaryGroup?.id ?? ""}">
+                        ＋ 条件を追加
                     </button>
                     <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-nested-action"
                         data-block-id="${block.id}">
@@ -2169,7 +2198,7 @@
                 }
                 return {
                     type: "action",
-                    actions: [sanitizedAction],
+                    action: sanitizedAction,
                 };
             })
             .filter(Boolean);
