@@ -5,9 +5,9 @@
 
     const CHARACTER_MACRO_SCHEMA_VERSION = 1;
     const CHARACTER_MACRO_SECTION_VERSION = 1;
-    const DEFAULT_ROUND_END_RESOURCE_ID = "resource-mp";
-    const DEFAULT_ROUND_END_RESOURCE_LABEL = "MP";
-    const DEFAULT_ROUND_END_AMOUNT = 2;
+    const DEFAULT_PT_TURN_END_RESOURCE_ID = "resource-mp";
+    const DEFAULT_PT_TURN_END_RESOURCE_LABEL = "MP";
+    const DEFAULT_PT_TURN_END_AMOUNT = 2;
 
     const CHARACTER_MACRO_SECTIONS = Object.freeze([
         "turnStart",
@@ -31,23 +31,23 @@
         blocks: [],
     });
 
-    const createDefaultRoundEndAction = () => ({
+    const createDefaultPtTurnEndAction = () => ({
         type: "increase",
         target: {
             kind: "resource",
-            id: DEFAULT_ROUND_END_RESOURCE_ID,
-            label: DEFAULT_ROUND_END_RESOURCE_LABEL,
+            id: DEFAULT_PT_TURN_END_RESOURCE_ID,
+            label: DEFAULT_PT_TURN_END_RESOURCE_LABEL,
         },
-        amount: DEFAULT_ROUND_END_AMOUNT,
+        amount: DEFAULT_PT_TURN_END_AMOUNT,
     });
 
-    const createDefaultRoundEndSection = () => ({
+    const createDefaultPtTurnEndSection = () => ({
         version: CHARACTER_MACRO_SECTION_VERSION,
         conditions: createEmptyConditions(),
         blocks: [
             {
                 type: "action",
-                action: createDefaultRoundEndAction(),
+                action: createDefaultPtTurnEndAction(),
             },
         ],
     });
@@ -58,8 +58,8 @@
         };
         CHARACTER_MACRO_SECTIONS.forEach((sectionKey) => {
             base[sectionKey] =
-                sectionKey === "roundEnd"
-                    ? createDefaultRoundEndSection()
+                sectionKey === "ptTurnEnd"
+                    ? createDefaultPtTurnEndSection()
                     : createEmptySection();
         });
         return base;
