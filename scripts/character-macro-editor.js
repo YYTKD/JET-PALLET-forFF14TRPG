@@ -27,6 +27,10 @@ if (nameInput && window.characterMetaStore) {
 }
 
     const SECTION_SELECTOR = "[data-character-macro-scope]";
+    const TAB_SELECTORS = {
+        buttons: "[data-character-macro-tab]",
+        panels: "[data-character-macro-panel]",
+    };
     const BLOCK_BUILDER_SELECTOR = ".block-builder";
 
     const SECTION_SCOPE_KEYS = Object.freeze({
@@ -1385,6 +1389,55 @@ if (nameInput && window.characterMetaStore) {
         };
     };
 
+    const initializeMacroTabs = () => {
+        const tabButtons = Array.from(characterModal.querySelectorAll(TAB_SELECTORS.buttons));
+        const tabPanels = Array.from(characterModal.querySelectorAll(TAB_SELECTORS.panels));
+        if (tabButtons.length === 0 || tabPanels.length === 0) {
+            return;
+        }
+
+        const syncPanels = (activeKey) => {
+            tabPanels.forEach((panel) => {
+                const isActive = panel.dataset.characterMacroPanel === activeKey;
+                panel.classList.toggle("is-active", isActive);
+                panel.setAttribute("aria-hidden", String(!isActive));
+            });
+        };
+
+        const activateTab = (button) => {
+            if (!button) {
+                return;
+            }
+            const targetKey = button.dataset.characterMacroTab;
+            if (!targetKey) {
+                console.warn("Character macro tab is missing data-character-macro-tab attribute.");
+                return;
+            }
+            const targetPanel = tabPanels.find(
+                (panel) => panel.dataset.characterMacroPanel === targetKey,
+            );
+            if (!targetPanel) {
+                console.warn(`Character macro panel not found for key: ${targetKey}`);
+                return;
+            }
+            tabButtons.forEach((tabButton) => {
+                const isActive = tabButton === button;
+                tabButton.setAttribute("aria-selected", String(isActive));
+                tabButton.tabIndex = isActive ? 0 : -1;
+            });
+            syncPanels(targetKey);
+        };
+
+        tabButtons.forEach((tabButton) => {
+            tabButton.addEventListener("click", () => activateTab(tabButton));
+        });
+
+        const initialTab =
+            tabButtons.find((tabButton) => tabButton.getAttribute("aria-selected") === "true") ??
+            tabButtons[0];
+        activateTab(initialTab);
+    };
+
     const loadSections = () => {
         currentTargets = readTargetOptions();
         const defaultTarget = findDefaultTarget(currentTargets);
@@ -1767,6 +1820,7 @@ if (nameInput && window.characterMetaStore) {
 
     const sectionStates = new Map();
 
+    initializeMacroTabs();
     loadSections();
     registerListeners();
 })();
