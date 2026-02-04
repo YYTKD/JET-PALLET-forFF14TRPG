@@ -36,10 +36,16 @@
                 <span data-turn-icon>hourglass_top</span>
                 <h6 data-turn-label>ターン開始</h6>
             </button>
-            <button class="button__footer button__footer--turn material-symbols-rounded"
-                data-turn-action="round-end">refresh<h6>ラウンド終了</h6></button>
-            <button class="button__footer button__footer--turn material-symbols-rounded"
-                data-turn-action="phase">calendar_clock<h6>フェイズ更新</h6></button>
+            <button class="button__footer button__footer--round material-symbols-rounded" data-round-action="toggle"
+                data-round-state="end">
+                <span data-round-icon>refresh</span>
+                <h6 data-round-label>ラウンド終了</h6>
+            </button>
+            <button class="button__footer button__footer--phase material-symbols-rounded" data-phase-action="toggle"
+                data-phase-state="end">
+                <span data-phase-icon>calendar_clock</span>
+                <h6 data-phase-label>フェイズ終了</h6>
+            </button>
         </div>
     </footer>
 </nav>

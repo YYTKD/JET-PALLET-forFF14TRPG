@@ -44,9 +44,11 @@ const BUFF_SELECTORS = {
     buffItemContextMenu: "#buffItemContextMenu",
     buffItemContextMenuItems: "[data-buff-item-action]",
     turnToggleButton: "[data-turn-action=\"toggle\"]",
-    turnPhaseButton: "[data-turn-action=\"phase\"]",
+    phaseToggleButton: "[data-phase-action=\"toggle\"]",
     turnToggleIcon: "[data-turn-icon]",
     turnToggleLabel: "[data-turn-label]",
+    phaseToggleIcon: "[data-phase-icon]",
+    phaseToggleLabel: "[data-phase-label]",
 };
 
 const BUFF_DATASET_KEYS = {
@@ -125,6 +127,7 @@ const BUFF_TEXT = {
 const TURN_STATES = {
     start: "start",
     end: "end",
+    ptEnd: "pt-end",
 };
 
 const TURN_BUTTON_CONFIG = {
@@ -132,13 +135,43 @@ const TURN_BUTTON_CONFIG = {
         icon: "hourglass_top",
         label: "ターン開始",
         durationToRemove: "until-next-turn-start",
+        nextState: TURN_STATES.end,
     },
     [TURN_STATES.end]: {
         icon: "hourglass_empty",
         label: "ターン終了",
         durationToRemove: "until-turn-end",
+        nextState: TURN_STATES.ptEnd,
+    },
+    [TURN_STATES.ptEnd]: {
+        icon: "task_alt",
+        label: "PT処理終了",
+        durationToRemove: null,
+        nextState: TURN_STATES.start,
     },
 };
+
+const PHASE_STATES = {
+    start: "start",
+    end: "end",
+};
+
+const PHASE_BUTTON_CONFIG = {
+    [PHASE_STATES.start]: {
+        icon: "calendar_add_on",
+        label: "フェイズ開始",
+        nextState: PHASE_STATES.end,
+    },
+    [PHASE_STATES.end]: {
+        icon: "calendar_clock",
+        label: "フェイズ終了",
+        nextState: PHASE_STATES.start,
+    },
+};
+
+const PHASE_EVENT_NAMES = Object.freeze({
+    end: "phase:end",
+});
 
 const TARGET_DETAIL_CONFIG = {
     visibleTargets: new Set(["judge", "damage"]),
@@ -1374,8 +1407,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const turnButtons = {
         toggle: document.querySelector(BUFF_SELECTORS.turnToggleButton),
-        phase: document.querySelector(BUFF_SELECTORS.turnPhaseButton),
     };
+    const phaseToggleButton = document.querySelector(BUFF_SELECTORS.phaseToggleButton);
 
     // Map legacy text labels back to canonical duration keys.
     const durationFromLabel = (label) => {
@@ -1411,11 +1444,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Normalize turn toggle state and warn on unexpected values.
     const resolveTurnState = (rawState) => {
-        if (rawState === TURN_STATES.start || rawState === TURN_STATES.end) {
+        if (
+            rawState === TURN_STATES.start ||
+            rawState === TURN_STATES.end ||
+            rawState === TURN_STATES.ptEnd
+        ) {
             return rawState;
         }
         console.warn(`Unexpected turn state "${rawState}". Falling back to "${TURN_STATES.start}".`);
         return TURN_STATES.start;
+    };
+
+    const resolvePhaseState = (rawState) => {
+        if (rawState === PHASE_STATES.start || rawState === PHASE_STATES.end) {
+            return rawState;
+        }
+        console.warn(`Unexpected phase state "${rawState}". Falling back to "${PHASE_STATES.end}".`);
+        return PHASE_STATES.end;
     };
 
     // Confirm destructive actions before clearing all buffs.
@@ -1573,10 +1618,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", closeBuffMenu, true);
     window.addEventListener("resize", closeBuffMenu);
 
-    turnButtons.start?.addEventListener("click", () => {
-        removeBuffsByDuration("until-next-turn-start");
-    });
-
     // Update the toggle button to reflect the current turn state.
     const updateTurnToggleButton = (state) => {
         const button = turnButtons.toggle;
@@ -1600,6 +1641,27 @@ document.addEventListener("DOMContentLoaded", () => {
         button.setAttribute("data-turn-state", state);
     };
 
+    const updatePhaseToggleButton = (state) => {
+        if (!phaseToggleButton) {
+            return;
+        }
+        const config = PHASE_BUTTON_CONFIG[state];
+        if (!config) {
+            console.error(`Missing phase button config for state "${state}".`);
+            return;
+        }
+        const iconElement = phaseToggleButton.querySelector(BUFF_SELECTORS.phaseToggleIcon);
+        const labelElement = phaseToggleButton.querySelector(BUFF_SELECTORS.phaseToggleLabel);
+        if (!iconElement || !labelElement) {
+            console.error("Phase toggle button is missing icon or label elements.");
+            return;
+        }
+        iconElement.textContent = config.icon;
+        labelElement.textContent = config.label;
+        phaseToggleButton.dataset.phaseState = state;
+        phaseToggleButton.setAttribute("data-phase-state", state);
+    };
+
     // Advance the turn state and apply expiration rules.
     const handleTurnToggleClick = () => {
         const button = turnButtons.toggle;
@@ -1612,9 +1674,10 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error(`Missing turn button config for state "${currentState}".`);
             return;
         }
-        removeBuffsByDuration(config.durationToRemove);
-        const nextState =
-            currentState === TURN_STATES.start ? TURN_STATES.end : TURN_STATES.start;
+        if (config.durationToRemove) {
+            removeBuffsByDuration(config.durationToRemove);
+        }
+        const nextState = config.nextState ?? TURN_STATES.start;
         updateTurnToggleButton(nextState);
     };
 
@@ -1624,7 +1687,21 @@ document.addEventListener("DOMContentLoaded", () => {
         turnButtons.toggle.addEventListener("click", handleTurnToggleClick);
     }
 
-    turnButtons.phase?.addEventListener("click", () => {
-        removeAllBuffs();
-    });
+    if (phaseToggleButton) {
+        const initialPhaseState = resolvePhaseState(phaseToggleButton.dataset.phaseState);
+        updatePhaseToggleButton(initialPhaseState);
+        phaseToggleButton.addEventListener("click", () => {
+            const currentState = resolvePhaseState(phaseToggleButton.dataset.phaseState);
+            if (currentState === PHASE_STATES.end) {
+                removeAllBuffs();
+                if (typeof CustomEvent === "function") {
+                    document.dispatchEvent(new CustomEvent(PHASE_EVENT_NAMES.end));
+                } else {
+                    console.warn("CustomEvent is unavailable; phase end notifications were skipped.");
+                }
+            }
+            const nextState = PHASE_BUTTON_CONFIG[currentState]?.nextState ?? PHASE_STATES.end;
+            updatePhaseToggleButton(nextState);
+        });
+    }
 });
