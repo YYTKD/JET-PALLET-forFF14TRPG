@@ -2345,6 +2345,13 @@ document.addEventListener("DOMContentLoaded", () => {
         addButton.textContent = ABILITY_TEXT.buttonLabelRegister;
     };
 
+    // Ensure new entries start clean even when the modal was previously used.
+    const openNewAbilityModal = () => {
+        resetAbilityForm();
+        resetEditingState();
+        openAbilityModal();
+    };
+
     // Insert after the reference to preserve order in the grid.
     const insertAbilityAfter = (referenceElement, newElement) => {
         if (!referenceElement?.parentElement) {
@@ -2799,7 +2806,7 @@ document.addEventListener("DOMContentLoaded", () => {
             button.addEventListener("click", (event) => {
                 // Use a unified entry point so dialog API gaps don't break the command="show-modal" flow.
                 event.preventDefault();
-                openAbilityModal();
+                openNewAbilityModal();
             });
         });
     }
