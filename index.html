@@ -31,15 +31,18 @@
 
         </div>
         <div class="button__area--footer">
-            <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="toggle"
-                data-turn-state="start">
-                <span data-turn-icon>hourglass_top</span>
+            <button class="button__footer button__footer--turn" data-turn-action="toggle" data-turn-state="start">
+                <span class="material-symbols-rounded" data-turn-icon>hourglass_top</span>
                 <h6 data-turn-label>ターン開始</h6>
             </button>
-            <button class="button__footer button__footer--turn material-symbols-rounded"
-                data-turn-action="round-end">refresh<h6>ラウンド終了</h6></button>
-            <button class="button__footer button__footer--turn material-symbols-rounded"
-                data-turn-action="phase">calendar_clock<h6>フェイズ更新</h6></button>
+            <button class="button__footer button__footer--round" data-round-action="toggle" data-round-state="start">
+                <span class="material-symbols-rounded" data-round-icon>autorenew</span>
+                <h6 data-round-label>ラウンド開始</h6>
+            </button>
+            <button class="button__footer button__footer--phase" data-phase-action="toggle" data-phase-state="start">
+                <span class="material-symbols-rounded" data-phase-icon>calendar_today</span>
+                <h6 data-phase-label>フェイズ開始</h6>
+            </button>
         </div>
     </footer>
 </nav>
@@ -690,59 +693,11 @@
                 </div>
                 <button class="dialog__footer__button form__button--add">更新</button>
 
-                <!--前提条件設定-->
                 <h3>キャラクターマクロ設定</h3>
-                <h5>ターン開始時アクション</h5>
-                <div class="form__group" data-character-macro-scope="turn-start">
-                    <div class="block-builder">
-                    </div>
-                    <!-- ブロック追加ボタン -->
-                    <div class="add-block-area">
-                        <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
-                            <span>➕</span>
-                            <span>条件グループを追加</span>
-                        </button>
-                        <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
-                            <span>➕</span>
-                            <span>アクションを追加</span>
-                        </button>
-                    </div>
+                <div class="form__row">
+                    <button class="dialog__footer__button form__button--macro" command="show-modal"
+                        commandfor="characterMacroModal">マクロを設定</button>
                 </div>
-
-                <h5>ターン終了時アクション</h5>
-                <div class="form__group" data-character-macro-scope="turn-end">
-                    <div class="block-builder">
-                    </div>
-                    <!-- ブロック追加ボタン -->
-                    <div class="add-block-area">
-                        <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
-                            <span>➕</span>
-                            <span>条件グループを追加</span>
-                        </button>
-                        <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
-                            <span>➕</span>
-                            <span>アクションを追加</span>
-                        </button>
-                    </div>
-                </div>
-
-                <h5>ラウンド終了時アクション</h5>
-                <div class="form__group" data-character-macro-scope="round-end">
-                    <div class="block-builder">
-                    </div>
-                    <!-- ブロック追加ボタン -->
-                    <div class="add-block-area">
-                        <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
-                            <span>➕</span>
-                            <span>条件グループを追加</span>
-                        </button>
-                        <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
-                            <span>➕</span>
-                            <span>アクションを追加</span>
-                        </button>
-                    </div>
-                </div>
-                <button class="form__button--add" data-macro-apply>更新</button>
                 <h3>データ管理</h3>
                 <div class="form__group">
                     <label class="form__label">クリップボードから貼り付けて読み込み:</label>
@@ -764,6 +719,197 @@
                 </button>
 
             </div>
+        </div>
+    </dialog>
+
+    <!--モーダル_キャラクターマクロ設定-->
+    <dialog class="dialog--CharaMacro" id="characterMacroModal" closedby="any">
+        <div class="dialog__main">
+            <div class="dialog__header">
+                <div class="section__header--title">
+                    <h2>CHARACTER MACRO CONFIG</h2>
+                    <h5>キャラクターマクロ設定</h5>
+                </div>
+                <button class="material-symbols-rounded" command="close"
+                    commandfor="characterMacroModal">close</button>
+            </div>
+            <div class="dialog__body">
+                <div class="macro-tabs" role="tablist" aria-label="キャラクターマクロタブ">
+                    <button class="macro-tab" id="character-macro-tab-turn-start" data-character-macro-tab="turn-start"
+                        role="tab" aria-selected="true" aria-controls="character-macro-panel-turn-start"
+                        tabindex="0">
+                        ターン開始
+                    </button>
+                    <button class="macro-tab" id="character-macro-tab-turn-end" data-character-macro-tab="turn-end"
+                        role="tab" aria-selected="false" aria-controls="character-macro-panel-turn-end" tabindex="-1">
+                        ターン終了
+                    </button>
+                    <button class="macro-tab" id="character-macro-tab-pt-end" data-character-macro-tab="pt-end"
+                        role="tab" aria-selected="false" aria-controls="character-macro-panel-pt-end" tabindex="-1">
+                        PT終了
+                    </button>
+                    <button class="macro-tab" id="character-macro-tab-round-start"
+                        data-character-macro-tab="round-start" role="tab" aria-selected="false"
+                        aria-controls="character-macro-panel-round-start" tabindex="-1">
+                        ラウンド開始
+                    </button>
+                    <button class="macro-tab" id="character-macro-tab-round-end" data-character-macro-tab="round-end"
+                        role="tab" aria-selected="false" aria-controls="character-macro-panel-round-end" tabindex="-1">
+                        ラウンド終了
+                    </button>
+                    <button class="macro-tab" id="character-macro-tab-phase-start"
+                        data-character-macro-tab="phase-start" role="tab" aria-selected="false"
+                        aria-controls="character-macro-panel-phase-start" tabindex="-1">
+                        フェイズ開始
+                    </button>
+                    <button class="macro-tab" id="character-macro-tab-phase-end"
+                        data-character-macro-tab="phase-end" role="tab" aria-selected="false"
+                        aria-controls="character-macro-panel-phase-end" tabindex="-1">
+                        フェイズ終了
+                    </button>
+                </div>
+                <div class="macro-tab-panel is-active" data-character-macro-scope="turn-start" role="tabpanel"
+                    id="character-macro-panel-turn-start" aria-labelledby="character-macro-tab-turn-start"
+                    tabindex="0">
+                    <h5>ターン開始時アクション</h5>
+                    <div class="form__group">
+                        <div class="block-builder">
+                        </div>
+                        <div class="add-block-area">
+                            <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
+                                <span>➕</span>
+                                <span>条件グループを追加</span>
+                            </button>
+                            <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
+                                <span>➕</span>
+                                <span>アクションを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-tab-panel" data-character-macro-scope="turn-end" role="tabpanel"
+                    id="character-macro-panel-turn-end" aria-labelledby="character-macro-tab-turn-end" tabindex="0"
+                    hidden>
+                    <h5>ターン終了時アクション</h5>
+                    <div class="form__group">
+                        <div class="block-builder">
+                        </div>
+                        <div class="add-block-area">
+                            <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
+                                <span>➕</span>
+                                <span>条件グループを追加</span>
+                            </button>
+                            <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
+                                <span>➕</span>
+                                <span>アクションを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-tab-panel" data-character-macro-scope="pt-end" role="tabpanel"
+                    id="character-macro-panel-pt-end" aria-labelledby="character-macro-tab-pt-end" tabindex="0" hidden>
+                    <h5>PTターン終了時アクション</h5>
+                    <div class="form__group">
+                        <div class="block-builder">
+                        </div>
+                        <div class="add-block-area">
+                            <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
+                                <span>➕</span>
+                                <span>条件グループを追加</span>
+                            </button>
+                            <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
+                                <span>➕</span>
+                                <span>アクションを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-tab-panel" data-character-macro-scope="round-start" role="tabpanel"
+                    id="character-macro-panel-round-start" aria-labelledby="character-macro-tab-round-start"
+                    tabindex="0" hidden>
+                    <h5>ラウンド開始時アクション</h5>
+                    <div class="form__group">
+                        <div class="block-builder">
+                        </div>
+                        <div class="add-block-area">
+                            <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
+                                <span>➕</span>
+                                <span>条件グループを追加</span>
+                            </button>
+                            <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
+                                <span>➕</span>
+                                <span>アクションを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-tab-panel" data-character-macro-scope="round-end" role="tabpanel"
+                    id="character-macro-panel-round-end" aria-labelledby="character-macro-tab-round-end" tabindex="0"
+                    hidden>
+                    <h5>ラウンド終了時アクション</h5>
+                    <div class="form__group">
+                        <div class="block-builder">
+                        </div>
+                        <div class="add-block-area">
+                            <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
+                                <span>➕</span>
+                                <span>条件グループを追加</span>
+                            </button>
+                            <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
+                                <span>➕</span>
+                                <span>アクションを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-tab-panel" data-character-macro-scope="phase-start" role="tabpanel"
+                    id="character-macro-panel-phase-start" aria-labelledby="character-macro-tab-phase-start"
+                    tabindex="0" hidden>
+                    <h5>フェイズ開始時アクション</h5>
+                    <div class="form__group">
+                        <div class="block-builder">
+                        </div>
+                        <div class="add-block-area">
+                            <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
+                                <span>➕</span>
+                                <span>条件グループを追加</span>
+                            </button>
+                            <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
+                                <span>➕</span>
+                                <span>アクションを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro-tab-panel" data-character-macro-scope="phase-end" role="tabpanel"
+                    id="character-macro-panel-phase-end" aria-labelledby="character-macro-tab-phase-end" tabindex="0"
+                    hidden>
+                    <h5>フェイズ終了時アクション</h5>
+                    <div class="form__group">
+                        <div class="block-builder">
+                        </div>
+                        <div class="add-block-area">
+                            <button class="add-block-btn add-block-btn--condition" data-macro-add-block="condition">
+                                <span>➕</span>
+                                <span>条件グループを追加</span>
+                            </button>
+                            <button class="add-block-btn add-block-btn--action" data-macro-add-block="action">
+                                <span>➕</span>
+                                <span>アクションを追加</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="macro__preview character-macro__preview preview">
+                    <div class="preview__title">実行プレビュー</div>
+                    <pre class="preview__code" data-character-macro-preview></pre>
+                </div>
+                <button class="form__button--add" data-macro-apply>更新</button>
+            </div>
+        </div>
+        <div class="dialog__preview--character-macro preview">
+            <div class="preview__title">実行プレビュー</div>
+            <pre class="preview__code" data-character-macro-preview></pre>
         </div>
     </dialog>
     <!-- マクロ選択肢モーダル（既存のdialogの後に追加） -->

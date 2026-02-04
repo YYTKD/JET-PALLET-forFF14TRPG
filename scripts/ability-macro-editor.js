@@ -509,6 +509,10 @@
                 ? macro.actions.map((action) => ({ type: "action", action }))
                 : [];
 
+        const explicitParentMarkers = blocks.map((block) =>
+            block && Object.prototype.hasOwnProperty.call(block, "parentConditionId"),
+        );
+
         const normalized = blocks.map((block) => {
             const blockType = block?.type === "condition" ? "condition" : "action";
             if (blockType === "condition") {
@@ -540,7 +544,7 @@
                 if (nextBlock.type === "condition") {
                     break;
                 }
-                if (!nextBlock.parentConditionId) {
+                if (!explicitParentMarkers[nextIndex] && !nextBlock.parentConditionId) {
                     nextBlock.parentConditionId = block.id;
                 }
                 nextIndex += 1;
@@ -2198,6 +2202,7 @@
                 }
                 return {
                     type: "action",
+                    parentConditionId: block.parentConditionId ?? null,
                     action: sanitizedAction,
                 };
             })

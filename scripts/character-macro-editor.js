@@ -12,11 +12,12 @@
     }
 
     const characterModal = document.getElementById("characterSettingModal");
-    if (!characterModal) {
+    const macroModal = document.getElementById("characterMacroModal");
+    if (!macroModal) {
         return;
     }
 
-    const nameInput = characterModal.querySelector("[data-character-name]");
+    const nameInput = characterModal?.querySelector("[data-character-name]");
 
 if (nameInput && window.characterMetaStore) {
     nameInput.addEventListener("input", () => {
@@ -28,11 +29,17 @@ if (nameInput && window.characterMetaStore) {
 
     const SECTION_SELECTOR = "[data-character-macro-scope]";
     const BLOCK_BUILDER_SELECTOR = ".block-builder";
+    const TAB_SELECTOR = "[data-character-macro-tab]";
+    const PANEL_SELECTOR = ".macro-tab-panel";
 
     const SECTION_SCOPE_KEYS = Object.freeze({
         "turn-start": "turnStart",
         "turn-end": "turnEnd",
+        "pt-end": "ptEnd",
+        "round-start": "roundStart",
         "round-end": "roundEnd",
+        "phase-start": "phaseStart",
+        "phase-end": "phaseEnd",
     });
 
     const ACTION_LABELS = Object.freeze({
@@ -71,9 +78,25 @@ if (nameInput && window.characterMetaStore) {
         invalidActionType: `アクション種別が不正です。利用できる種別は「${ACTION_LABEL_LIST}」のみです。`,
     });
 
+    const PREVIEW_INDENT = "  ";
+    const PREVIEW_TEXT = Object.freeze({
+        usageHeader: "実行条件",
+        usageConditionLead: "以下の条件を満たす場合:",
+        usageNone: "条件なし",
+        actionHeader: "実行内容",
+        actionNone: "アクションを追加してください。",
+        actionConditionLead: "条件成立時",
+        actionExecute: "実行",
+        choiceTitle: "選択肢",
+        choiceQuestionFallback: "質問を入力してください",
+        choiceOptionFallback: "選択肢",
+        nestedActionNone: "アクションが未設定です。",
+    });
+
     let idCounter = 0;
     let currentTargets = null;
     let invalidActionTypesDuringLoad = null;
+    let activeScope = null;
 
     const createId = (prefix) => {
         idCounter += 1;
@@ -160,6 +183,220 @@ if (nameInput && window.characterMetaStore) {
             groupConnectors: [],
         },
     });
+
+    const resolveTargetLabel = (target) =>
+        target?.label || target?.id || "対象なし";
+
+    const resolveConnectorLabel = (connector) =>
+        connector === "OR" ? "または" : "かつ";
+
+    const formatGroupConditionLines = (group) => {
+        const conditions = Array.isArray(group?.conditions) ? group.conditions : [];
+        if (conditions.length === 0) {
+            return [];
+        }
+        const expressions = conditions.map((condition) => {
+            const label = resolveTargetLabel(condition?.target);
+            const operator = condition?.operator ?? ">=";
+            const value = condition?.value ?? "";
+            return `([${label}]${operator}[${value}])`;
+        });
+        if (expressions.length === 1) {
+            return expressions;
+        }
+        const lines = [`(${expressions[0]}`];
+        for (let index = 1; index < expressions.length; index += 1) {
+            lines.push(resolveConnectorLabel(group?.connector));
+            lines.push(expressions[index]);
+        }
+        lines[lines.length - 1] = `${lines[lines.length - 1]})`;
+        return lines;
+    };
+
+    const formatConditionBlockLines = (conditions, indentLevel) => {
+        const groups = Array.isArray(conditions?.groups) ? conditions.groups : [];
+        if (groups.length === 0) {
+            return [];
+        }
+        const lines = [];
+        const groupConnectors = conditions?.groupConnectors ?? [];
+        groups.forEach((group, index) => {
+            const groupLines = formatGroupConditionLines(group);
+            groupLines.forEach((line) => {
+                lines.push(`${PREVIEW_INDENT.repeat(indentLevel)}${line}`);
+            });
+            if (index < groups.length - 1) {
+                lines.push(
+                    `${PREVIEW_INDENT.repeat(indentLevel)}${resolveConnectorLabel(
+                        groupConnectors[index],
+                    )}`,
+                );
+            }
+        });
+        return lines;
+    };
+
+    function formatActionListLines(actions, indentLevel) {
+        const list = Array.isArray(actions) ? actions : [];
+        if (list.length === 0) {
+            return [`${PREVIEW_INDENT.repeat(indentLevel)}${PREVIEW_TEXT.nestedActionNone}`];
+        }
+        const lines = [];
+        list.forEach((action, index) => {
+            lines.push(
+                `${PREVIEW_INDENT.repeat(indentLevel)}${index + 1}.${PREVIEW_TEXT.actionExecute}`,
+            );
+            lines.push(...formatActionDetailLines(action, indentLevel + 1));
+        });
+        return lines;
+    }
+
+    function formatActionDetailLines(action, indentLevel) {
+        if (!action) {
+            return [];
+        }
+        const indent = PREVIEW_INDENT.repeat(indentLevel);
+        if (action.type === "show-choice") {
+            const question = action.question?.trim() || PREVIEW_TEXT.choiceQuestionFallback;
+            const lines = [
+                `${indent}${PREVIEW_TEXT.choiceTitle}`,
+                `${indent}[${question}]`,
+            ];
+            const options = Array.isArray(action.options) ? action.options : [];
+            options.forEach((option, optionIndex) => {
+                const label =
+                    option.label?.trim() ||
+                    `${PREVIEW_TEXT.choiceOptionFallback}${optionIndex + 1}`;
+                lines.push(`${indent}-[${label}]`);
+                lines.push(`${indent}${PREVIEW_INDENT}${PREVIEW_TEXT.actionExecute}`);
+                const nestedActions = Array.isArray(option.actions) ? option.actions : [];
+                if (nestedActions.length === 0) {
+                    lines.push(`${indent}${PREVIEW_INDENT}${PREVIEW_TEXT.nestedActionNone}`);
+                    return;
+                }
+                const nestedLines = formatActionListLines(nestedActions, indentLevel + 2);
+                lines.push(...nestedLines);
+            });
+            return lines;
+        }
+        const label = resolveTargetLabel(action.target);
+        const amount = action.amount ?? "";
+        const operator = action.type === "decrease" ? "-" : "+";
+        return [`${indent}([${label}]${operator}[${amount}])`];
+    }
+
+    const buildActionBlockPreviewLines = (blocks) => {
+        if (!Array.isArray(blocks) || blocks.length === 0) {
+            return [`${PREVIEW_TEXT.actionHeader}`, `${PREVIEW_TEXT.actionNone}`];
+        }
+        const lines = [PREVIEW_TEXT.actionHeader];
+        let actionIndex = 1;
+        for (let index = 0; index < blocks.length; index += 1) {
+            const block = blocks[index];
+            if (block.type === "condition") {
+                lines.push(`${actionIndex}.${PREVIEW_TEXT.actionConditionLead}`);
+                lines.push(...formatConditionBlockLines(block.conditions, 1));
+                lines.push(`${PREVIEW_INDENT}${PREVIEW_TEXT.actionExecute}`);
+                const nestedActions = [];
+                let cursor = index + 1;
+                while (cursor < blocks.length) {
+                    const nextBlock = blocks[cursor];
+                    if (nextBlock.type !== "action" || nextBlock.parentConditionId !== block.id) {
+                        break;
+                    }
+                    nestedActions.push(nextBlock.action);
+                    cursor += 1;
+                }
+                lines.push(...formatActionListLines(nestedActions, 2));
+                index = cursor - 1;
+                actionIndex += 1;
+                continue;
+            }
+            if (block.type === "action" && !block.parentConditionId) {
+                lines.push(`${actionIndex}.${PREVIEW_TEXT.actionExecute}`);
+                lines.push(...formatActionDetailLines(block.action, 1));
+                actionIndex += 1;
+            }
+        }
+        return lines;
+    };
+
+    const buildUsageConditionLines = (conditions) => {
+        const conditionLines = formatConditionBlockLines(conditions, 1);
+        if (conditionLines.length === 0) {
+            return [PREVIEW_TEXT.usageHeader, PREVIEW_TEXT.usageNone];
+        }
+        return [
+            PREVIEW_TEXT.usageHeader,
+            PREVIEW_TEXT.usageConditionLead,
+            ...conditionLines,
+        ];
+    };
+
+    const buildMacroPreviewText = (sectionState) => {
+        const lines = [
+            ...buildUsageConditionLines(sectionState?.conditions),
+            "",
+            ...buildActionBlockPreviewLines(sectionState?.blocks),
+        ];
+        return lines.join("\n");
+    };
+
+    const resolvePreviewElements = () =>
+        Array.from(macroModal.querySelectorAll("[data-character-macro-preview]"));
+
+    const updateMacroPreview = (sectionState) => {
+        if (!sectionState) {
+            return;
+        }
+        const previewText = buildMacroPreviewText(sectionState.state);
+        resolvePreviewElements().forEach((element) => {
+            element.textContent = previewText;
+        });
+    };
+
+    const resolveTabElements = () => {
+        const tabButtons = Array.from(macroModal.querySelectorAll(TAB_SELECTOR));
+        const panels = Array.from(macroModal.querySelectorAll(PANEL_SELECTOR));
+        return { tabButtons, panels };
+    };
+
+    const setActiveTab = (scope) => {
+        const { tabButtons, panels } = resolveTabElements();
+        if (tabButtons.length === 0 || panels.length === 0) {
+            return;
+        }
+        const preferredTab = scope
+            ? tabButtons.find((button) => button.dataset.characterMacroTab === scope)
+            : null;
+        const defaultTab =
+            tabButtons.find((button) => button.getAttribute("aria-selected") === "true") ??
+            tabButtons[0];
+        const activeTab = preferredTab ?? defaultTab;
+        if (!activeTab) {
+            return;
+        }
+        const nextScope = activeTab.dataset.characterMacroTab;
+        if (!nextScope) {
+            return;
+        }
+        activeScope = nextScope;
+        tabButtons.forEach((button) => {
+            const isActive = button.dataset.characterMacroTab === nextScope;
+            button.setAttribute("aria-selected", String(isActive));
+            button.tabIndex = isActive ? 0 : -1;
+        });
+        panels.forEach((panel) => {
+            const isActive = panel.dataset.characterMacroScope === nextScope;
+            panel.classList.toggle("is-active", isActive);
+            if (isActive) {
+                panel.removeAttribute("hidden");
+            } else {
+                panel.setAttribute("hidden", "");
+            }
+        });
+        updateMacroPreview(sectionStates.get(nextScope));
+    };
 
     const readStoredBuffs = () => {
         const stored = window.storageUtils?.readJson("jet-pallet-buff-library", []) ?? [];
@@ -963,6 +1200,9 @@ if (nameInput && window.characterMetaStore) {
         renderSectionBlocks(sectionState);
         ensureConditionBlockContent(sectionState.builder);
         restoreOpenDetailsState(sectionState.element, openDetails);
+        if (sectionState.scope === activeScope) {
+            updateMacroPreview(sectionState);
+        }
     };
 
     const getBlockById = (sectionState, blockId) =>
@@ -1381,7 +1621,7 @@ if (nameInput && window.characterMetaStore) {
         currentTargets = readTargetOptions();
         const defaultTarget = findDefaultTarget(currentTargets);
         const stored = characterMacroStore.loadCharacterMacros();
-        const sectionElements = Array.from(characterModal.querySelectorAll(SECTION_SELECTOR));
+        const sectionElements = Array.from(macroModal.querySelectorAll(SECTION_SELECTOR));
 
         sectionStates.clear();
         invalidActionTypesDuringLoad = new Set();
@@ -1411,6 +1651,7 @@ if (nameInput && window.characterMetaStore) {
             notify(VALIDATION_TEXT.invalidActionType, "error");
         }
         invalidActionTypesDuringLoad = null;
+        setActiveTab(activeScope);
     };
 
     const saveSections = () => {
@@ -1737,17 +1978,31 @@ if (nameInput && window.characterMetaStore) {
         }
     };
 
-    const registerListeners = () => {
-        characterModal.addEventListener("click", handleClick);
-        characterModal.addEventListener("click", handleAddButtons);
-        characterModal.addEventListener("input", handleInputChange);
-        characterModal.addEventListener("change", handleInputChange);
+    const handleTabClick = (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement)) {
+            return;
+        }
+        const tabButton = target.closest(TAB_SELECTOR);
+        if (!tabButton) {
+            return;
+        }
+        event.preventDefault();
+        setActiveTab(tabButton.dataset.characterMacroTab);
+    };
 
-        const applyButton = characterModal.querySelector("[data-macro-apply]");
+    const registerListeners = () => {
+        macroModal.addEventListener("click", handleClick);
+        macroModal.addEventListener("click", handleAddButtons);
+        macroModal.addEventListener("click", handleTabClick);
+        macroModal.addEventListener("input", handleInputChange);
+        macroModal.addEventListener("change", handleInputChange);
+
+        const applyButton = macroModal.querySelector("[data-macro-apply]");
         applyButton?.addEventListener("click", handleApply);
 
         const openButtons = Array.from(
-            document.querySelectorAll('button[command="show-modal"][commandfor="characterSettingModal"]'),
+            document.querySelectorAll('button[command="show-modal"][commandfor="characterMacroModal"]'),
         );
         openButtons.forEach((button) => {
             button.addEventListener("click", () => {

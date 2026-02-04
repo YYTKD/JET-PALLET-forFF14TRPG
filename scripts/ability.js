@@ -43,7 +43,7 @@ const ABILITY_SELECTORS = {
     attackOutput: "#attackOutput",
     commandTabButtons: "[data-command-tab]",
     commandPanels: "[data-command-panel]",
-    phaseButton: "[data-turn-action=\"phase\"]",
+    phaseButton: "[data-phase-action=\"toggle\"], [data-turn-action=\"phase\"]",
     abilityElement: ".ability",
     abilityStack: ".ability__stack",
     sectionBody: ".section__body",
@@ -156,6 +156,11 @@ const ABILITY_TEXT = {
     macroConditionSeparator: " / ",
     macroConditionUnknownTarget: "不明",
     macroConditionUnknownValue: "不明",
+};
+
+const PHASE_STATES = {
+    start: "start",
+    end: "end",
 };
 
 // Read shared resource event names without redefining globals.
@@ -846,6 +851,20 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.textContent = String(safeCurrent);
     };
 
+    // Treat empty stack as an unmet prerequisite for availability checks.
+    const isAbilityStackDepleted = (abilityElement) => {
+        if (!abilityElement) {
+            return false;
+        }
+        const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
+        if (!Number.isFinite(max) || max <= 0) {
+            return false;
+        }
+        const current = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent]);
+        const safeCurrent = Number.isFinite(current) ? current : max;
+        return safeCurrent <= 0;
+    };
+
     // Initialize stack datasets and badge from a single source of truth.
     const initializeStackData = (abilityElement, stackMax, stackCurrent) => {
         if (!abilityElement || !Number.isFinite(stackMax) || stackMax <= 0) {
@@ -855,6 +874,34 @@ document.addEventListener("DOMContentLoaded", () => {
         abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax] = String(stackMax);
         abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(initialCurrent);
         updateStackBadge(abilityElement);
+    };
+
+    // Keep stack resets gated to the phase-end transition to prevent accidental refills.
+    const shouldResetStacksForPhaseToggle = (phaseButton) => {
+        if (!phaseButton) {
+            return false;
+        }
+        const phaseState = phaseButton.dataset?.phaseState;
+        if (!phaseState) {
+            console.warn("Phase toggle button is missing data-phase-state; skipping stack reset.");
+            return false;
+        }
+        if (phaseState !== PHASE_STATES.start && phaseState !== PHASE_STATES.end) {
+            console.warn(`Unknown phase state "${phaseState}"; skipping stack reset.`);
+            return false;
+        }
+        return phaseState === PHASE_STATES.start;
+    };
+
+    const resetAbilityStacksToMax = () => {
+        document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+            const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
+            if (!Number.isFinite(max) || max <= 0) {
+                return;
+            }
+            abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(max);
+            updateStackBadge(abilityElement);
+        });
     };
 
     // Parse grid coordinates into integer positions for layout math.
@@ -1444,6 +1491,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const { blocked, ready } = ABILITY_MACRO_CLASSES;
         abilityElement.classList.remove(blocked, ready);
+        if (isAbilityStackDepleted(abilityElement)) {
+            abilityElement.classList.add(blocked);
+            return;
+        }
         const state = getMacroConditionState(abilityElement);
         if (!state.hasConditions || !state.isEvaluated) {
             return;
@@ -1483,7 +1534,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const executeAbilityMacro = async (abilityElement) => {
         const macroPayload = getMacroPayload(abilityElement);
         if (!macroPayload || !window.macroExecutor) {
-            return { macroEffects: null, conditionsFailed: false };
+            return {
+                macroEffects: null,
+                conditionsFailed: isAbilityStackDepleted(abilityElement),
+            };
+        }
+        if (isAbilityStackDepleted(abilityElement)) {
+            return { macroEffects: null, conditionsFailed: true };
         }
         try {
             const context =
@@ -3073,14 +3130,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (phaseButton) {
         phaseButton.addEventListener("click", () => {
-            document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
-                const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
-                if (!Number.isFinite(max) || max <= 0) {
-                    return;
-                }
-                abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(max);
-                updateStackBadge(abilityElement);
-            });
+            if (!shouldResetStacksForPhaseToggle(phaseButton)) {
+                return;
+            }
+            resetAbilityStacksToMax();
             updateAllAbilityMacroStates();
         });
     }

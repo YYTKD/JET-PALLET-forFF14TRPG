@@ -44,9 +44,14 @@ const BUFF_SELECTORS = {
     buffItemContextMenu: "#buffItemContextMenu",
     buffItemContextMenuItems: "[data-buff-item-action]",
     turnToggleButton: "[data-turn-action=\"toggle\"]",
-    turnPhaseButton: "[data-turn-action=\"phase\"]",
+    roundToggleButton: "[data-round-action=\"toggle\"]",
+    phaseToggleButton: "[data-phase-action=\"toggle\"], [data-turn-action=\"phase\"]",
     turnToggleIcon: "[data-turn-icon]",
     turnToggleLabel: "[data-turn-label]",
+    roundToggleIcon: "[data-round-icon]",
+    roundToggleLabel: "[data-round-label]",
+    phaseToggleIcon: "[data-phase-icon]",
+    phaseToggleLabel: "[data-phase-label]",
 };
 
 const BUFF_DATASET_KEYS = {
@@ -125,7 +130,10 @@ const BUFF_TEXT = {
 const TURN_STATES = {
     start: "start",
     end: "end",
+    ptEnd: "pt-end",
 };
+
+const TURN_STATE_SEQUENCE = [TURN_STATES.start, TURN_STATES.end, TURN_STATES.ptEnd];
 
 const TURN_BUTTON_CONFIG = {
     [TURN_STATES.start]: {
@@ -137,6 +145,47 @@ const TURN_BUTTON_CONFIG = {
         icon: "hourglass_empty",
         label: "ターン終了",
         durationToRemove: "until-turn-end",
+    },
+    [TURN_STATES.ptEnd]: {
+        icon: "hourglass_bottom",
+        label: "PTターン終了",
+        durationToRemove: null,
+    },
+};
+
+const ROUND_STATES = {
+    start: "start",
+    end: "end",
+};
+
+const ROUND_STATE_SEQUENCE = [ROUND_STATES.start, ROUND_STATES.end];
+
+const ROUND_BUTTON_CONFIG = {
+    [ROUND_STATES.start]: {
+        icon: "autorenew",
+        label: "ラウンド開始",
+    },
+    [ROUND_STATES.end]: {
+        icon: "autorenew",
+        label: "ラウンド終了",
+    },
+};
+
+const PHASE_STATES = {
+    start: "start",
+    end: "end",
+};
+
+const PHASE_STATE_SEQUENCE = [PHASE_STATES.start, PHASE_STATES.end];
+
+const PHASE_BUTTON_CONFIG = {
+    [PHASE_STATES.start]: {
+        icon: "calendar_today",
+        label: "フェイズ開始",
+    },
+    [PHASE_STATES.end]: {
+        icon: "event_busy",
+        label: "フェイズ終了",
     },
 };
 
@@ -1374,7 +1423,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const turnButtons = {
         toggle: document.querySelector(BUFF_SELECTORS.turnToggleButton),
-        phase: document.querySelector(BUFF_SELECTORS.turnPhaseButton),
+        round: document.querySelector(BUFF_SELECTORS.roundToggleButton),
+        phase: document.querySelector(BUFF_SELECTORS.phaseToggleButton),
     };
 
     // Map legacy text labels back to canonical duration keys.
@@ -1397,6 +1447,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Remove buffs that should expire at a given turn boundary.
     const removeBuffsByDuration = (durationKey) => {
+        if (!durationKey) {
+            return;
+        }
         buffArea.querySelectorAll(BUFF_SELECTORS.buffItem).forEach((buff) => {
             const currentDuration =
                 buff.dataset[BUFF_DATASET_KEYS.buffDuration] ||
@@ -1410,12 +1463,29 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Normalize turn toggle state and warn on unexpected values.
-    const resolveTurnState = (rawState) => {
-        if (rawState === TURN_STATES.start || rawState === TURN_STATES.end) {
+    const resolveToggleState = (rawState, validStates, fallbackState, scopeLabel) => {
+        if (validStates.includes(rawState)) {
             return rawState;
         }
-        console.warn(`Unexpected turn state "${rawState}". Falling back to "${TURN_STATES.start}".`);
-        return TURN_STATES.start;
+        console.warn(
+            `Unexpected ${scopeLabel} state "${rawState}". Falling back to "${fallbackState}".`
+        );
+        return fallbackState;
+    };
+
+    const resolveTurnState = (rawState) =>
+        resolveToggleState(rawState, TURN_STATE_SEQUENCE, TURN_STATES.start, "turn");
+    const resolveRoundState = (rawState) =>
+        resolveToggleState(rawState, ROUND_STATE_SEQUENCE, ROUND_STATES.start, "round");
+    const resolvePhaseState = (rawState) =>
+        resolveToggleState(rawState, PHASE_STATE_SEQUENCE, PHASE_STATES.start, "phase");
+
+    const getNextState = (currentState, sequence, fallbackState) => {
+        const currentIndex = sequence.indexOf(currentState);
+        if (currentIndex === -1) {
+            return fallbackState;
+        }
+        return sequence[(currentIndex + 1) % sequence.length];
     };
 
     // Confirm destructive actions before clearing all buffs.
@@ -1573,32 +1643,72 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("scroll", closeBuffMenu, true);
     window.addEventListener("resize", closeBuffMenu);
 
-    turnButtons.start?.addEventListener("click", () => {
-        removeBuffsByDuration("until-next-turn-start");
-    });
-
-    // Update the toggle button to reflect the current turn state.
-    const updateTurnToggleButton = (state) => {
-        const button = turnButtons.toggle;
+    // Update toggle buttons to reflect the current state.
+    const updateToggleButton = ({
+        button,
+        state,
+        configMap,
+        iconSelector,
+        labelSelector,
+        datasetKey,
+        attributeName,
+        scopeLabel,
+    }) => {
         if (!button) {
             return;
         }
-        const config = TURN_BUTTON_CONFIG[state];
+        const config = configMap[state];
         if (!config) {
-            console.error(`Missing turn button config for state "${state}".`);
+            console.error(`Missing ${scopeLabel} button config for state "${state}".`);
             return;
         }
-        const iconElement = button.querySelector(BUFF_SELECTORS.turnToggleIcon);
-        const labelElement = button.querySelector(BUFF_SELECTORS.turnToggleLabel);
+        const iconElement = button.querySelector(iconSelector);
+        const labelElement = button.querySelector(labelSelector);
         if (!iconElement || !labelElement) {
-            console.error("Turn toggle button is missing icon or label elements.");
+            console.error(`${scopeLabel} toggle button is missing icon or label elements.`);
             return;
         }
         iconElement.textContent = config.icon;
         labelElement.textContent = config.label;
-        button.dataset.turnState = state;
-        button.setAttribute("data-turn-state", state);
+        button.dataset[datasetKey] = state;
+        button.setAttribute(attributeName, state);
     };
+
+    const updateTurnToggleButton = (state) =>
+        updateToggleButton({
+            button: turnButtons.toggle,
+            state,
+            configMap: TURN_BUTTON_CONFIG,
+            iconSelector: BUFF_SELECTORS.turnToggleIcon,
+            labelSelector: BUFF_SELECTORS.turnToggleLabel,
+            datasetKey: "turnState",
+            attributeName: "data-turn-state",
+            scopeLabel: "turn",
+        });
+
+    const updateRoundToggleButton = (state) =>
+        updateToggleButton({
+            button: turnButtons.round,
+            state,
+            configMap: ROUND_BUTTON_CONFIG,
+            iconSelector: BUFF_SELECTORS.roundToggleIcon,
+            labelSelector: BUFF_SELECTORS.roundToggleLabel,
+            datasetKey: "roundState",
+            attributeName: "data-round-state",
+            scopeLabel: "round",
+        });
+
+    const updatePhaseToggleButton = (state) =>
+        updateToggleButton({
+            button: turnButtons.phase,
+            state,
+            configMap: PHASE_BUTTON_CONFIG,
+            iconSelector: BUFF_SELECTORS.phaseToggleIcon,
+            labelSelector: BUFF_SELECTORS.phaseToggleLabel,
+            datasetKey: "phaseState",
+            attributeName: "data-phase-state",
+            scopeLabel: "phase",
+        });
 
     // Advance the turn state and apply expiration rules.
     const handleTurnToggleClick = () => {
@@ -1613,9 +1723,35 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         removeBuffsByDuration(config.durationToRemove);
-        const nextState =
-            currentState === TURN_STATES.start ? TURN_STATES.end : TURN_STATES.start;
+        const nextState = getNextState(currentState, TURN_STATE_SEQUENCE, TURN_STATES.start);
         updateTurnToggleButton(nextState);
+    };
+
+    const handleRoundToggleClick = () => {
+        const button = turnButtons.round;
+        if (!button) {
+            return;
+        }
+        const currentState = resolveRoundState(button.dataset.roundState);
+        const nextState = getNextState(currentState, ROUND_STATE_SEQUENCE, ROUND_STATES.start);
+        updateRoundToggleButton(nextState);
+    };
+
+    const handlePhaseToggleClick = () => {
+        const button = turnButtons.phase;
+        if (!button) {
+            return;
+        }
+        const currentState = resolvePhaseState(button.dataset.phaseState);
+        if (currentState === PHASE_STATES.start) {
+            updateTurnToggleButton(TURN_STATES.start);
+            updateRoundToggleButton(ROUND_STATES.start);
+        }
+        if (currentState === PHASE_STATES.end) {
+            removeAllBuffs();
+        }
+        const nextState = getNextState(currentState, PHASE_STATE_SEQUENCE, PHASE_STATES.start);
+        updatePhaseToggleButton(nextState);
     };
 
     if (turnButtons.toggle) {
@@ -1624,7 +1760,15 @@ document.addEventListener("DOMContentLoaded", () => {
         turnButtons.toggle.addEventListener("click", handleTurnToggleClick);
     }
 
-    turnButtons.phase?.addEventListener("click", () => {
-        removeAllBuffs();
-    });
+    if (turnButtons.round) {
+        const initialState = resolveRoundState(turnButtons.round.dataset.roundState);
+        updateRoundToggleButton(initialState);
+        turnButtons.round.addEventListener("click", handleRoundToggleClick);
+    }
+
+    if (turnButtons.phase) {
+        const initialState = resolvePhaseState(turnButtons.phase.dataset.phaseState);
+        updatePhaseToggleButton(initialState);
+        turnButtons.phase.addEventListener("click", handlePhaseToggleClick);
+    }
 });
