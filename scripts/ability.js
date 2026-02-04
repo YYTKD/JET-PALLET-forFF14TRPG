@@ -52,6 +52,7 @@ const ABILITY_SELECTORS = {
     cardLabel: ".card__label",
     cardValue: ".card__value",
     cardBodyStat: ".card__body .card__stat",
+    cardMetaStat: ".card__meta .card__stat",
     cardName: ".card__name",
     cardTags: ".card__tags",
     cardJudgeValue: ".card__stat--judge .card__value",
@@ -1108,7 +1109,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!abilityElement) {
             return "";
         }
-        const statElements = abilityElement.querySelectorAll(ABILITY_SELECTORS.cardBodyStat);
+        const statElements = abilityElement.querySelectorAll(
+            `${ABILITY_SELECTORS.cardBodyStat}, ${ABILITY_SELECTORS.cardMetaStat}`,
+        );
         for (const statElement of statElements) {
             const label = statElement.querySelector(ABILITY_SELECTORS.cardLabel);
             if (label?.textContent?.trim() === labelText) {
@@ -2345,6 +2348,13 @@ document.addEventListener("DOMContentLoaded", () => {
         addButton.textContent = ABILITY_TEXT.buttonLabelRegister;
     };
 
+    // Ensure new entries start clean even when the modal was previously used.
+    const openNewAbilityModal = () => {
+        resetAbilityForm();
+        resetEditingState();
+        openAbilityModal();
+    };
+
     // Insert after the reference to preserve order in the grid.
     const insertAbilityAfter = (referenceElement, newElement) => {
         if (!referenceElement?.parentElement) {
@@ -2799,7 +2809,7 @@ document.addEventListener("DOMContentLoaded", () => {
             button.addEventListener("click", (event) => {
                 // Use a unified entry point so dialog API gaps don't break the command="show-modal" flow.
                 event.preventDefault();
-                openAbilityModal();
+                openNewAbilityModal();
             });
         });
     }
