@@ -846,6 +846,20 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.textContent = String(safeCurrent);
     };
 
+    // Treat empty stack as an unmet prerequisite for availability checks.
+    const isAbilityStackDepleted = (abilityElement) => {
+        if (!abilityElement) {
+            return false;
+        }
+        const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
+        if (!Number.isFinite(max) || max <= 0) {
+            return false;
+        }
+        const current = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent]);
+        const safeCurrent = Number.isFinite(current) ? current : max;
+        return safeCurrent <= 0;
+    };
+
     // Initialize stack datasets and badge from a single source of truth.
     const initializeStackData = (abilityElement, stackMax, stackCurrent) => {
         if (!abilityElement || !Number.isFinite(stackMax) || stackMax <= 0) {
@@ -1444,6 +1458,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const { blocked, ready } = ABILITY_MACRO_CLASSES;
         abilityElement.classList.remove(blocked, ready);
+        if (isAbilityStackDepleted(abilityElement)) {
+            abilityElement.classList.add(blocked);
+            return;
+        }
         const state = getMacroConditionState(abilityElement);
         if (!state.hasConditions || !state.isEvaluated) {
             return;
@@ -1483,7 +1501,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const executeAbilityMacro = async (abilityElement) => {
         const macroPayload = getMacroPayload(abilityElement);
         if (!macroPayload || !window.macroExecutor) {
-            return { macroEffects: null, conditionsFailed: false };
+            return {
+                macroEffects: null,
+                conditionsFailed: isAbilityStackDepleted(abilityElement),
+            };
+        }
+        if (isAbilityStackDepleted(abilityElement)) {
+            return { macroEffects: null, conditionsFailed: true };
         }
         try {
             const context =
