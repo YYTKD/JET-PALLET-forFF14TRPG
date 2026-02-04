@@ -13,6 +13,7 @@
         "turnStart",
         "turnEnd",
         "ptTurnEnd",
+        "phaseUpdate",
         "roundEnd",
     ]);
 

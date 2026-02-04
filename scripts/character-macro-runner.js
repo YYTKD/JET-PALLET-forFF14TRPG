@@ -10,6 +10,7 @@
 
     const SELECTORS = Object.freeze({
         turnToggle: "[data-turn-action=\"toggle\"]",
+        phaseUpdate: "[data-turn-action=\"phase\"]",
         roundEnd: "[data-turn-action=\"round-end\"]",
     });
 
@@ -29,6 +30,7 @@
         turnStart: "ターン開始",
         turnEnd: "ターン終了",
         ptTurnEnd: "PTターン終了",
+        phaseUpdate: "フェイズ更新",
         roundEnd: "ラウンド終了",
     });
 
@@ -88,6 +90,13 @@
         await executeSection("roundEnd");
     };
 
+    const handlePhaseUpdate = async () => {
+        // Defer execution so phase reset handlers (buff removal/stack reset) finish first.
+        setTimeout(() => {
+            executeSection("phaseUpdate");
+        }, 0);
+    };
+
     document.addEventListener("DOMContentLoaded", () => {
         const turnToggleButton = document.querySelector(SELECTORS.turnToggle);
         if (turnToggleButton) {
@@ -98,6 +107,11 @@
         const roundEndButton = document.querySelector(SELECTORS.roundEnd);
         if (roundEndButton) {
             roundEndButton.addEventListener("click", handleRoundEnd);
+        }
+
+        const phaseUpdateButton = document.querySelector(SELECTORS.phaseUpdate);
+        if (phaseUpdateButton) {
+            phaseUpdateButton.addEventListener("click", handlePhaseUpdate);
         }
     });
 })();
