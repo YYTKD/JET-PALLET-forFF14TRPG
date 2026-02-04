@@ -10,10 +10,23 @@
 
     const SELECTORS = Object.freeze({
         turnToggle: "[data-turn-action=\"toggle\"]",
+        roundToggle: "[data-round-action=\"toggle\"]",
+        phaseToggle: "[data-phase-action=\"toggle\"]",
         roundEnd: "[data-turn-action=\"round-end\"]",
     });
 
     const TURN_STATE_KEYS = Object.freeze({
+        start: "start",
+        end: "end",
+        ptEnd: "pt-end",
+    });
+
+    const ROUND_STATE_KEYS = Object.freeze({
+        start: "start",
+        end: "end",
+    });
+
+    const PHASE_STATE_KEYS = Object.freeze({
         start: "start",
         end: "end",
     });
@@ -21,12 +34,27 @@
     const TURN_STATE_SECTION_MAP = Object.freeze({
         [TURN_STATE_KEYS.start]: "turnStart",
         [TURN_STATE_KEYS.end]: "turnEnd",
+        [TURN_STATE_KEYS.ptEnd]: "ptEnd",
+    });
+
+    const ROUND_STATE_SECTION_MAP = Object.freeze({
+        [ROUND_STATE_KEYS.start]: "roundStart",
+        [ROUND_STATE_KEYS.end]: "roundEnd",
+    });
+
+    const PHASE_STATE_SECTION_MAP = Object.freeze({
+        [PHASE_STATE_KEYS.start]: "phaseStart",
+        [PHASE_STATE_KEYS.end]: "phaseEnd",
     });
 
     const SECTION_LABELS = Object.freeze({
         turnStart: "ターン開始",
         turnEnd: "ターン終了",
+        ptEnd: "PTターン終了",
+        roundStart: "ラウンド開始",
         roundEnd: "ラウンド終了",
+        phaseStart: "フェイズ開始",
+        phaseEnd: "フェイズ終了",
     });
 
     const notify = (message, type = "info") => {
@@ -36,13 +64,33 @@
     };
 
     const resolveTurnState = (rawState) => {
-        if (rawState === TURN_STATE_KEYS.start || rawState === TURN_STATE_KEYS.end) {
+        if (Object.values(TURN_STATE_KEYS).includes(rawState)) {
             return rawState;
         }
         console.warn(
             `Unexpected turn state "${rawState}". Falling back to "${TURN_STATE_KEYS.start}".`,
         );
         return TURN_STATE_KEYS.start;
+    };
+
+    const resolveRoundState = (rawState) => {
+        if (Object.values(ROUND_STATE_KEYS).includes(rawState)) {
+            return rawState;
+        }
+        console.warn(
+            `Unexpected round state "${rawState}". Falling back to "${ROUND_STATE_KEYS.start}".`,
+        );
+        return ROUND_STATE_KEYS.start;
+    };
+
+    const resolvePhaseState = (rawState) => {
+        if (Object.values(PHASE_STATE_KEYS).includes(rawState)) {
+            return rawState;
+        }
+        console.warn(
+            `Unexpected phase state "${rawState}". Falling back to "${PHASE_STATE_KEYS.start}".`,
+        );
+        return PHASE_STATE_KEYS.start;
     };
 
     const loadSection = (sectionKey) => {
@@ -81,6 +129,34 @@
         await executeSection(sectionKey);
     };
 
+    const handleRoundToggle = async (event) => {
+        const button = event.currentTarget;
+        if (!(button instanceof HTMLElement)) {
+            return;
+        }
+        const state = resolveRoundState(button.dataset.roundState);
+        const sectionKey = ROUND_STATE_SECTION_MAP[state];
+        if (!sectionKey) {
+            console.warn("Round state does not map to a macro section.", state);
+            return;
+        }
+        await executeSection(sectionKey);
+    };
+
+    const handlePhaseToggle = async (event) => {
+        const button = event.currentTarget;
+        if (!(button instanceof HTMLElement)) {
+            return;
+        }
+        const state = resolvePhaseState(button.dataset.phaseState);
+        const sectionKey = PHASE_STATE_SECTION_MAP[state];
+        if (!sectionKey) {
+            console.warn("Phase state does not map to a macro section.", state);
+            return;
+        }
+        await executeSection(sectionKey);
+    };
+
     const handleRoundEnd = async () => {
         await executeSection("roundEnd");
     };
@@ -90,6 +166,18 @@
         if (turnToggleButton) {
             // Capture the pre-toggle state before other handlers mutate the dataset.
             turnToggleButton.addEventListener("click", handleTurnToggle, true);
+        }
+
+        const roundToggleButton = document.querySelector(SELECTORS.roundToggle);
+        if (roundToggleButton) {
+            // Capture the pre-toggle state before other handlers mutate the dataset.
+            roundToggleButton.addEventListener("click", handleRoundToggle, true);
+        }
+
+        const phaseToggleButton = document.querySelector(SELECTORS.phaseToggle);
+        if (phaseToggleButton) {
+            // Capture the pre-toggle state before other handlers mutate the dataset.
+            phaseToggleButton.addEventListener("click", handlePhaseToggle, true);
         }
 
         const roundEndButton = document.querySelector(SELECTORS.roundEnd);
