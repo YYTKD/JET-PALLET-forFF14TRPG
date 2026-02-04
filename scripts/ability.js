@@ -43,7 +43,6 @@ const ABILITY_SELECTORS = {
     attackOutput: "#attackOutput",
     commandTabButtons: "[data-command-tab]",
     commandPanels: "[data-command-panel]",
-    phaseButton: "[data-turn-action=\"phase\"]",
     abilityElement: ".ability",
     abilityStack: ".ability__stack",
     sectionBody: ".section__body",
@@ -113,6 +112,10 @@ const ABILITY_MACRO_CLASSES = {
     blocked: "ability--macro-blocked",
     ready: "ability--macro-ready",
 };
+
+const PHASE_EVENT_NAMES = Object.freeze({
+    end: "phase:end",
+});
 
 const ABILITY_DRAG_PAYLOAD_TYPES = ["application/json", "text/plain"];
 
@@ -343,7 +346,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const attackOutput = commandSection?.querySelector(ABILITY_SELECTORS.attackOutput) ?? null;
         const commandDirectHitOption = document.querySelector(ABILITY_SELECTORS.commandDirectHitOption);
         const commandCriticalOption = document.querySelector(ABILITY_SELECTORS.commandCriticalOption);
-        const phaseButton = document.querySelector(ABILITY_SELECTORS.phaseButton);
         return {
             abilityModal,
             modalElements,
@@ -360,7 +362,6 @@ document.addEventListener("DOMContentLoaded", () => {
             attackOutput,
             commandDirectHitOption,
             commandCriticalOption,
-            phaseButton,
         };
     };
 
@@ -424,7 +425,6 @@ document.addEventListener("DOMContentLoaded", () => {
         attackOutput,
         commandDirectHitOption,
         commandCriticalOption,
-        phaseButton,
     } = elements;
     let editingAbilityId = null;
     let editingAbilityElement = null;
@@ -3095,19 +3095,17 @@ document.addEventListener("DOMContentLoaded", () => {
         updateAbilityMacroState(abilityElement);
     });
 
-    if (phaseButton) {
-        phaseButton.addEventListener("click", () => {
-            document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
-                const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
-                if (!Number.isFinite(max) || max <= 0) {
-                    return;
-                }
-                abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(max);
-                updateStackBadge(abilityElement);
-            });
-            updateAllAbilityMacroStates();
+    document.addEventListener(PHASE_EVENT_NAMES.end, () => {
+        document.querySelectorAll(ABILITY_SELECTORS.abilityElement).forEach((abilityElement) => {
+            const max = Number(abilityElement.dataset[ABILITY_DATASET_KEYS.stackMax]);
+            if (!Number.isFinite(max) || max <= 0) {
+                return;
+            }
+            abilityElement.dataset[ABILITY_DATASET_KEYS.stackCurrent] = String(max);
+            updateStackBadge(abilityElement);
         });
-    }
+        updateAllAbilityMacroStates();
+    });
 
     abilityModal.addEventListener("close", () => {
         resetAbilityForm();
