@@ -11,7 +11,7 @@
     <title>forFF14TTRPG</title>
 
 </head>
-
+<body>
 <nav>
     <!--バフデバフ表示-->
     <header>
@@ -20,7 +20,6 @@
         <div class="section__header--buttons">
             <button class="material-symbols-rounded" data-buff-menu-trigger>settings</button>
             <button class="material-symbols-rounded" command="show-modal" commandfor="addBuffModal">add</button>
-        </div>
         </div>
     </header>
     <footer>
@@ -646,6 +645,7 @@
                     </tbody>
                 </table>
             </div>
+        </div>
     </dialog>
 
     <!--モーダル_特性リソース登録・管理-->
@@ -876,8 +876,6 @@
             nameButton.textContent = meta.name;
         }
     });
-
-
 </script>
 <script>
     const input = document.getElementById('characterNAME');
@@ -888,5 +886,4 @@
     });
 </script>
 </body>
-
 </html>
