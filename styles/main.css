@@ -32,6 +32,11 @@
     --border-gold-dark: #7a6a42;
     --border-turn-start: #4fbf7a;
     --border-turn-end: #d96b6b;
+    --border-turn-pt: #b48ead;
+    --border-round-start: #5fb3e6;
+    --border-round-end: #e67a5f;
+    --border-phase-start: #7dd4a6;
+    --border-phase-end: #c38de0;
 
     /* テキスト：純白ではなく、少し目に優しい色 */
     --text-main: #e2e2e2;
@@ -495,8 +500,34 @@ section {
     outline-offset: -1px;
 }
 
+.button__footer--turn[data-turn-state="pt-end"] {
+    outline: 1px solid var(--border-turn-pt);
+    outline-offset: -1px;
+}
+
+.button__footer--round[data-round-state="start"] {
+    outline: 1px solid var(--border-round-start);
+    outline-offset: -1px;
+}
+
+.button__footer--round[data-round-state="end"] {
+    outline: 1px solid var(--border-round-end);
+    outline-offset: -1px;
+}
+
+.button__footer--phase[data-phase-state="start"] {
+    outline: 1px solid var(--border-phase-start);
+    outline-offset: -1px;
+}
+
+.button__footer--phase[data-phase-state="end"] {
+    outline: 1px solid var(--border-phase-end);
+    outline-offset: -1px;
+}
+
 .button__footer {
     padding: 4px 12px;
+    gap: 4px;
 }
 
 .button__footer--buffs {}
