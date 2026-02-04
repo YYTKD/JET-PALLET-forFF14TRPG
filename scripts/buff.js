@@ -37,6 +37,7 @@ const BUFF_SELECTORS = {
     buffLibraryAdd: "[data-buff-library-add]",
     buffLibraryEdit: "[data-buff-library-edit]",
     buffLibraryDelete: "[data-buff-library-delete]",
+    buffLibrarySortType: "[data-buff-library-sort=\"type\"]",
     buffMenu: "#buffContextMenu",
     buffMenuItems: "[data-buff-menu-action]",
     buffMenuTrigger: "[data-buff-menu-trigger]",
@@ -149,6 +150,11 @@ const BUFF_MENU_LAYOUT = {
     margin: 8,
     defaultWidth: 160,
     defaultHeight: 120,
+};
+
+const BUFF_LIBRARY_SORT_DIRECTIONS = {
+    asc: "asc",
+    desc: "desc",
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -287,6 +293,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Normalize buff type to avoid ambiguous rendering.
     const resolveBuffType = ({ typeValue, tag }) =>
         typeValue || (tag === buffTypeLabels.debuff ? "debuff" : "buff");
+
+    const getBuffTypeLabel = (type) => buffTypeLabels[type] ?? BUFF_TEXT.typeBuff;
 
     // Keep icon markup consistent across list and active buff renderers.
     const buildBuffIconMarkup = (iconSrc) => `
@@ -585,8 +593,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const buffLibraryModal = document.querySelector(BUFF_SELECTORS.buffLibraryModal);
     const buffLibraryTableBody = buffLibraryModal?.querySelector(BUFF_SELECTORS.buffLibraryBody);
+    const buffLibrarySortButton = buffLibraryModal?.querySelector(BUFF_SELECTORS.buffLibrarySortType) ?? null;
     const editingState = {
         id: null,
+    };
+    const buffLibrarySortState = {
+        direction: BUFF_LIBRARY_SORT_DIRECTIONS.asc,
     };
 
     // Open the library modal with graceful fallback when dialog APIs differ.
@@ -648,6 +660,43 @@ document.addEventListener("DOMContentLoaded", () => {
             saveStoredBuffs(BUFF_STORAGE_KEYS.library, normalized);
         }
         return normalized;
+    };
+
+    const updateBuffLibrarySortIndicator = () => {
+        if (!buffLibrarySortButton) {
+            return;
+        }
+        const headerCell = buffLibrarySortButton.closest("th");
+        if (!headerCell) {
+            return;
+        }
+        const ariaSort =
+            buffLibrarySortState.direction === BUFF_LIBRARY_SORT_DIRECTIONS.asc ? "ascending" : "descending";
+        headerCell.setAttribute("aria-sort", ariaSort);
+    };
+
+    const sortLibraryBuffs = (buffs) => {
+        const multiplier =
+            buffLibrarySortState.direction === BUFF_LIBRARY_SORT_DIRECTIONS.desc ? -1 : 1;
+        return [...buffs].sort((first, second) => {
+            const firstData = first ?? {};
+            const secondData = second ?? {};
+            const firstTypeLabel = getBuffTypeLabel(resolveBuffType(firstData));
+            const secondTypeLabel = getBuffTypeLabel(resolveBuffType(secondData));
+            const primaryComparison = firstTypeLabel.localeCompare(secondTypeLabel, "ja");
+            if (primaryComparison !== 0) {
+                return primaryComparison * multiplier;
+            }
+            const firstName = (firstData.name ?? "").toString();
+            const secondName = (secondData.name ?? "").toString();
+            const nameComparison = firstName.localeCompare(secondName, "ja");
+            if (nameComparison !== 0) {
+                return nameComparison * multiplier;
+            }
+            const firstId = (firstData.id ?? "").toString();
+            const secondId = (secondData.id ?? "").toString();
+            return firstId.localeCompare(secondId, "ja") * multiplier;
+        });
     };
 
     // Populate the editor with stored data when editing a library buff.
@@ -947,6 +996,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const createLibraryRow = (data) => {
         const row = document.createElement("tr");
         const resolvedType = resolveBuffType(data);
+        const typeLabel = getBuffTypeLabel(resolvedType);
         row.dataset[BUFF_DATASET_KEYS.buffStorage] = JSON.stringify(data);
         row.innerHTML = `
             <td><button class="material-symbols-rounded" data-${BUFF_DATA_ATTRIBUTES.buffLibraryAdd}>add</button></td>
@@ -955,6 +1005,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${buildBuffIconMarkup(data.iconSrc || defaultIconSrc)}
                 </div>
             </td>
+            <td>${typeLabel}</td>
             <td>${data.name || ""}</td>
             <td>
                 <button class="material-symbols-rounded" data-${BUFF_DATA_ATTRIBUTES.buffLibraryEdit}>edit</button>
@@ -969,11 +1020,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!buffLibraryTableBody) {
             return;
         }
-        const storedBuffs = getStoredLibraryBuffs();
+        const storedBuffs = sortLibraryBuffs(getStoredLibraryBuffs());
         buffLibraryTableBody.innerHTML = "";
         if (storedBuffs.length === 0) {
             const emptyRow = document.createElement("tr");
-            emptyRow.innerHTML = `<td colspan="4">${BUFF_TEXT.emptyLibrary}</td>`;
+            emptyRow.innerHTML = `<td colspan="5">${BUFF_TEXT.emptyLibrary}</td>`;
             buffLibraryTableBody.appendChild(emptyRow);
             return;
         }
@@ -985,6 +1036,21 @@ document.addEventListener("DOMContentLoaded", () => {
             buffLibraryTableBody.appendChild(row);
         });
     };
+
+    const toggleBuffLibrarySortDirection = () => {
+        if (!buffLibrarySortButton) {
+            return;
+        }
+        buffLibrarySortState.direction =
+            buffLibrarySortState.direction === BUFF_LIBRARY_SORT_DIRECTIONS.asc
+                ? BUFF_LIBRARY_SORT_DIRECTIONS.desc
+                : BUFF_LIBRARY_SORT_DIRECTIONS.asc;
+        updateBuffLibrarySortIndicator();
+        renderStoredBuffs();
+    };
+
+    buffLibrarySortButton?.addEventListener("click", toggleBuffLibrarySortDirection);
+    updateBuffLibrarySortIndicator();
 
     buffLibraryTableBody?.addEventListener("click", (event) => {
         const addButton = event.target.closest(BUFF_SELECTORS.buffLibraryAdd);
