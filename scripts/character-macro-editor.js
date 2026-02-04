@@ -592,14 +592,17 @@ if (nameInput && window.characterMetaStore) {
                         ✕
                     </button>
                 `;
-                const connectorSelect =
+                const connector =
                     index < group.conditions.length - 1
                         ? `
-                            <select class="block__select" data-condition-connector
-                                data-condition-scope="${scopeId}" data-group-id="${group.id}"
-                                style="max-width: 140px;">
-                                ${buildConnectorOptionsMarkup(group.connector)}
-                            </select>
+                            <div class="condition-connector">
+                                <div class="connector-line"></div>
+                                <select class="connector-select" data-condition-connector
+                                    data-condition-scope="${scopeId}" data-group-id="${group.id}">
+                                    ${buildConnectorOptionsMarkup(group.connector)}
+                                </select>
+                                <div class="connector-line"></div>
+                            </div>
                         `
                         : "";
                 return `
@@ -610,8 +613,8 @@ if (nameInput && window.characterMetaStore) {
                             ${valueInput}
                             ${deleteButton}
                         </div>
-                        ${connectorSelect}
                     </div>
+                    ${connector}
                 `;
             })
             .join("");
@@ -621,14 +624,17 @@ if (nameInput && window.characterMetaStore) {
         const summary = buildConditionSummary(group);
         const conditionRows = createConditionRowsMarkup(group, scopeId);
 
+        const connectorValue = groupConnectors?.[groupIndex] ?? "AND";
         const connectorMarkup =
-            groupIndex > 0
+            groupIndex < totalGroups - 1
                 ? `
-                    <div class="block-item">
-                        <select class="block__select" data-group-connector
-                            data-condition-scope="${scopeId}" data-group-index="${groupIndex - 1}">
-                            ${buildConnectorOptionsMarkup(groupConnectors[groupIndex - 1])}
+                    <div class="group-connector">
+                        <div class="connector-line"></div>
+                        <select class="connector-select connector-select--group" data-group-connector
+                            data-condition-scope="${scopeId}" data-group-index="${groupIndex}">
+                            ${buildConnectorOptionsMarkup(connectorValue)}
                         </select>
+                        <div class="connector-line"></div>
                     </div>
                 `
                 : "";
@@ -658,7 +664,6 @@ if (nameInput && window.characterMetaStore) {
             </button>
         `;
         return `
-            ${connectorMarkup}
             ${createConditionDetailsMarkup({
             summaryTitle: groupTitle,
             overviewText: summary,
@@ -669,6 +674,7 @@ if (nameInput && window.characterMetaStore) {
                 "data-condition-scope": scopeId,
             },
         })}
+            ${connectorMarkup}
         `;
     };
 
