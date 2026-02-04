@@ -31,15 +31,18 @@
 
         </div>
         <div class="button__area--footer">
-            <button class="button__footer button__footer--turn material-symbols-rounded" data-turn-action="toggle"
-                data-turn-state="start">
-                <span data-turn-icon>hourglass_top</span>
+            <button class="button__footer button__footer--turn" data-turn-action="toggle" data-turn-state="start">
+                <span class="material-symbols-rounded" data-turn-icon>hourglass_top</span>
                 <h6 data-turn-label>ターン開始</h6>
             </button>
-            <button class="button__footer button__footer--turn material-symbols-rounded"
-                data-turn-action="round-end">refresh<h6>ラウンド終了</h6></button>
-            <button class="button__footer button__footer--turn material-symbols-rounded"
-                data-turn-action="phase">calendar_clock<h6>フェイズ更新</h6></button>
+            <button class="button__footer button__footer--round" data-round-action="toggle" data-round-state="start">
+                <span class="material-symbols-rounded" data-round-icon>autorenew</span>
+                <h6 data-round-label>ラウンド開始</h6>
+            </button>
+            <button class="button__footer button__footer--phase" data-phase-action="toggle" data-phase-state="start">
+                <span class="material-symbols-rounded" data-phase-icon>calendar_today</span>
+                <h6 data-phase-label>フェイズ開始</h6>
+            </button>
         </div>
     </footer>
 </nav>
