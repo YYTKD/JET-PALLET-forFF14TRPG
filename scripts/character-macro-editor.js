@@ -33,6 +33,7 @@ if (nameInput && window.characterMetaStore) {
         "turn-start": "turnStart",
         "turn-end": "turnEnd",
         "pt-turn-end": "ptTurnEnd",
+        "phase-update": "phaseUpdate",
         "round-end": "roundEnd",
     });
 
