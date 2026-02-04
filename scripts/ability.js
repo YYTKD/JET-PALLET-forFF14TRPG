@@ -43,7 +43,7 @@ const ABILITY_SELECTORS = {
     attackOutput: "#attackOutput",
     commandTabButtons: "[data-command-tab]",
     commandPanels: "[data-command-panel]",
-    phaseButton: "[data-turn-action=\"phase\"]",
+    phaseButton: "[data-phase-action=\"toggle\"], [data-turn-action=\"phase\"]",
     abilityElement: ".ability",
     abilityStack: ".ability__stack",
     sectionBody: ".section__body",
