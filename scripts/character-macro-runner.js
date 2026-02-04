@@ -16,16 +16,19 @@
     const TURN_STATE_KEYS = Object.freeze({
         start: "start",
         end: "end",
+        ptEnd: "pt-end",
     });
 
     const TURN_STATE_SECTION_MAP = Object.freeze({
         [TURN_STATE_KEYS.start]: "turnStart",
         [TURN_STATE_KEYS.end]: "turnEnd",
+        [TURN_STATE_KEYS.ptEnd]: "ptTurnEnd",
     });
 
     const SECTION_LABELS = Object.freeze({
         turnStart: "ターン開始",
         turnEnd: "ターン終了",
+        ptTurnEnd: "PTターン終了",
         roundEnd: "ラウンド終了",
     });
 
@@ -36,7 +39,7 @@
     };
 
     const resolveTurnState = (rawState) => {
-        if (rawState === TURN_STATE_KEYS.start || rawState === TURN_STATE_KEYS.end) {
+        if (Object.values(TURN_STATE_KEYS).includes(rawState)) {
             return rawState;
         }
         console.warn(

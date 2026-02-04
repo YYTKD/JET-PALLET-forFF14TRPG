@@ -125,6 +125,7 @@ const BUFF_TEXT = {
 const TURN_STATES = {
     start: "start",
     end: "end",
+    ptEnd: "pt-end",
 };
 
 const TURN_BUTTON_CONFIG = {
@@ -138,7 +139,14 @@ const TURN_BUTTON_CONFIG = {
         label: "ターン終了",
         durationToRemove: "until-turn-end",
     },
+    [TURN_STATES.ptEnd]: {
+        icon: "hourglass_bottom",
+        label: "PTターン終了",
+        durationToRemove: "until-turn-end",
+    },
 };
+
+const TURN_STATE_SEQUENCE = [TURN_STATES.start, TURN_STATES.end, TURN_STATES.ptEnd];
 
 const TARGET_DETAIL_CONFIG = {
     visibleTargets: new Set(["judge", "damage"]),
@@ -1411,7 +1419,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Normalize turn toggle state and warn on unexpected values.
     const resolveTurnState = (rawState) => {
-        if (rawState === TURN_STATES.start || rawState === TURN_STATES.end) {
+        if (TURN_STATE_SEQUENCE.includes(rawState)) {
             return rawState;
         }
         console.warn(`Unexpected turn state "${rawState}". Falling back to "${TURN_STATES.start}".`);
@@ -1613,8 +1621,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         removeBuffsByDuration(config.durationToRemove);
-        const nextState =
-            currentState === TURN_STATES.start ? TURN_STATES.end : TURN_STATES.start;
+        const currentIndex = TURN_STATE_SEQUENCE.indexOf(currentState);
+        const nextIndex =
+            currentIndex >= 0 ? (currentIndex + 1) % TURN_STATE_SEQUENCE.length : 0;
+        const nextState = TURN_STATE_SEQUENCE[nextIndex];
         updateTurnToggleButton(nextState);
     };
 

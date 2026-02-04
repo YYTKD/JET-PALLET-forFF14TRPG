@@ -12,6 +12,7 @@
     const CHARACTER_MACRO_SECTIONS = Object.freeze([
         "turnStart",
         "turnEnd",
+        "ptTurnEnd",
         "roundEnd",
     ]);
 
