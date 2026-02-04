@@ -32,7 +32,11 @@ if (nameInput && window.characterMetaStore) {
     const SECTION_SCOPE_KEYS = Object.freeze({
         "turn-start": "turnStart",
         "turn-end": "turnEnd",
+        "pt-end": "ptEnd",
+        "round-start": "roundStart",
         "round-end": "roundEnd",
+        "phase-start": "phaseStart",
+        "phase-end": "phaseEnd",
     });
 
     const ACTION_LABELS = Object.freeze({
