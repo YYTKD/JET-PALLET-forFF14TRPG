@@ -80,9 +80,11 @@ JET-PALLETでの判定や攻撃にあたる。アビリティによっては使�
   - `version`: スキーマの互換性を判断するバージョン番号。
   - `conditions`: 条件グループ配列と、グループ間の接続子配列を保持する。
   - `blocks`: 条件ブロックとアクションブロックの並びで構成する。`blocks` 未使用時は `conditions` + `actions` を1ブロック相当として扱う。
+  - `blocks` には `branch` ブロックを追加可能。例: `{ type: "branch", conditions: {...}, then: [actions...], else: [actions...] }`
   - `actions`: アクション配列（単一のアクションも配列化）として保持する。
 - **実行順**
   - `blocks` がある場合は上から順に評価し、条件ブロック直後に並ぶアクションブロックのみが条件付きで実行される。
+  - `branch` ブロックは `conditions` を評価し、真なら `then`、偽なら `else` のアクションを実行する（`else` 未指定なら何もしない）。
   - `blocks` がない場合は、`conditions` を評価してから `actions` を実行する。
 - **評価の単位**
   - 条件グループ内は `connector`/`conditionConnectors` で `AND/OR` を指定できる。

@@ -73,6 +73,11 @@ if (nameInput && window.characterMetaStore) {
     const DEFAULT_NUMERIC_VALUE = 1;
 
     const CONDITION_EMPTY_TEXT = "条件グループを追加してください。";
+    const ACTION_EMPTY_TEXT = "アクションを追加してください。";
+    const BRANCH_LABELS = Object.freeze({
+        then: "↓ 条件成立時",
+        else: "↓ 条件不成立時",
+    });
     const VALIDATION_TEXT = Object.freeze({
         invalidActionType: `アクション種別が不正です。利用できる種別は「${ACTION_LABEL_LIST}」のみです。`,
     });
@@ -157,6 +162,12 @@ if (nameInput && window.characterMetaStore) {
         action: createDefaultAction(defaultTarget),
     });
 
+    const createBranchActionBlock = (defaultTarget) => ({
+        id: createId("block"),
+        type: "action",
+        action: createDefaultAction(defaultTarget),
+    });
+
     const createConditionBlock = (defaultTarget) => ({
         id: createId("block"),
         type: "condition",
@@ -165,6 +176,18 @@ if (nameInput && window.characterMetaStore) {
             groups: [createConditionGroup(defaultTarget)],
             groupConnectors: [],
         },
+    });
+
+    const createBranchBlock = (defaultTarget) => ({
+        id: createId("block"),
+        type: "branch",
+        parentConditionId: null,
+        conditions: {
+            groups: [createConditionGroup(defaultTarget)],
+            groupConnectors: [],
+        },
+        then: [],
+        else: null,
     });
 
     const readStoredBuffs = () => {
@@ -412,6 +435,15 @@ if (nameInput && window.characterMetaStore) {
         return block;
     };
 
+    const normalizeBranchActions = (actions, defaultTarget) => {
+        const list = Array.isArray(actions) ? actions : [];
+        return list.map((entry) => ({
+            id: entry?.id ?? createId("block"),
+            type: "action",
+            action: normalizeAction(resolveBlockAction(entry), defaultTarget),
+        }));
+    };
+
     const normalizeBlocks = (section, defaultTarget) => {
         const blocks = Array.isArray(section?.blocks)
             ? section.blocks
@@ -420,6 +452,20 @@ if (nameInput && window.characterMetaStore) {
                 : [];
 
         const normalized = blocks.map((block) => {
+            if (block?.type === "branch" || block?.then || block?.else) {
+                const hasElse = Object.prototype.hasOwnProperty.call(block ?? {}, "else");
+                return {
+                    id: block?.id ?? createId("block"),
+                    type: "branch",
+                    parentConditionId: null,
+                    conditions: normalizeConditionBlockConditions(
+                        block.conditions ?? block,
+                        defaultTarget,
+                    ),
+                    then: normalizeBranchActions(block?.then, defaultTarget),
+                    else: hasElse ? normalizeBranchActions(block?.else, defaultTarget) : null,
+                };
+            }
             const blockType = block?.type === "condition" ? "condition" : "action";
             if (blockType === "condition") {
                 return {
@@ -682,12 +728,22 @@ if (nameInput && window.characterMetaStore) {
         `;
     };
 
-    const createActionFieldsMarkup = (action, blockId) => {
+    const buildActionContextAttributes = (blockId, context = {}) => {
+        const attributes = [`data-block-id="${blockId}"`];
+        if (context?.branchId) {
+            attributes.push(`data-branch-id="${context.branchId}"`);
+            attributes.push(`data-branch-role="${context.branchRole}"`);
+        }
+        return attributes.join(" ");
+    };
+
+    const createActionFieldsMarkup = (action, blockId, context = {}) => {
+        const actionContext = buildActionContextAttributes(blockId, context);
         const typeSelect = `
             <div class="block-item">
                 <div class="block__row">
                     <span class="block__text">種類：</span>
-                    <select class="block__select" data-action-type data-block-id="${blockId}">
+                    <select class="block__select" data-action-type ${actionContext}>
                         ${buildActionTypeOptionsMarkup(action.type)}
                     </select>
                 </div>
@@ -699,7 +755,7 @@ if (nameInput && window.characterMetaStore) {
                 <div class="block-item">
                     <div class="block__row">
                         <span class="block__text">質問：</span>
-                        <input class="block__textbox" value="${action.question ?? ""}" data-choice-question data-block-id="${blockId}">
+                        <input class="block__textbox" value="${action.question ?? ""}" data-choice-question ${actionContext}>
                     </div>
                 </div>
             `;
@@ -711,7 +767,7 @@ if (nameInput && window.characterMetaStore) {
                             const targetValue = buildTargetValue(optionAction.target);
                             const actionType = optionAction.type;
                             const actionTypeSelect = `
-                                <select class="block__select" data-option-action-type data-block-id="${blockId}"
+                                <select class="block__select" data-option-action-type ${actionContext}
                                     data-option-id="${option.id}" data-option-action-id="${optionAction.id}">
                                     ${buildActionTypeOptionsMarkup(actionType)}
                                 </select>
@@ -723,15 +779,15 @@ if (nameInput && window.characterMetaStore) {
                                     <div class="block__row">
                                         <span class="block__text">アクション${actionIndex + 1}：</span>
                                         ${actionTypeSelect}
-                                        <select class="block__select" data-option-action-target data-block-id="${blockId}"
+                                        <select class="block__select" data-option-action-target ${actionContext}
                                             data-option-id="${option.id}" data-option-action-id="${optionAction.id}">
                                             ${buildTargetOptionsMarkup(targetOptionValue)}
                                         </select>
                                         <input type="number" class="block__input" value="${optionAction.amount ?? DEFAULT_NUMERIC_VALUE}"
-                                            style="max-width: 80px;" data-option-action-amount data-block-id="${blockId}"
+                                            style="max-width: 80px;" data-option-action-amount ${actionContext}
                                             data-option-id="${option.id}" data-option-action-id="${optionAction.id}">
                                         <button class="block__btn block__btn--danger" data-macro-action="remove-option-action"
-                                            data-block-id="${blockId}" data-option-id="${option.id}" data-option-action-id="${optionAction.id}">
+                                            ${actionContext} data-option-id="${option.id}" data-option-action-id="${optionAction.id}">
                                             ✕
                                         </button>
                                     </div>
@@ -745,14 +801,14 @@ if (nameInput && window.characterMetaStore) {
                             <div class="block__row">
                                 <span class="block__text">選択肢${index + 1}：</span>
                                 <input class="block__textbox" value="${option.label ?? ""}"
-                                    data-choice-option-label data-block-id="${blockId}" data-option-id="${option.id}">
+                                    data-choice-option-label ${actionContext} data-option-id="${option.id}">
                                 <div class="block__controls">
                                     <button class="block__btn" title="アクションを追加" data-macro-action="add-option-action"
-                                        data-block-id="${blockId}" data-option-id="${option.id}">
+                                        ${actionContext} data-option-id="${option.id}">
                                         ＋アクション
                                     </button>
                                     <button class="block__btn block__btn--danger" data-macro-action="remove-option"
-                                        data-block-id="${blockId}" data-option-id="${option.id}">
+                                        ${actionContext} data-option-id="${option.id}">
                                         選択肢削除
                                     </button>
                                 </div>
@@ -767,7 +823,7 @@ if (nameInput && window.characterMetaStore) {
                 ${typeSelect}
                 ${questionMarkup}
                 ${optionMarkup}
-                <button class="block__btn" data-macro-action="add-option" data-block-id="${blockId}">
+                <button class="block__btn" data-macro-action="add-option" ${actionContext}>
                     ＋ 選択肢を追加
                 </button>
             `;
@@ -779,17 +835,18 @@ if (nameInput && window.characterMetaStore) {
             <div class="block-item">
                 <div class="block__row">
                     <span class="block__text">対象：</span>
-                    <select class="block__select" data-action-target data-block-id="${blockId}">
+                    <select class="block__select" data-action-target ${actionContext}>
                         ${buildTargetOptionsMarkup(targetValue)}
                     </select>
                     <input type="number" class="block__input" value="${action.amount ?? DEFAULT_NUMERIC_VALUE}"
-                        style="max-width: 80px;" data-action-amount data-block-id="${blockId}">
+                        style="max-width: 80px;" data-action-amount ${actionContext}>
                 </div>
             </div>
         `;
     };
 
-    const createActionBlockMarkup = (block, isNested) => {
+    const createActionBlockMarkup = (block, isNested, context = {}) => {
+        const actionContext = buildActionContextAttributes(block.id, context);
         const summary = buildActionSummary(block.action);
         const nestedClass = isNested ? " block--nested" : "";
         return `
@@ -799,14 +856,14 @@ if (nameInput && window.characterMetaStore) {
                     <span class="block__type">アクション</span>
                     <span class="block__overview" data-action-overview>${summary}</span>
                     <div class="block__controls">
-                        <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
-                        <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
+                        <button class="block__btn" data-macro-action="move-block-up" ${actionContext}>↑</button>
+                        <button class="block__btn" data-macro-action="move-block-down" ${actionContext}>↓</button>
                         <button class="block__btn block__btn--danger" data-macro-action="remove-block"
-                            data-block-id="${block.id}">✕</button>
+                            ${actionContext}>✕</button>
                     </div>
                 </summary>
                 <div class="block__content">
-                    ${createActionFieldsMarkup(block.action, block.id)}
+                    ${createActionFieldsMarkup(block.action, block.id, context)}
                 </div>
             </details>
         `;
@@ -841,6 +898,59 @@ if (nameInput && window.characterMetaStore) {
                 data-block-id="${block.id}">
                 ＋ アクションを追加
             </button>
+        `;
+        return createConditionDetailsMarkup({
+            summaryTitle: `条件グループ ${index + 1}`,
+            overviewText: summary,
+            controlsMarkup,
+            contentMarkup,
+            dataAttributes: {
+                "data-block-id": block.id,
+                "data-condition-scope": block.id,
+            },
+        });
+    };
+
+    const createBranchBlockMarkup = (block, index) => {
+        const defaultTarget = findDefaultTarget(currentTargets);
+        const primaryGroup = normalizeConditionBlockConditions(
+            block.conditions,
+            defaultTarget,
+        ).groups[0];
+        const summary = primaryGroup ? buildConditionSummary(primaryGroup) : "";
+        const conditionMarkup = primaryGroup
+            ? createConditionRowsMarkup(primaryGroup, block.id)
+            : createConditionEmptyStateMarkup();
+        const controlsMarkup = `
+            <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
+            <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
+            <button class="block__btn block__btn--danger" data-macro-action="remove-block"
+                data-block-id="${block.id}">✕</button>
+        `;
+        const elseButton = Array.isArray(block.else)
+            ? `
+                <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-branch-action"
+                    data-branch-id="${block.id}" data-branch-role="else">
+                    ＋ else アクションを追加
+                </button>
+            `
+            : `
+                <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-branch-else"
+                    data-branch-id="${block.id}">
+                    ＋ else を追加
+                </button>
+            `;
+        const contentMarkup = `
+            ${conditionMarkup}
+            <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-condition"
+                data-condition-scope="${block.id}" data-group-id="${primaryGroup?.id ?? ""}">
+                ＋ 条件を追加
+            </button>
+            <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-branch-action"
+                data-branch-id="${block.id}" data-branch-role="then">
+                ＋ アクションを追加
+            </button>
+            ${elseButton}
         `;
         return createConditionDetailsMarkup({
             summaryTitle: `条件グループ ${index + 1}`,
@@ -910,6 +1020,61 @@ if (nameInput && window.characterMetaStore) {
         const markupParts = [];
         for (let index = 0; index < blocks.length; index += 1) {
             const block = blocks[index];
+            if (block.type === "branch") {
+                markupParts.push(createBranchBlockMarkup(block, index));
+                const thenActions = Array.isArray(block.then) ? block.then : [];
+                if (thenActions.length > 0) {
+                    markupParts.push(`
+                        <div class="action-connector">
+                            <div class="connector-line-vertical"></div>
+                            <div class="action-connector-label">${BRANCH_LABELS.then}</div>
+                            <div class="connector-line-vertical"></div>
+                        </div>
+                    `);
+                    thenActions.forEach((actionBlock) => {
+                        markupParts.push(
+                            createActionBlockMarkup(actionBlock, true, {
+                                branchId: block.id,
+                                branchRole: "then",
+                            }),
+                        );
+                    });
+                } else {
+                    markupParts.push(`
+                        <div class="action-connector">
+                            <div class="connector-line-vertical"></div>
+                            <div class="action-connector-label">${BRANCH_LABELS.then}</div>
+                            <div class="connector-line-vertical"></div>
+                        </div>
+                        <div class="block-builder__empty is-placeholder">${ACTION_EMPTY_TEXT}</div>
+                    `);
+                }
+                if (Array.isArray(block.else)) {
+                    const elseActions = block.else;
+                    markupParts.push(`
+                        <div class="action-connector">
+                            <div class="connector-line-vertical"></div>
+                            <div class="action-connector-label">${BRANCH_LABELS.else}</div>
+                            <div class="connector-line-vertical"></div>
+                        </div>
+                    `);
+                    if (elseActions.length === 0) {
+                        markupParts.push(
+                            `<div class="block-builder__empty is-placeholder">${ACTION_EMPTY_TEXT}</div>`,
+                        );
+                    } else {
+                        elseActions.forEach((actionBlock) => {
+                            markupParts.push(
+                                createActionBlockMarkup(actionBlock, true, {
+                                    branchId: block.id,
+                                    branchRole: "else",
+                                }),
+                            );
+                        });
+                    }
+                }
+                continue;
+            }
             if (block.type === "condition") {
                 markupParts.push(createConditionBlockMarkup(block, index, blocks.length));
                 const nestedActions = [];
@@ -980,12 +1145,85 @@ if (nameInput && window.characterMetaStore) {
     const getBlockById = (sectionState, blockId) =>
         sectionState.state.blocks.find((entry) => entry.id === blockId) ?? null;
 
+    const getBranchBlockById = (sectionState, branchId) =>
+        sectionState.state.blocks.find(
+            (entry) => entry.id === branchId && entry.type === "branch",
+        ) ?? null;
+
+    const getBranchActionList = (branchBlock, branchRole) => {
+        if (!branchBlock) {
+            return null;
+        }
+        return branchRole === "else" ? branchBlock.else : branchBlock.then;
+    };
+
+    const resolveActionBlock = (sectionState, blockId, context = {}) => {
+        if (context?.branchId) {
+            const branchBlock = getBranchBlockById(sectionState, context.branchId);
+            const list = getBranchActionList(
+                branchBlock,
+                context.branchRole === "else" ? "else" : "then",
+            );
+            return list?.find((entry) => entry.id === blockId) ?? null;
+        }
+        return getBlockById(sectionState, blockId);
+    };
+
     const getConditionScope = (sectionState, scopeId) => {
         const block = sectionState.state.blocks.find((entry) => entry.id === scopeId);
-        if (block && block.type === "condition") {
+        if (block && (block.type === "condition" || block.type === "branch")) {
             return block.conditions;
         }
         return null;
+    };
+
+    const findGroupOverviewElement = (sectionState, scopeId, groupId) => {
+        if (!sectionState?.element || !scopeId) {
+            return null;
+        }
+        if (groupId) {
+            const scoped = sectionState.element.querySelector(
+                `[data-condition-scope="${scopeId}"][data-group-id="${groupId}"] [data-group-overview]`,
+            );
+            if (scoped) {
+                return scoped;
+            }
+        }
+        return sectionState.element.querySelector(
+            `[data-condition-scope="${scopeId}"] [data-group-overview]`,
+        );
+    };
+
+    const updateGroupOverview = (sectionState, scopeId, groupId) => {
+        const summaryElement = findGroupOverviewElement(sectionState, scopeId, groupId);
+        if (!summaryElement) {
+            return;
+        }
+        const conditionScope = getConditionScope(sectionState, scopeId);
+        const group = conditionScope?.groups.find((entry) => entry.id === groupId);
+        if (!group) {
+            summaryElement.textContent = "";
+            return;
+        }
+        summaryElement.textContent = buildConditionSummary(group);
+    };
+
+    const updateActionOverview = (sectionState, blockId, context = {}) => {
+        if (!sectionState?.element || !blockId) {
+            return;
+        }
+        const summaryElement = sectionState.element.querySelector(
+            `[data-block-id="${blockId}"] [data-action-overview]`,
+        );
+        if (!summaryElement) {
+            return;
+        }
+        const block = resolveActionBlock(sectionState, blockId, context);
+        if (!block || block.type !== "action") {
+            summaryElement.textContent = "";
+            return;
+        }
+        summaryElement.textContent = buildActionSummary(block.action);
     };
 
     const updateGroupConnector = (sectionState, scopeId, groupIndex, value) => {
@@ -994,7 +1232,6 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         conditionScope.groupConnectors[groupIndex] = value === "OR" ? "OR" : "AND";
-        renderSection(sectionState);
     };
 
     const updateConditionConnector = (sectionState, scopeId, groupId, value) => {
@@ -1007,7 +1244,7 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         group.connector = value === "OR" ? "OR" : "AND";
-        renderSection(sectionState);
+        updateGroupOverview(sectionState, scopeId, groupId);
     };
 
     const updateConditionValue = (sectionState, scopeId, groupId, conditionId, changes) => {
@@ -1024,20 +1261,20 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         Object.assign(condition, changes);
-        renderSection(sectionState);
+        updateGroupOverview(sectionState, scopeId, groupId);
     };
 
-    const updateAction = (sectionState, blockId, changes) => {
-        const block = getBlockById(sectionState, blockId);
+    const updateAction = (sectionState, blockId, changes, context = {}) => {
+        const block = resolveActionBlock(sectionState, blockId, context);
         if (!block || block.type !== "action") {
             return;
         }
         block.action = { ...block.action, ...changes };
-        renderSection(sectionState);
+        updateActionOverview(sectionState, blockId, context);
     };
 
-    const updateOptionAction = (sectionState, blockId, optionId, optionActionId, changes) => {
-        const block = getBlockById(sectionState, blockId);
+    const updateOptionAction = (sectionState, blockId, optionId, optionActionId, changes, context = {}) => {
+        const block = resolveActionBlock(sectionState, blockId, context);
         if (!block || block.type !== "action" || block.action.type !== "show-choice") {
             return;
         }
@@ -1050,7 +1287,7 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         Object.assign(optionAction, changes);
-        renderSection(sectionState);
+        updateActionOverview(sectionState, blockId, context);
     };
 
     const addConditionGroup = (sectionState, scopeId) => {
@@ -1128,7 +1365,7 @@ if (nameInput && window.characterMetaStore) {
         const defaultTarget = findDefaultTarget(currentTargets);
         const block =
             blockType === "condition"
-                ? createConditionBlock(defaultTarget)
+                ? createBranchBlock(defaultTarget)
                 : createActionBlock(defaultTarget, { parentConditionId });
         if (blockType === "condition") {
             sectionState.state.blocks.push(block);
@@ -1153,6 +1390,78 @@ if (nameInput && window.characterMetaStore) {
             }
         } else {
             sectionState.state.blocks.push(block);
+        }
+        renderSection(sectionState);
+    };
+
+    const addBranchAction = (sectionState, branchId, branchRole) => {
+        const branchBlock = getBranchBlockById(sectionState, branchId);
+        if (!branchBlock) {
+            return;
+        }
+        const defaultTarget = findDefaultTarget(currentTargets);
+        const actionBlock = createBranchActionBlock(defaultTarget);
+        if (branchRole === "else") {
+            if (!Array.isArray(branchBlock.else)) {
+                branchBlock.else = [];
+            }
+            branchBlock.else.push(actionBlock);
+        } else {
+            branchBlock.then.push(actionBlock);
+        }
+        renderSection(sectionState);
+    };
+
+    const removeBranchAction = (sectionState, branchId, branchRole, actionId) => {
+        const branchBlock = getBranchBlockById(sectionState, branchId);
+        if (!branchBlock) {
+            return;
+        }
+        const list = getBranchActionList(branchBlock, branchRole);
+        if (!Array.isArray(list)) {
+            return;
+        }
+        const next = list.filter((entry) => entry.id !== actionId);
+        if (branchRole === "else") {
+            branchBlock.else = next;
+        } else {
+            branchBlock.then = next;
+        }
+        renderSection(sectionState);
+    };
+
+    const moveBranchAction = (sectionState, branchId, branchRole, actionId, direction) => {
+        const branchBlock = getBranchBlockById(sectionState, branchId);
+        if (!branchBlock) {
+            return;
+        }
+        const list = getBranchActionList(branchBlock, branchRole);
+        if (!Array.isArray(list)) {
+            return;
+        }
+        const index = list.findIndex((entry) => entry.id === actionId);
+        const targetIndex = index + direction;
+        if (index === -1 || targetIndex < 0 || targetIndex >= list.length) {
+            return;
+        }
+        const updated = [...list];
+        const [moved] = updated.splice(index, 1);
+        updated.splice(targetIndex, 0, moved);
+        if (branchRole === "else") {
+            branchBlock.else = updated;
+        } else {
+            branchBlock.then = updated;
+        }
+        renderSection(sectionState);
+    };
+
+    const ensureBranchElse = (sectionState, branchId) => {
+        const branchBlock = getBranchBlockById(sectionState, branchId);
+        if (!branchBlock) {
+            return;
+        }
+        if (!Array.isArray(branchBlock.else)) {
+            branchBlock.else = [];
         }
         renderSection(sectionState);
     };
@@ -1231,8 +1540,8 @@ if (nameInput && window.characterMetaStore) {
         renderSection(sectionState);
     };
 
-    const addOption = (sectionState, blockId) => {
-        const block = getBlockById(sectionState, blockId);
+    const addOption = (sectionState, blockId, context = {}) => {
+        const block = resolveActionBlock(sectionState, blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1244,8 +1553,8 @@ if (nameInput && window.characterMetaStore) {
         renderSection(sectionState);
     };
 
-    const removeOption = (sectionState, blockId, optionId) => {
-        const block = getBlockById(sectionState, blockId);
+    const removeOption = (sectionState, blockId, optionId, context = {}) => {
+        const block = resolveActionBlock(sectionState, blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1253,8 +1562,8 @@ if (nameInput && window.characterMetaStore) {
         renderSection(sectionState);
     };
 
-    const addOptionAction = (sectionState, blockId, optionId) => {
-        const block = getBlockById(sectionState, blockId);
+    const addOptionAction = (sectionState, blockId, optionId, context = {}) => {
+        const block = resolveActionBlock(sectionState, blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1270,8 +1579,8 @@ if (nameInput && window.characterMetaStore) {
         renderSection(sectionState);
     };
 
-    const removeOptionAction = (sectionState, blockId, optionId, optionActionId) => {
-        const block = getBlockById(sectionState, blockId);
+    const removeOptionAction = (sectionState, blockId, optionId, optionActionId, context = {}) => {
+        const block = resolveActionBlock(sectionState, blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1283,8 +1592,8 @@ if (nameInput && window.characterMetaStore) {
         renderSection(sectionState);
     };
 
-    const moveOptionAction = (sectionState, blockId, optionId, optionActionId, offset) => {
-        const block = getBlockById(sectionState, blockId);
+    const moveOptionAction = (sectionState, blockId, optionId, optionActionId, offset, context = {}) => {
+        const block = resolveActionBlock(sectionState, blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1362,6 +1671,13 @@ if (nameInput && window.characterMetaStore) {
         };
     };
 
+    const sanitizeActionList = (actionBlocks) =>
+        Array.isArray(actionBlocks)
+            ? actionBlocks
+                .map((entry) => sanitizeAction(entry?.action ?? entry))
+                .filter(Boolean)
+            : [];
+
     const buildSectionPayload = (sectionState) => {
         const blocks = sectionState.state.blocks
             .map((block) => {
@@ -1369,6 +1685,14 @@ if (nameInput && window.characterMetaStore) {
                     return {
                         type: "condition",
                         conditions: sanitizeConditions(block.conditions),
+                    };
+                }
+                if (block.type === "branch") {
+                    return {
+                        type: "branch",
+                        conditions: sanitizeConditions(block.conditions),
+                        then: sanitizeActionList(block.then),
+                        else: Array.isArray(block.else) ? sanitizeActionList(block.else) : undefined,
                     };
                 }
                 const sanitizedAction = sanitizeAction(block.action);
@@ -1514,6 +1838,12 @@ if (nameInput && window.characterMetaStore) {
         if (!action) {
             return;
         }
+        const actionContext = actionButton.dataset.branchId
+            ? {
+                branchId: actionButton.dataset.branchId,
+                branchRole: actionButton.dataset.branchRole === "else" ? "else" : "then",
+            }
+            : {};
         if (action === "add-condition") {
             addCondition(sectionState, actionButton.dataset.conditionScope, actionButton.dataset.groupId);
             return;
@@ -1544,31 +1874,83 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         if (action === "add-nested-action") {
+            const parentBlock = getBlockById(sectionState, actionButton.dataset.blockId);
+            if (parentBlock?.type === "branch") {
+                addBranchAction(sectionState, parentBlock.id, "then");
+                return;
+            }
             addBlock(sectionState, "action", actionButton.dataset.blockId);
             return;
         }
+        if (action === "add-branch-action") {
+            addBranchAction(sectionState, actionButton.dataset.branchId, actionButton.dataset.branchRole);
+            return;
+        }
+        if (action === "add-branch-else") {
+            ensureBranchElse(sectionState, actionButton.dataset.branchId);
+            return;
+        }
         if (action === "move-block-up") {
+            if (actionButton.dataset.branchId) {
+                moveBranchAction(
+                    sectionState,
+                    actionButton.dataset.branchId,
+                    actionButton.dataset.branchRole,
+                    actionButton.dataset.blockId,
+                    -1,
+                );
+                return;
+            }
             moveBlock(sectionState, actionButton.dataset.blockId, -1);
             return;
         }
         if (action === "move-block-down") {
+            if (actionButton.dataset.branchId) {
+                moveBranchAction(
+                    sectionState,
+                    actionButton.dataset.branchId,
+                    actionButton.dataset.branchRole,
+                    actionButton.dataset.blockId,
+                    1,
+                );
+                return;
+            }
             moveBlock(sectionState, actionButton.dataset.blockId, 1);
             return;
         }
         if (action === "remove-block") {
+            if (actionButton.dataset.branchId) {
+                removeBranchAction(
+                    sectionState,
+                    actionButton.dataset.branchId,
+                    actionButton.dataset.branchRole,
+                    actionButton.dataset.blockId,
+                );
+                return;
+            }
             removeBlock(sectionState, actionButton.dataset.blockId);
             return;
         }
         if (action === "add-option") {
-            addOption(sectionState, actionButton.dataset.blockId);
+            addOption(sectionState, actionButton.dataset.blockId, actionContext);
             return;
         }
         if (action === "remove-option") {
-            removeOption(sectionState, actionButton.dataset.blockId, actionButton.dataset.optionId);
+            removeOption(
+                sectionState,
+                actionButton.dataset.blockId,
+                actionButton.dataset.optionId,
+                actionContext,
+            );
             return;
         }
         if (action === "add-option-action") {
-            addOptionAction(sectionState, actionButton.dataset.blockId, actionButton.dataset.optionId);
+            addOptionAction(
+                sectionState,
+                actionButton.dataset.blockId,
+                actionButton.dataset.optionId,
+                actionContext,
+            );
             return;
         }
         if (action === "remove-option-action") {
@@ -1577,6 +1959,7 @@ if (nameInput && window.characterMetaStore) {
                 actionButton.dataset.blockId,
                 actionButton.dataset.optionId,
                 actionButton.dataset.optionActionId,
+                actionContext,
             );
             return;
         }
@@ -1587,6 +1970,7 @@ if (nameInput && window.characterMetaStore) {
                 actionButton.dataset.optionId,
                 actionButton.dataset.optionActionId,
                 -1,
+                actionContext,
             );
             return;
         }
@@ -1597,6 +1981,7 @@ if (nameInput && window.characterMetaStore) {
                 actionButton.dataset.optionId,
                 actionButton.dataset.optionActionId,
                 1,
+                actionContext,
             );
         }
     };
@@ -1627,6 +2012,12 @@ if (nameInput && window.characterMetaStore) {
         if (!sectionState) {
             return;
         }
+        const actionContext = target.dataset.branchId
+            ? {
+                branchId: target.dataset.branchId,
+                branchRole: target.dataset.branchRole === "else" ? "else" : "then",
+            }
+            : {};
         if (target.matches("[data-condition-target]")) {
             const selected = parseTargetValue(target.value, currentTargets);
             updateConditionValue(
@@ -1678,7 +2069,7 @@ if (nameInput && window.characterMetaStore) {
         }
         if (target.matches("[data-action-type]")) {
             const blockId = target.dataset.blockId;
-            const block = getBlockById(sectionState, blockId);
+            const block = resolveActionBlock(sectionState, blockId, actionContext);
             if (!block || block.type !== "action") {
                 return;
             }
@@ -1693,27 +2084,52 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         if (target.matches("[data-action-target]")) {
-            updateAction(sectionState, target.dataset.blockId, { target: parseTargetValue(target.value, currentTargets) });
+            updateAction(
+                sectionState,
+                target.dataset.blockId,
+                { target: parseTargetValue(target.value, currentTargets) },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-action-amount]")) {
-            updateAction(sectionState, target.dataset.blockId, { amount: normalizeNumber(target.value) });
+            updateAction(
+                sectionState,
+                target.dataset.blockId,
+                { amount: normalizeNumber(target.value) },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-action-value]")) {
-            updateAction(sectionState, target.dataset.blockId, { value: normalizeNumber(target.value) });
+            updateAction(
+                sectionState,
+                target.dataset.blockId,
+                { value: normalizeNumber(target.value) },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-action-text]")) {
-            updateAction(sectionState, target.dataset.blockId, { text: target.value, value: target.value });
+            updateAction(
+                sectionState,
+                target.dataset.blockId,
+                { text: target.value, value: target.value },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-choice-question]")) {
-            updateAction(sectionState, target.dataset.blockId, { question: target.value });
+            updateAction(
+                sectionState,
+                target.dataset.blockId,
+                { question: target.value },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-choice-option-label]")) {
-            const block = getBlockById(sectionState, target.dataset.blockId);
+            const block = resolveActionBlock(sectionState, target.dataset.blockId, actionContext);
             if (!block || block.action.type !== "show-choice") {
                 return;
             }
@@ -1722,7 +2138,6 @@ if (nameInput && window.characterMetaStore) {
                 return;
             }
             option.label = target.value;
-            renderSection(sectionState);
             return;
         }
         if (target.matches("[data-option-action-type]")) {
@@ -1734,7 +2149,9 @@ if (nameInput && window.characterMetaStore) {
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 nextAction,
+                actionContext,
             );
+            renderSection(sectionState);
             return;
         }
         if (target.matches("[data-option-action-target]")) {
@@ -1744,6 +2161,7 @@ if (nameInput && window.characterMetaStore) {
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { target: parseTargetValue(target.value, currentTargets) },
+                actionContext,
             );
             return;
         }
@@ -1754,6 +2172,7 @@ if (nameInput && window.characterMetaStore) {
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { amount: normalizeNumber(target.value) },
+                actionContext,
             );
             return;
         }
@@ -1764,6 +2183,7 @@ if (nameInput && window.characterMetaStore) {
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { value: normalizeNumber(target.value) },
+                actionContext,
             );
             return;
         }
@@ -1774,6 +2194,7 @@ if (nameInput && window.characterMetaStore) {
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { text: target.value, value: target.value },
+                actionContext,
             );
             return;
         }
@@ -1784,6 +2205,7 @@ if (nameInput && window.characterMetaStore) {
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { question: target.value },
+                actionContext,
             );
         }
     };

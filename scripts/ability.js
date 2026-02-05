@@ -954,13 +954,20 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     };
 
-    // Build judge text only when attribute and value are both present.
+    // Build judge text while preserving attribute-less inputs when explicitly selected.
     const buildJudgeText = () => {
         const judgeValue = judgeInput?.value?.trim();
         const attributeValue = judgeAttributeSelect?.value?.trim();
         const attributeText = formatJudgeAttribute(attributeValue);
 
-        if (!judgeValue || !attributeText) {
+        if (!judgeValue) {
+            return "";
+        }
+
+        if (!attributeText) {
+            if (!attributeValue || attributeValue === ABILITY_TEXT.judgeNone) {
+                return judgeValue;
+            }
             return "";
         }
 
@@ -1299,7 +1306,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const parseJudgeText = (value) => {
         const raw = value?.trim() ?? "";
         if (!raw) {
-            return { baseCommand: "", modifiers: "", extraText: "" };
+            return { baseCommand: "", modifiers: "", extraText: "", attribute: "" };
         }
 
         const normalized = raw.replace(/\u3000/g, " ").trim();
@@ -1315,8 +1322,12 @@ document.addEventListener("DOMContentLoaded", () => {
             dice = dice.slice(1);
         }
 
-        if (!attribute || !dice) {
-            return { baseCommand: "", modifiers: "", extraText };
+        if (!attribute) {
+            return { baseCommand: compactSource, modifiers: "", extraText, attribute: "" };
+        }
+
+        if (!dice) {
+            return { baseCommand: "", modifiers: "", extraText, attribute };
         }
 
         let modifiers = compactSource;
@@ -1331,7 +1342,7 @@ document.addEventListener("DOMContentLoaded", () => {
             modifiers = `+${modifiers}`;
         }
 
-        return { baseCommand: `${dice}+{${attribute}}`, modifiers, extraText };
+        return { baseCommand: `${dice}+{${attribute}}`, modifiers, extraText, attribute };
     };
 
     // Allow macro-driven modifiers to adjust command output without mutating the base data.
@@ -2118,7 +2129,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Populate the modal form for editing while keeping preview in sync.
     const populateAbilityForm = (data, areaValue) => {
-        const judgeMatch = parseJudgeText(data.judge).baseCommand.match(
+        const parsedJudge = parseJudgeText(data.judge);
+        const judgeMatch = parsedJudge.baseCommand.match(
             /([+-]?(?:\d+)?d\d+)\+\{([^}]+)\}/i,
         );
 
@@ -2170,11 +2182,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (judgeInput) {
-            judgeInput.value = judgeMatch ? judgeMatch[1].replace(/^\+/, "") : "";
+            if (judgeMatch) {
+                judgeInput.value = judgeMatch[1].replace(/^\+/, "");
+            } else {
+                judgeInput.value = parsedJudge.baseCommand ?? "";
+            }
         }
         if (judgeAttributeSelect) {
             if (judgeMatch) {
                 judgeAttributeSelect.value = `+{${judgeMatch[2]}}`;
+            } else if (parsedJudge.baseCommand) {
+                judgeAttributeSelect.value = ABILITY_TEXT.judgeNone;
             } else {
                 judgeAttributeSelect.selectedIndex = 0;
             }

@@ -505,6 +505,9 @@
     </div>
     <!--バフコンテキストメニュー-->
     <div class="context-menu" id="buffItemContextMenu" role="menu" aria-hidden="true">
+        <button class="context-menu__item" type="button" role="menuitem" data-buff-item-action="copy-text">
+            テキストでコピー
+        </button>
         <button class="context-menu__item" type="button" role="menuitem" data-buff-item-action="delete">
             削除
         </button>
@@ -550,7 +553,7 @@
                 <!--効果説明-->
                 <div class="form__group">
                     <span class="form__label">効果説明</span>
-                    <input type="text" class="form__input--normal" data-buff-description required>
+                    <textarea class="form__input--normal" data-buff-description required></textarea>
                     <p class="form__error" data-buff-error="description"></p>
                 </div>
                 <!--コマンド-->
@@ -562,7 +565,7 @@
                 <!--追加テキスト-->
                 <div class="form__group">
                     <span class="form__label">追加テキスト</span>
-                    <input type="number" class="form__input--normal" data-buff-extra-text min="-99" max="99" step="1">
+                    <input type="text" class="form__input--normal" data-buff-extra-text min="-99" max="99" step="1">
                     <p class="form__error" data-buff-error="extraText"></p>
                 </div>
                 <!--対象-->
