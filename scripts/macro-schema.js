@@ -70,14 +70,22 @@
      */
 
     /**
+     * @typedef {Object} MacroCommandTarget
+     * @property {"judge"|"damage"} kind
+     * @property {"judge"|"damage"} id
+     * @property {string=} label
+     */
+
+    /**
      * @typedef {MacroActionBase & {
-     *   value: number
+     *   target: MacroCommandTarget,
+     *   value: string | number
      * }} MacroJudgeDamageAction
      */
 
     /**
      * @typedef {MacroActionBase & {
-     *   target: MacroTarget,
+     *   target: MacroCommandTarget,
      *   value: string | number
      * }} MacroChangeAction
      */

@@ -34,18 +34,18 @@ const test = (name, fn) => {
     tests.push({ name, fn });
 };
 
-const run = () => {
+const run = async () => {
     let failures = 0;
-    tests.forEach(({ name, fn }) => {
+    for (const { name, fn } of tests) {
         try {
-            fn();
+            await fn();
             console.log(`✓ ${name}`);
         } catch (error) {
             failures += 1;
             console.error(`✗ ${name}`);
             console.error(error);
         }
-    });
+    }
     if (failures > 0) {
         process.exitCode = 1;
     }
@@ -149,7 +149,7 @@ test("macro conditions return failures when requirements are unmet", () => {
     assert.equal(failures[0].operator, ">=");
 });
 
-test("macro actions apply deltas and clamp within limits", () => {
+test("macro actions apply deltas and clamp within limits", async () => {
     const context = createMacroContext();
     const { macroExecutor } = context.window;
 
@@ -173,11 +173,11 @@ test("macro actions apply deltas and clamp within limits", () => {
         ],
     };
 
-    macroExecutor.executeMacro(macro, evaluationContext, { applyState: true });
+    await macroExecutor.executeMacro(macro, evaluationContext, { applyState: true });
     assert.equal(state.value, 2);
 });
 
-test("macro choice actions execute the selected branch", () => {
+test("macro choice actions execute the selected branch", async () => {
     const context = createMacroContext();
     const { macroExecutor } = context.window;
 
@@ -219,12 +219,31 @@ test("macro choice actions execute the selected branch", () => {
         ],
     };
 
-    macroExecutor.executeMacro(macro, evaluationContext, {
+    await macroExecutor.executeMacro(macro, evaluationContext, {
         applyState: true,
         chooseOption: () => 1,
     });
 
     assert.equal(state.value, 0);
+});
+
+test("command actions only affect the selected channel", async () => {
+    const context = createMacroContext();
+    const { macroExecutor } = context.window;
+
+    const macro = {
+        actions: [
+            { type: "add-judge-damage", target: { kind: "judge", id: "judge" }, value: 2 },
+            { type: "change", target: { kind: "damage", id: "damage" }, value: "2D+5" },
+        ],
+    };
+
+    const result = await macroExecutor.executeMacro(macro, {}, { mode: "apply" });
+
+    assert.deepStrictEqual(Array.from(result.commandEffects.judge.additions), ["+2"]);
+    assert.equal(result.commandEffects.judge.replacement, "");
+    assert.deepStrictEqual(Array.from(result.commandEffects.damage.additions), []);
+    assert.equal(result.commandEffects.damage.replacement, "2D+5");
 });
 
 run();
