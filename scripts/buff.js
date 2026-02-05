@@ -120,6 +120,9 @@ const BUFF_TEXT = {
     errorNumericSuffix: "は数値で入力してください。",
     errorMinSuffix: "は以上で入力してください。",
     errorMaxSuffix: "は以下で入力してください。",
+    bulkParseError: "一括登録の入力形式を確認してください。",
+    bulkEditNotAllowed: "編集モードでは一括登録を利用できません。",
+    bulkRegistered: "バフ・デバフを一括登録しました。",
 };
 
 const TURN_STATES = {
@@ -163,6 +166,11 @@ const BUFF_MENU_LAYOUT = {
 const BUFF_LIBRARY_SORT_DIRECTIONS = {
     asc: "asc",
     desc: "desc",
+};
+
+const BUFF_BULK_FORMAT = {
+    delimiter: "|",
+    fieldCount: 8,
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -296,6 +304,33 @@ document.addEventListener("DOMContentLoaded", () => {
         permanent: "",
         "until-turn-end": BUFF_TEXT.durationTurnEndLegacy,
         "until-next-turn-start": BUFF_TEXT.durationNextTurnLegacy,
+    };
+
+
+    const bulkTypeAliases = {
+        buff: "buff",
+        debuff: "debuff",
+        バフ: "buff",
+        デバフ: "debuff",
+    };
+
+    const bulkTargetAliases = {
+        "": "",
+        none: "",
+        "---": "",
+        judge: "judge",
+        判定: "judge",
+        damage: "damage",
+        ダメージ: "damage",
+    };
+
+    const bulkDurationAliases = {
+        permanent: "permanent",
+        フェイズ終了まで: "permanent",
+        "until-turn-end": "until-turn-end",
+        ターン終了まで: "until-turn-end",
+        "until-next-turn-start": "until-next-turn-start",
+        次のターン開始まで: "until-next-turn-start",
     };
 
     // Normalize buff type to avoid ambiguous rendering.
@@ -1282,8 +1317,174 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     };
 
+
+    const normalizeBulkToken = (value) => value?.trim() ?? "";
+
+    const resolveBulkValue = (rawValue, aliases, fallback = "") => {
+        const normalized = normalizeBulkToken(rawValue);
+        if (!normalized) {
+            return fallback;
+        }
+        return aliases[normalized] ?? null;
+    };
+
+    const resolveBulkRange = (input) => ({
+        min: input?.min !== "" && input?.min !== undefined ? Number(input.min) : null,
+        max: input?.max !== "" && input?.max !== undefined ? Number(input.max) : null,
+    });
+
+    const validateBulkNumericValue = ({ rawValue, lineNumber, label, range }) => {
+        const normalized = normalizeBulkToken(rawValue);
+        if (!normalized) {
+            return;
+        }
+        const numericValue = Number(normalized);
+        if (Number.isNaN(numericValue)) {
+            throw new Error(`${lineNumber}行目: ${label}${BUFF_TEXT.errorNumericSuffix}`);
+        }
+        if (range.min !== null && numericValue < range.min) {
+            throw new Error(`${lineNumber}行目: ${label}${range.min}${BUFF_TEXT.errorMinSuffix}`);
+        }
+        if (range.max !== null && numericValue > range.max) {
+            throw new Error(`${lineNumber}行目: ${label}${range.max}${BUFF_TEXT.errorMaxSuffix}`);
+        }
+    };
+
+    const resolveBulkTargetLabel = (targetValue) => {
+        if (!targetSelect || !targetValue) {
+            return null;
+        }
+        const option = Array.from(targetSelect.options).find((entry) => entry.value === targetValue);
+        const label = option?.textContent?.trim() ?? "";
+        return label || null;
+    };
+
+    const resolveBulkTargetDetailValue = (rawValue, targetValue) => {
+        if (!canUseTargetDetail(targetValue)) {
+            return null;
+        }
+        const normalized = normalizeBulkToken(rawValue);
+        return normalized || null;
+    };
+
+    const parseBulkBuffLine = (line, lineNumber) => {
+        const columns = line.split(BUFF_BULK_FORMAT.delimiter);
+        if (columns.length !== BUFF_BULK_FORMAT.fieldCount) {
+            throw new Error(`${lineNumber}行目の列数が不正です。`);
+        }
+        const [
+            rawType,
+            rawName,
+            rawDescription,
+            rawCommand,
+            rawExtraText,
+            rawTarget,
+            rawTargetDetail,
+            rawDuration,
+        ] = columns;
+
+        const typeValue = resolveBulkValue(rawType, bulkTypeAliases, "buff");
+        const targetValue = resolveBulkValue(rawTarget, bulkTargetAliases, "");
+        const durationValue = resolveBulkValue(rawDuration, bulkDurationAliases, "permanent");
+        if (!typeValue) {
+            throw new Error(`${lineNumber}行目: 種別が不正です。`);
+        }
+        if (targetValue === null) {
+            throw new Error(`${lineNumber}行目: 対象が不正です。`);
+        }
+        if (!durationValue) {
+            throw new Error(`${lineNumber}行目: 継続時間が不正です。`);
+        }
+
+        const name = normalizeBulkToken(rawName);
+        const description = normalizeBulkToken(rawDescription);
+        if (!name) {
+            throw new Error(`${lineNumber}行目: ${BUFF_TEXT.fieldLabels.name}${BUFF_TEXT.errorRequiredSuffix}`);
+        }
+        if (!description) {
+            throw new Error(`${lineNumber}行目: ${BUFF_TEXT.fieldLabels.description}${BUFF_TEXT.errorRequiredSuffix}`);
+        }
+
+        validateBulkNumericValue({
+            rawValue: rawCommand,
+            lineNumber,
+            label: BUFF_TEXT.fieldLabels.command,
+            range: resolveBulkRange(commandInput),
+        });
+        validateBulkNumericValue({
+            rawValue: rawExtraText,
+            lineNumber,
+            label: BUFF_TEXT.fieldLabels.extraText,
+            range: resolveBulkRange(extraTextInput),
+        });
+
+        const target = resolveBulkTargetLabel(targetValue);
+        const targetDetailValue = resolveBulkTargetDetailValue(rawTargetDetail, targetValue);
+
+        return {
+            id: createBuffId(),
+            iconSrc: resolveIconSource(),
+            limit: limitLabels[durationValue] ?? "",
+            name,
+            tag: buffTypeLabels[typeValue] ?? buffTypeLabels.buff,
+            description,
+            duration: durationLabels[durationValue] ?? durationLabels.permanent,
+            typeValue,
+            command: normalizeOptionalValue(rawCommand),
+            extraText: normalizeOptionalValue(rawExtraText),
+            target,
+            targetValue: targetValue || null,
+            targetDetailLabel: targetDetailValue,
+            targetDetailValue,
+            durationValue,
+        };
+    };
+
+    const parseBulkBuffInput = (bulkText) => {
+        const lines = (bulkText ?? "")
+            .split(/\r?\n/)
+            .map((entry) => entry.trim())
+            .filter(Boolean);
+
+        if (lines.length === 0) {
+            return [];
+        }
+
+        return lines.map((line, index) => parseBulkBuffLine(line, index + 1));
+    };
+
+    const hasBulkInput = () => Boolean(bulkInput?.value?.trim());
+
     submitButton.addEventListener("click", (event) => {
         event.preventDefault();
+
+        if (hasBulkInput()) {
+            if (editingState.id) {
+                showToast(BUFF_TEXT.bulkEditNotAllowed, "error");
+                return;
+            }
+
+            try {
+                const parsedBuffs = parseBulkBuffInput(bulkInput?.value);
+                if (parsedBuffs.length === 0) {
+                    showToast(BUFF_TEXT.bulkParseError, "error");
+                    return;
+                }
+                const storedBuffs = getStoredLibraryBuffs();
+                saveStoredBuffs(BUFF_STORAGE_KEYS.library, [...storedBuffs, ...parsedBuffs]);
+                renderStoredBuffs();
+                resetForm();
+                if (buffModal.open) {
+                    buffModal.close();
+                }
+                showToast(BUFF_TEXT.bulkRegistered, "success");
+            } catch (error) {
+                console.warn("Failed to parse bulk buff input.", error);
+                const message = error instanceof Error ? error.message : BUFF_TEXT.bulkParseError;
+                showToast(message || BUFF_TEXT.bulkParseError, "error");
+            }
+            return;
+        }
 
         if (!validateForm()) {
             return;
