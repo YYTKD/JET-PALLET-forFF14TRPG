@@ -534,8 +534,6 @@ section {
 }
 
 
-
-
 .section__header--title {
     display: flex;
     align-items: baseline;
@@ -1115,6 +1113,11 @@ dialog h3 {
     padding: 4px 8px;
     height: 48px;
     box-shadow: var(--panel-light);
+}
+
+.dialog__header--macro {
+    padding: 16px;
+    height: 100%;
 }
 
 .dialog__header button {
@@ -2096,6 +2099,7 @@ details:not([open]) summary {
     font-weight: 500;
     font-style: italic;
     padding-top: 2px;
+    padding-right: 4px;
     white-space: nowrap;
 }
 
@@ -2112,7 +2116,6 @@ details:not([open]) summary {
 
 .card__stat {
     min-width: 0;
-    width: fit-content;
     line-height: 0.6rem;
     padding: 0 2px;
 }
@@ -2128,6 +2131,7 @@ details:not([open]) summary {
 .card__value {
     font-size: 12px;
     min-width: 0;
+    width: 100%;
     font-weight: 600;
     overflow-wrap: anywhere;
     word-break: normal;
