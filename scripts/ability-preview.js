@@ -142,11 +142,18 @@ document.addEventListener("DOMContentLoaded", () => {
         return /^[+-]/.test(value) ? value : `+${value}`;
     };
 
-    // Build judge text only when both parts exist to prevent partial labels in the preview.
+    // Build judge text while honoring attribute-less selections for preview parity.
     const buildJudgeText = ({ judgeValue, attributeValue }) => {
         const attributeText = formatJudgeAttribute(attributeValue);
 
-        if (!judgeValue || !attributeText) {
+        if (!judgeValue) {
+            return "";
+        }
+
+        if (!attributeText) {
+            if (!attributeValue || attributeValue === ABILITY_PREVIEW_TEXT.judgeNone) {
+                return judgeValue;
+            }
             return "";
         }
 
