@@ -163,6 +163,14 @@
         return Number.isFinite(parsed) ? parsed : fallback;
     };
 
+    const normalizeActionValueText = (value, fallback = String(DEFAULT_NUMERIC_VALUE)) => {
+        if (value === null || value === undefined) {
+            return fallback;
+        }
+        const normalized = String(value).trim();
+        return normalized || fallback;
+    };
+
     const normalizeTarget = (target) => {
         if (!target) {
             return null;
@@ -493,7 +501,7 @@
         if (action.type === "add-judge-damage") {
             return {
                 type: "add-judge-damage",
-                value: normalizeNumber(action.value, DEFAULT_NUMERIC_VALUE),
+                value: normalizeActionValueText(action.value),
             };
         }
         if (action.type === "add-effect-text") {
@@ -2071,7 +2079,7 @@
         if (action.type === "add-judge-damage") {
             return {
                 type: "add-judge-damage",
-                value: normalizeNumber(action.value, DEFAULT_NUMERIC_VALUE),
+                value: normalizeActionValueText(action.value),
             };
         }
         if (action.type === "change") {
@@ -2161,6 +2169,15 @@
             return parsed;
         }
         return parsed;
+    };
+
+    const validateRequiredTextInput = (errors, input, messagePrefix, message) => {
+        const raw = input?.value?.trim() ?? "";
+        if (!raw) {
+            addValidationError(errors, input, `${messagePrefix}${message}`);
+            return null;
+        }
+        return raw;
     };
 
     const validateTargetSelection = (errors, select, messagePrefix) => {
@@ -2277,7 +2294,12 @@
                     `[data-option-action-value][data-block-id="${blockId}"]` +
                         `[data-option-id="${optionId}"][data-option-action-id="${action.id}"]`,
                 );
-                validateNumberInput(errors, valueInput, messagePrefix);
+                validateRequiredTextInput(
+                    errors,
+                    valueInput,
+                    messagePrefix,
+                    VALIDATION_TEXT.missingText,
+                );
                 return;
             }
             if (actionType === "change") {
@@ -2407,7 +2429,12 @@
                 const valueInput = macroModal.querySelector(
                     `[data-action-value][data-block-id="${blockId}"]`,
                 );
-                validateNumberInput(errors, valueInput, messagePrefix);
+                validateRequiredTextInput(
+                    errors,
+                    valueInput,
+                    messagePrefix,
+                    VALIDATION_TEXT.missingText,
+                );
                 return;
             }
             if (actionType === "change") {
@@ -2769,7 +2796,7 @@
         if (target.matches("[data-action-value]")) {
             updateAction(
                 target.dataset.blockId,
-                { value: normalizeNumber(target.value) },
+                { value: target.value },
                 actionContext,
             );
             return;
@@ -2837,7 +2864,7 @@
                 target.dataset.blockId,
                 target.dataset.optionId,
                 target.dataset.optionActionId,
-                { value: normalizeNumber(target.value) },
+                { value: target.value },
                 actionContext,
             );
             return;
