@@ -1177,13 +1177,61 @@ if (nameInput && window.characterMetaStore) {
         return null;
     };
 
+    const findGroupOverviewElement = (sectionState, scopeId, groupId) => {
+        if (!sectionState?.element || !scopeId) {
+            return null;
+        }
+        if (groupId) {
+            const scoped = sectionState.element.querySelector(
+                `[data-condition-scope="${scopeId}"][data-group-id="${groupId}"] [data-group-overview]`,
+            );
+            if (scoped) {
+                return scoped;
+            }
+        }
+        return sectionState.element.querySelector(
+            `[data-condition-scope="${scopeId}"] [data-group-overview]`,
+        );
+    };
+
+    const updateGroupOverview = (sectionState, scopeId, groupId) => {
+        const summaryElement = findGroupOverviewElement(sectionState, scopeId, groupId);
+        if (!summaryElement) {
+            return;
+        }
+        const conditionScope = getConditionScope(sectionState, scopeId);
+        const group = conditionScope?.groups.find((entry) => entry.id === groupId);
+        if (!group) {
+            summaryElement.textContent = "";
+            return;
+        }
+        summaryElement.textContent = buildConditionSummary(group);
+    };
+
+    const updateActionOverview = (sectionState, blockId, context = {}) => {
+        if (!sectionState?.element || !blockId) {
+            return;
+        }
+        const summaryElement = sectionState.element.querySelector(
+            `[data-block-id="${blockId}"] [data-action-overview]`,
+        );
+        if (!summaryElement) {
+            return;
+        }
+        const block = resolveActionBlock(sectionState, blockId, context);
+        if (!block || block.type !== "action") {
+            summaryElement.textContent = "";
+            return;
+        }
+        summaryElement.textContent = buildActionSummary(block.action);
+    };
+
     const updateGroupConnector = (sectionState, scopeId, groupIndex, value) => {
         const conditionScope = getConditionScope(sectionState, scopeId);
         if (!conditionScope) {
             return;
         }
         conditionScope.groupConnectors[groupIndex] = value === "OR" ? "OR" : "AND";
-        renderSection(sectionState);
     };
 
     const updateConditionConnector = (sectionState, scopeId, groupId, value) => {
@@ -1196,7 +1244,7 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         group.connector = value === "OR" ? "OR" : "AND";
-        renderSection(sectionState);
+        updateGroupOverview(sectionState, scopeId, groupId);
     };
 
     const updateConditionValue = (sectionState, scopeId, groupId, conditionId, changes) => {
@@ -1213,7 +1261,7 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         Object.assign(condition, changes);
-        renderSection(sectionState);
+        updateGroupOverview(sectionState, scopeId, groupId);
     };
 
     const updateAction = (sectionState, blockId, changes, context = {}) => {
@@ -1222,7 +1270,7 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         block.action = { ...block.action, ...changes };
-        renderSection(sectionState);
+        updateActionOverview(sectionState, blockId, context);
     };
 
     const updateOptionAction = (sectionState, blockId, optionId, optionActionId, changes, context = {}) => {
@@ -1239,7 +1287,7 @@ if (nameInput && window.characterMetaStore) {
             return;
         }
         Object.assign(optionAction, changes);
-        renderSection(sectionState);
+        updateActionOverview(sectionState, blockId, context);
     };
 
     const addConditionGroup = (sectionState, scopeId) => {
@@ -2090,7 +2138,6 @@ if (nameInput && window.characterMetaStore) {
                 return;
             }
             option.label = target.value;
-            renderSection(sectionState);
             return;
         }
         if (target.matches("[data-option-action-type]")) {
@@ -2104,6 +2151,7 @@ if (nameInput && window.characterMetaStore) {
                 nextAction,
                 actionContext,
             );
+            renderSection(sectionState);
             return;
         }
         if (target.matches("[data-option-action-target]")) {
