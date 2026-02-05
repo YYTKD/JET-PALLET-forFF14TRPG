@@ -123,6 +123,8 @@ const BUFF_TEXT = {
     bulkParseError: "一括登録の入力形式を確認してください。",
     bulkEditNotAllowed: "編集モードでは一括登録を利用できません。",
     bulkRegistered: "バフ・デバフを一括登録しました。",
+    toastCopiedAsBulkText: "一括登録用テキストをコピーしました。",
+    toastCopyFailed: "一括登録用テキストをコピーできませんでした。",
 };
 
 const TURN_STATES = {
@@ -171,6 +173,15 @@ const BUFF_LIBRARY_SORT_DIRECTIONS = {
 const BUFF_BULK_FORMAT = {
     delimiter: "|",
     fieldCount: 8,
+};
+
+const BUFF_BULK_COPY_DEFAULTS = {
+    type: "buff",
+    duration: "permanent",
+    target: "",
+    targetDetail: "",
+    command: "",
+    extraText: "",
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1320,6 +1331,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const normalizeBulkToken = (value) => value?.trim() ?? "";
 
+    // Keep clipboard behavior consistent with other copy features while supporting older browsers.
+    const copyTextToClipboard = async (text) => {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+
+        const fallback = document.createElement("textarea");
+        fallback.value = text;
+        fallback.setAttribute("readonly", "");
+        fallback.style.position = "absolute";
+        fallback.style.left = "-9999px";
+        document.body.appendChild(fallback);
+        fallback.select();
+        document.execCommand("copy");
+        fallback.remove();
+    };
+
+    const buildBulkCopyTypeToken = (typeValue) => {
+        if (typeValue === "debuff") {
+            return "debuff";
+        }
+        return BUFF_BULK_COPY_DEFAULTS.type;
+    };
+
+    const buildBulkCopyTargetToken = (targetValue) => {
+        if (typeof targetValue === "string" && targetValue.length > 0) {
+            return targetValue;
+        }
+        return BUFF_BULK_COPY_DEFAULTS.target;
+    };
+
+    const buildBulkCopyDurationToken = (durationValue) => {
+        if (typeof durationValue === "string" && durationValue.length > 0) {
+            return durationValue;
+        }
+        return BUFF_BULK_COPY_DEFAULTS.duration;
+    };
+
+    const serializeBuffDataAsBulkText = (buffData) => {
+        if (!buffData || typeof buffData !== "object") {
+            throw new Error("バフデータの取得に失敗しました。");
+        }
+
+        const tokens = [
+            buildBulkCopyTypeToken(buffData.typeValue),
+            normalizeBulkToken(buffData.name),
+            normalizeBulkToken(buffData.description),
+            normalizeBulkToken(buffData.command ?? BUFF_BULK_COPY_DEFAULTS.command),
+            normalizeBulkToken(buffData.extraText ?? BUFF_BULK_COPY_DEFAULTS.extraText),
+            buildBulkCopyTargetToken(buffData.targetValue),
+            normalizeBulkToken(buffData.targetDetailValue ?? BUFF_BULK_COPY_DEFAULTS.targetDetail),
+            buildBulkCopyDurationToken(buffData.durationValue),
+        ];
+
+        return tokens.join(BUFF_BULK_FORMAT.delimiter);
+    };
+
     const resolveBulkValue = (rawValue, aliases, fallback = "") => {
         const normalized = normalizeBulkToken(rawValue);
         if (!normalized) {
@@ -1722,6 +1791,27 @@ document.addEventListener("DOMContentLoaded", () => {
             
             const action = item.dataset.buffItemAction;
             
+            if (action === "copy-text") {
+                const payload = parseBuffPayload(target);
+                if (!payload) {
+                    showToast(BUFF_TEXT.toastNotFound, "error");
+                    closeBuffItemContextMenu();
+                    return;
+                }
+
+                const bulkText = serializeBuffDataAsBulkText(payload);
+                void copyTextToClipboard(bulkText)
+                    .then(() => {
+                        showToast(BUFF_TEXT.toastCopiedAsBulkText, "success");
+                    })
+                    .catch((error) => {
+                        console.error("Failed to copy bulk buff text:", error);
+                        showToast(BUFF_TEXT.toastCopyFailed, "error");
+                    });
+                closeBuffItemContextMenu();
+                return;
+            }
+
             if (action === "delete") {
                 closeBuffItemContextMenu();
                 queueBuffUpdateFromData(parseBuffPayload(target), -1);
