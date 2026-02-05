@@ -586,6 +586,22 @@
                 });
                 return;
             }
+            if (type === "branch") {
+                const conditionPayload = block.conditions ?? block;
+                const groups = Array.isArray(conditionPayload?.groups)
+                    ? conditionPayload.groups
+                    : [];
+                groups.forEach((group) => {
+                    const conditions = Array.isArray(group?.conditions) ? group.conditions : [];
+                    conditions.forEach((condition) => checkTarget(condition?.target));
+                });
+                const branchActions = [
+                    ...extractActionsFromList(block.then),
+                    ...extractActionsFromList(block.else),
+                ];
+                branchActions.forEach((action) => checkAction(action));
+                return;
+            }
             if (type === "action") {
                 extractActionsFromBlock(block).forEach((action) => checkAction(action));
             }
@@ -629,6 +645,9 @@
         if (block.actions || block.action) {
             return "action";
         }
+        if (block.then || block.else) {
+            return "branch";
+        }
         if (block.conditions) {
             return "condition";
         }
@@ -655,6 +674,30 @@
             return [block];
         }
         return [];
+    };
+
+    const extractActionsFromList = (entries) => {
+        if (!Array.isArray(entries)) {
+            return [];
+        }
+        const actions = [];
+        entries.forEach((entry) => {
+            if (!entry) {
+                return;
+            }
+            if (entry.action) {
+                actions.push(entry.action);
+                return;
+            }
+            if (Array.isArray(entry.actions) && entry.actions.length > 0) {
+                actions.push(...entry.actions);
+                return;
+            }
+            if (entry.type && !entry.conditions) {
+                actions.push(entry);
+            }
+        });
+        return actions;
     };
 
     const executeMacroBlocks = async (macro, context, options, result) => {
@@ -685,6 +728,16 @@
                     }
                 }
                 index = nextIndex - 1;
+                continue;
+            }
+            if (blockType === "branch") {
+                const conditionPayload = block.conditions ?? block;
+                const matched = evaluateMacroConditions(conditionPayload, context, result);
+                const branchActions = matched ? block.then : block.else;
+                const actions = extractActionsFromList(branchActions);
+                for (const action of actions) {
+                    await executeAction(action, context, options, result);
+                }
                 continue;
             }
             if (blockType === "action") {

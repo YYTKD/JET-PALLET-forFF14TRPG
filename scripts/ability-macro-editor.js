@@ -66,6 +66,7 @@
         actionNone: "アクションなし",
         actionExecute: "アクションを実行",
         actionConditionLead: "もし以下の条件を満たすなら",
+        actionElseLead: "それ以外なら",
         connectorAnd: "かつ",
         connectorOr: "または",
         choiceTitle: "選択肢を表示",
@@ -76,6 +77,11 @@
 
     const PREVIEW_INDENT = "    ";
     const CONDITION_EMPTY_TEXT = "条件グループを追加してください。";
+    const ACTION_EMPTY_TEXT = "アクションを追加してください。";
+    const BRANCH_LABELS = Object.freeze({
+        then: "↓ 条件成立時",
+        else: "↓ 条件不成立時",
+    });
 
     const DEFAULT_NUMERIC_VALUE = 1;
     const NUMERIC_LIMITS = Object.freeze({
@@ -214,6 +220,12 @@
         action: createDefaultAction(defaultTarget),
     });
 
+    const createBranchActionBlock = (defaultTarget) => ({
+        id: createId("block"),
+        type: "action",
+        action: createDefaultAction(defaultTarget),
+    });
+
     const createConditionBlock = (defaultTarget) => ({
         id: createId("block"),
         type: "condition",
@@ -222,6 +234,18 @@
             groups: [createConditionGroup(defaultTarget)],
             groupConnectors: [],
         },
+    });
+
+    const createBranchBlock = (defaultTarget) => ({
+        id: createId("block"),
+        type: "branch",
+        parentConditionId: null,
+        conditions: {
+            groups: [createConditionGroup(defaultTarget)],
+            groupConnectors: [],
+        },
+        then: [],
+        else: null,
     });
 
     const createEmptyMacroState = () => ({
@@ -502,6 +526,15 @@
         return block;
     };
 
+    const normalizeBranchActions = (actions, defaultTarget) => {
+        const list = Array.isArray(actions) ? actions : [];
+        return list.map((entry) => ({
+            id: entry?.id ?? createId("block"),
+            type: "action",
+            action: normalizeAction(resolveBlockAction(entry), defaultTarget),
+        }));
+    };
+
     const normalizeBlocks = (macro, defaultTarget) => {
         const blocks = Array.isArray(macro?.blocks)
             ? macro.blocks
@@ -514,6 +547,20 @@
         );
 
         const normalized = blocks.map((block) => {
+            if (block?.type === "branch" || block?.then || block?.else) {
+                const hasElse = Object.prototype.hasOwnProperty.call(block ?? {}, "else");
+                return {
+                    id: block?.id ?? createId("block"),
+                    type: "branch",
+                    parentConditionId: null,
+                    conditions: normalizeConditionBlockConditions(
+                        block?.conditions ?? block,
+                        defaultTarget,
+                    ),
+                    then: normalizeBranchActions(block?.then, defaultTarget),
+                    else: hasElse ? normalizeBranchActions(block?.else, defaultTarget) : null,
+                };
+            }
             const blockType = block?.type === "condition" ? "condition" : "action";
             if (blockType === "condition") {
                 return {
@@ -682,6 +729,13 @@
         return lines;
     }
 
+    const normalizeActionList = (entries) =>
+        Array.isArray(entries)
+            ? entries
+                .map((entry) => entry?.action ?? entry)
+                .filter(Boolean)
+            : [];
+
     function formatActionDetailLines(action, indentLevel) {
         if (!action) {
             return [];
@@ -737,6 +791,22 @@
         let actionIndex = 1;
         for (let index = 0; index < blocks.length; index += 1) {
             const block = blocks[index];
+            if (block.type === "branch") {
+                lines.push(`${actionIndex}.${PREVIEW_TEXT.actionConditionLead}`);
+                lines.push(...formatConditionBlockLines(block.conditions, 1));
+                lines.push(`${PREVIEW_INDENT}${PREVIEW_TEXT.actionExecute}`);
+                lines.push(...formatActionListLines(normalizeActionList(block.then), 2));
+                if (Array.isArray(block.else)) {
+                    lines.push(`${PREVIEW_INDENT}${PREVIEW_TEXT.actionElseLead}`);
+                    if (block.else.length === 0) {
+                        lines.push(`${PREVIEW_INDENT}${PREVIEW_INDENT}${PREVIEW_TEXT.nestedActionNone}`);
+                    } else {
+                        lines.push(...formatActionListLines(normalizeActionList(block.else), 2));
+                    }
+                }
+                actionIndex += 1;
+                continue;
+            }
             if (block.type === "condition") {
                 lines.push(`${actionIndex}.${PREVIEW_TEXT.actionConditionLead}`);
                 lines.push(...formatConditionBlockLines(block.conditions, 1));
@@ -976,10 +1046,20 @@
         renderConditionGroups(root, macroState.conditions, "root");
     };
 
-    const createActionFieldsMarkup = (action, blockId) => {
+    const buildActionContextAttributes = (blockId, context = {}) => {
+        const attributes = [`data-block-id="${blockId}"`];
+        if (context?.branchId) {
+            attributes.push(`data-branch-id="${context.branchId}"`);
+            attributes.push(`data-branch-role="${context.branchRole}"`);
+        }
+        return attributes.join(" ");
+    };
+
+    const createActionFieldsMarkup = (action, blockId, context = {}) => {
+        const actionContext = buildActionContextAttributes(blockId, context);
         const typeSelect = `
             <div class="block__row">
-                <select class="block__select" data-action-type data-block-id="${blockId}">
+                <select class="block__select" data-action-type ${actionContext}>
                     ${buildActionTypeOptionsMarkup(action.type)}
                 </select>
             </div>
@@ -995,18 +1075,18 @@
                                         <span class="block__type">アクション</span>
                                         <div class="block__controls">
                                             <button class="block__btn" data-macro-action="move-option-action-up"
-                                                data-block-id="${blockId}" data-option-id="${option.id}"
+                                                ${actionContext} data-option-id="${option.id}"
                                                 data-option-action-id="${nestedAction.id}">↑</button>
                                             <button class="block__btn" data-macro-action="move-option-action-down"
-                                                data-block-id="${blockId}" data-option-id="${option.id}"
+                                                ${actionContext} data-option-id="${option.id}"
                                                 data-option-action-id="${nestedAction.id}">↓</button>
                                             <button class="block__btn block__btn--danger" data-macro-action="remove-option-action"
-                                                data-block-id="${blockId}" data-option-id="${option.id}"
+                                                ${actionContext} data-option-id="${option.id}"
                                                 data-option-action-id="${nestedAction.id}">✕</button>
                                         </div>
                                     </div>
                                     <div class="block__content">
-                                        ${createOptionActionFieldsMarkup(nestedAction, blockId, option.id)}
+                                        ${createOptionActionFieldsMarkup(nestedAction, blockId, option.id, context)}
                                     </div>
                                 </div>
                             `;
@@ -1017,11 +1097,11 @@
                             <div class="block__row">
                                 <span class="block__text">選択肢${optionIndex + 1}：</span>
                                 <input class="block__textbox" value="${option.label ?? ""}" data-choice-option-label
-                                    data-block-id="${blockId}" data-option-id="${option.id}">
+                                    ${actionContext} data-option-id="${option.id}">
                                 <button class="block__btn" title="アクションを追加" data-macro-action="add-option-action"
-                                    data-block-id="${blockId}" data-option-id="${option.id}">＋</button>
+                                    ${actionContext} data-option-id="${option.id}">＋</button>
                                 <button class="block__btn block__btn--danger" data-macro-action="remove-option"
-                                    data-block-id="${blockId}" data-option-id="${option.id}">✕</button>
+                                    ${actionContext} data-option-id="${option.id}">✕</button>
                             </div>
                             ${actionsMarkup}
                         </div>
@@ -1031,13 +1111,13 @@
             return `
                 ${typeSelect}
                 <div class="block-item">
-                    <div class="block__row">
-                        <span class="block__text">質問：</span>
-                        <input class="block__textbox" value="${action.question ?? ""}" data-choice-question
-                            data-block-id="${blockId}">
-                        <button class="block__btn" title="選択肢を追加" data-macro-action="add-option"
-                            data-block-id="${blockId}">＋</button>
-                    </div>
+                <div class="block__row">
+                    <span class="block__text">質問：</span>
+                    <input class="block__textbox" value="${action.question ?? ""}" data-choice-question
+                        ${actionContext}>
+                    <button class="block__btn" title="選択肢を追加" data-macro-action="add-option"
+                        ${actionContext}>＋</button>
+                </div>
                 </div>
                 ${optionsMarkup}
             `;
@@ -1050,7 +1130,7 @@
                     <div class="block__row">
                         <span class="block__text">効果：</span>
                         <input class="block__textbox" value="${action.text ?? ""}" data-action-text
-                            data-block-id="${blockId}">
+                            ${actionContext}>
                     </div>
                 </div>
             `;
@@ -1063,7 +1143,7 @@
                     <div class="block__row">
                         <span class="block__text">追加値：</span>
                         <input type="number" class="block__input" value="${action.value ?? DEFAULT_NUMERIC_VALUE}"
-                            style="max-width: 80px;" data-action-value data-block-id="${blockId}">
+                            style="max-width: 80px;" data-action-value ${actionContext}>
                     </div>
                 </div>
             `;
@@ -1076,11 +1156,11 @@
                 <div class="block-item">
                     <div class="block__row">
                         <span class="block__text">対象：</span>
-                        <select class="block__select" data-action-target data-block-id="${blockId}">
+                        <select class="block__select" data-action-target ${actionContext}>
                             ${buildTargetOptionsMarkup(targetValue)}
                         </select>
                         <input class="block__textbox" value="${action.value ?? ""}" data-action-text
-                            data-block-id="${blockId}">
+                            ${actionContext}>
                     </div>
                 </div>
             `;
@@ -1092,20 +1172,21 @@
             <div class="block-item">
                 <div class="block__row">
                     <span class="block__text">対象：</span>
-                    <select class="block__select" data-action-target data-block-id="${blockId}">
+                    <select class="block__select" data-action-target ${actionContext}>
                         ${buildTargetOptionsMarkup(targetValue)}
                     </select>
                     <input type="number" class="block__input" value="${action.amount ?? DEFAULT_NUMERIC_VALUE}"
-                        style="max-width: 80px;" data-action-amount data-block-id="${blockId}">
+                        style="max-width: 80px;" data-action-amount ${actionContext}>
                 </div>
             </div>
         `;
     };
 
-    const createOptionActionFieldsMarkup = (action, blockId, optionId) => {
+    const createOptionActionFieldsMarkup = (action, blockId, optionId, context = {}) => {
+        const actionContext = buildActionContextAttributes(blockId, context);
         const typeSelect = `
             <div class="block__row">
-                <select class="block__select" data-option-action-type data-block-id="${blockId}"
+                <select class="block__select" data-option-action-type ${actionContext}
                     data-option-id="${optionId}" data-option-action-id="${action.id}">
                     ${buildActionTypeOptionsMarkup(action.type)}
                 </select>
@@ -1119,7 +1200,7 @@
                     <div class="block__row">
                         <span class="block__text">質問：</span>
                         <input class="block__textbox" value="${action.question ?? ""}" data-option-action-question
-                            data-block-id="${blockId}" data-option-id="${optionId}" data-option-action-id="${action.id}">
+                            ${actionContext} data-option-id="${optionId}" data-option-action-id="${action.id}">
                     </div>
                 </div>
             `;
@@ -1132,7 +1213,7 @@
                     <div class="block__row">
                         <span class="block__text">効果：</span>
                         <input class="block__textbox" value="${action.text ?? ""}" data-option-action-text
-                            data-block-id="${blockId}" data-option-id="${optionId}" data-option-action-id="${action.id}">
+                            ${actionContext} data-option-id="${optionId}" data-option-action-id="${action.id}">
                     </div>
                 </div>
             `;
@@ -1146,7 +1227,7 @@
                         <span class="block__text">追加値：</span>
                         <input type="number" class="block__input" value="${action.value ?? DEFAULT_NUMERIC_VALUE}"
                             style="max-width: 80px;" data-option-action-value
-                            data-block-id="${blockId}" data-option-id="${optionId}" data-option-action-id="${action.id}">
+                            ${actionContext} data-option-id="${optionId}" data-option-action-id="${action.id}">
                     </div>
                 </div>
             `;
@@ -1159,12 +1240,12 @@
                 <div class="block-item">
                     <div class="block__row">
                         <span class="block__text">対象：</span>
-                        <select class="block__select" data-option-action-target data-block-id="${blockId}"
+                        <select class="block__select" data-option-action-target ${actionContext}
                             data-option-id="${optionId}" data-option-action-id="${action.id}">
                             ${buildTargetOptionsMarkup(targetValue)}
                         </select>
                         <input class="block__textbox" value="${action.value ?? ""}" data-option-action-text
-                            data-block-id="${blockId}" data-option-id="${optionId}" data-option-action-id="${action.id}">
+                            ${actionContext} data-option-id="${optionId}" data-option-action-id="${action.id}">
                     </div>
                 </div>
             `;
@@ -1176,19 +1257,20 @@
             <div class="block-item">
                 <div class="block__row">
                     <span class="block__text">対象：</span>
-                    <select class="block__select" data-option-action-target data-block-id="${blockId}"
+                    <select class="block__select" data-option-action-target ${actionContext}
                         data-option-id="${optionId}" data-option-action-id="${action.id}">
                         ${buildTargetOptionsMarkup(targetValue)}
                     </select>
                     <input type="number" class="block__input" value="${action.amount ?? DEFAULT_NUMERIC_VALUE}"
-                        style="max-width: 80px;" data-option-action-amount data-block-id="${blockId}"
+                        style="max-width: 80px;" data-option-action-amount ${actionContext}
                         data-option-id="${optionId}" data-option-action-id="${action.id}">
                 </div>
             </div>
         `;
     };
 
-    const createActionBlockMarkup = (block, isNested) => {
+    const createActionBlockMarkup = (block, isNested, context = {}) => {
+        const actionContext = buildActionContextAttributes(block.id, context);
         const summary = buildActionSummary(block.action);
         const nestedClass = isNested ? " block--nested" : "";
         return `
@@ -1198,14 +1280,14 @@
                     <span class="block__type">アクション</span>
                     <span class="block__overview" data-action-overview>${summary}</span>
                     <div class="block__controls">
-                        <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
-                        <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
+                        <button class="block__btn" data-macro-action="move-block-up" ${actionContext}>↑</button>
+                        <button class="block__btn" data-macro-action="move-block-down" ${actionContext}>↓</button>
                         <button class="block__btn block__btn--danger" data-macro-action="remove-block"
-                            data-block-id="${block.id}">✕</button>
+                            ${actionContext}>✕</button>
                     </div>
                 </summary>
                 <div class="block__content">
-                    ${createActionFieldsMarkup(block.action, block.id)}
+                    ${createActionFieldsMarkup(block.action, block.id, context)}
                 </div>
             </details>
         `;
@@ -1252,6 +1334,58 @@
         `;
     };
 
+    const createBranchBlockMarkup = (block, index) => {
+        const defaultTarget = findDefaultTarget(currentTargets);
+        const primaryGroup = normalizeConditionBlockConditions(
+            block.conditions,
+            defaultTarget,
+        ).groups[0];
+        const summary = primaryGroup ? buildConditionSummary(primaryGroup) : "";
+        const conditionMarkup = primaryGroup
+            ? createConditionRowsMarkup(primaryGroup, block.id)
+            : createConditionEmptyStateMarkup();
+        const elseButton = Array.isArray(block.else)
+            ? `
+                <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-branch-action"
+                    data-branch-id="${block.id}" data-branch-role="else">
+                    ＋ else アクションを追加
+                </button>
+            `
+            : `
+                <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-branch-else"
+                    data-branch-id="${block.id}">
+                    ＋ else を追加
+                </button>
+            `;
+        return `
+            <details class="block block--condition" data-block-id="${block.id}" data-condition-scope="${block.id}">
+                <summary class="block__header">
+                    
+                    <span class="block__type">条件グループ ${index + 1}</span>
+                    <span class="block__overview" data-group-overview>${summary}</span>
+                    <div class="block__controls">
+                        <button class="block__btn" data-macro-action="move-block-up" data-block-id="${block.id}">↑</button>
+                        <button class="block__btn" data-macro-action="move-block-down" data-block-id="${block.id}">↓</button>
+                        <button class="block__btn block__btn--danger" data-macro-action="remove-block"
+                            data-block-id="${block.id}">✕</button>
+                    </div>
+                </summary>
+                <div class="block__content">
+                    ${conditionMarkup}
+                    <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-condition"
+                        data-condition-scope="${block.id}" data-group-id="${primaryGroup?.id ?? ""}">
+                        ＋ 条件を追加
+                    </button>
+                    <button class="add-condition-btn add-condition-btn--single" data-macro-action="add-branch-action"
+                        data-branch-id="${block.id}" data-branch-role="then">
+                        ＋ アクションを追加
+                    </button>
+                    ${elseButton}
+                </div>
+            </details>
+        `;
+    };
+
     const renderActionBlocks = () => {
         const root = macroModal.querySelector(editorSelectors.actionsRoot);
         if (!root) {
@@ -1271,6 +1405,61 @@
         const markupParts = [];
         for (let index = 0; index < blocks.length; index += 1) {
             const block = blocks[index];
+            if (block.type === "branch") {
+                markupParts.push(createBranchBlockMarkup(block, index));
+                const thenActions = Array.isArray(block.then) ? block.then : [];
+                if (thenActions.length > 0) {
+                    markupParts.push(`
+                        <div class="action-connector">
+                            <div class="connector-line-vertical"></div>
+                            <div class="action-connector-label">${BRANCH_LABELS.then}</div>
+                            <div class="connector-line-vertical"></div>
+                        </div>
+                    `);
+                    thenActions.forEach((actionBlock) => {
+                        markupParts.push(
+                            createActionBlockMarkup(actionBlock, true, {
+                                branchId: block.id,
+                                branchRole: "then",
+                            }),
+                        );
+                    });
+                } else {
+                    markupParts.push(`
+                        <div class="action-connector">
+                            <div class="connector-line-vertical"></div>
+                            <div class="action-connector-label">${BRANCH_LABELS.then}</div>
+                            <div class="connector-line-vertical"></div>
+                        </div>
+                        <div class="block-builder__empty is-placeholder">${ACTION_EMPTY_TEXT}</div>
+                    `);
+                }
+                if (Array.isArray(block.else)) {
+                    const elseActions = block.else;
+                    markupParts.push(`
+                        <div class="action-connector">
+                            <div class="connector-line-vertical"></div>
+                            <div class="action-connector-label">${BRANCH_LABELS.else}</div>
+                            <div class="connector-line-vertical"></div>
+                        </div>
+                    `);
+                    if (elseActions.length === 0) {
+                        markupParts.push(
+                            `<div class="block-builder__empty is-placeholder">${ACTION_EMPTY_TEXT}</div>`,
+                        );
+                    } else {
+                        elseActions.forEach((actionBlock) => {
+                            markupParts.push(
+                                createActionBlockMarkup(actionBlock, true, {
+                                    branchId: block.id,
+                                    branchRole: "else",
+                                }),
+                            );
+                        });
+                    }
+                }
+                continue;
+            }
             if (block.type === "condition") {
                 markupParts.push(createConditionBlockMarkup(block, index, blocks.length));
                 const nestedActions = [];
@@ -1358,7 +1547,7 @@
             return;
         }
         const block = macroState.blocks.find((entry) => entry.id === scopeId);
-        if (!block || block.type !== "condition") {
+        if (!block || (block.type !== "condition" && block.type !== "branch")) {
             return;
         }
         block.conditions.groupConnectors[groupIndex] = connectorValue;
@@ -1384,14 +1573,14 @@
         updateMacroPreview();
     };
 
-    const updateActionOverview = (blockId) => {
+    const updateActionOverview = (blockId, context = {}) => {
         const summaryElement = macroModal.querySelector(
             `[data-block-id="${blockId}"] [data-action-overview]`,
         );
         if (!summaryElement) {
             return;
         }
-        const block = macroState.blocks.find((entry) => entry.id === blockId);
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.type !== "action") {
             return;
         }
@@ -1491,7 +1680,7 @@
     const addBlock = (type, parentConditionId = null) => {
         const defaultTarget = findDefaultTarget(currentTargets);
         if (type === "condition") {
-            macroState.blocks.push(createConditionBlock(defaultTarget));
+            macroState.blocks.push(createBranchBlock(defaultTarget));
             renderAll();
             return;
         }
@@ -1514,6 +1703,78 @@
             }
         } else {
             macroState.blocks.push(block);
+        }
+        renderAll();
+    };
+
+    const addBranchAction = (branchId, branchRole) => {
+        const branchBlock = getBranchBlockById(branchId);
+        if (!branchBlock) {
+            return;
+        }
+        const defaultTarget = findDefaultTarget(currentTargets);
+        const actionBlock = createBranchActionBlock(defaultTarget);
+        if (branchRole === "else") {
+            if (!Array.isArray(branchBlock.else)) {
+                branchBlock.else = [];
+            }
+            branchBlock.else.push(actionBlock);
+        } else {
+            branchBlock.then.push(actionBlock);
+        }
+        renderAll();
+    };
+
+    const removeBranchAction = (branchId, branchRole, actionId) => {
+        const branchBlock = getBranchBlockById(branchId);
+        if (!branchBlock) {
+            return;
+        }
+        const list = getBranchActionList(branchBlock, branchRole);
+        if (!Array.isArray(list)) {
+            return;
+        }
+        const next = list.filter((entry) => entry.id !== actionId);
+        if (branchRole === "else") {
+            branchBlock.else = next;
+        } else {
+            branchBlock.then = next;
+        }
+        renderAll();
+    };
+
+    const moveBranchAction = (branchId, branchRole, actionId, direction) => {
+        const branchBlock = getBranchBlockById(branchId);
+        if (!branchBlock) {
+            return;
+        }
+        const list = getBranchActionList(branchBlock, branchRole);
+        if (!Array.isArray(list)) {
+            return;
+        }
+        const index = list.findIndex((entry) => entry.id === actionId);
+        const targetIndex = index + direction;
+        if (index === -1 || targetIndex < 0 || targetIndex >= list.length) {
+            return;
+        }
+        const updated = [...list];
+        const [moved] = updated.splice(index, 1);
+        updated.splice(targetIndex, 0, moved);
+        if (branchRole === "else") {
+            branchBlock.else = updated;
+        } else {
+            branchBlock.then = updated;
+        }
+        renderAll();
+    };
+
+    const ensureBranchElse = (branchId) => {
+        const branchBlock = getBranchBlockById(branchId);
+        if (!branchBlock) {
+            return;
+        }
+        if (!Array.isArray(branchBlock.else)) {
+            branchBlock.else = [];
         }
         renderAll();
     };
@@ -1618,17 +1879,39 @@
 
     const getBlockById = (blockId) => macroState.blocks.find((entry) => entry.id === blockId) ?? null;
 
-    const updateAction = (blockId, updates) => {
-        const block = getBlockById(blockId);
+    const getBranchBlockById = (branchId) =>
+        macroState.blocks.find((entry) => entry.id === branchId && entry.type === "branch") ?? null;
+
+    const getBranchActionList = (branchBlock, branchRole) => {
+        if (!branchBlock) {
+            return null;
+        }
+        return branchRole === "else" ? branchBlock.else : branchBlock.then;
+    };
+
+    const resolveActionBlock = (blockId, context = {}) => {
+        if (context?.branchId) {
+            const branchBlock = getBranchBlockById(context.branchId);
+            const list = getBranchActionList(
+                branchBlock,
+                context.branchRole === "else" ? "else" : "then",
+            );
+            return list?.find((entry) => entry.id === blockId) ?? null;
+        }
+        return getBlockById(blockId);
+    };
+
+    const updateAction = (blockId, updates, context = {}) => {
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.type !== "action") {
             return;
         }
         block.action = { ...block.action, ...updates };
-        updateActionOverview(blockId);
+        updateActionOverview(blockId, context);
     };
 
-    const updateOptionAction = (blockId, optionId, actionId, updates) => {
-        const block = getBlockById(blockId);
+    const updateOptionAction = (blockId, optionId, actionId, updates, context = {}) => {
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.type !== "action") {
             return;
         }
@@ -1644,11 +1927,11 @@
             return;
         }
         Object.assign(action, updates);
-        updateActionOverview(blockId);
+        updateActionOverview(blockId, context);
     };
 
-    const addOption = (blockId) => {
-        const block = getBlockById(blockId);
+    const addOption = (blockId, context = {}) => {
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1660,8 +1943,8 @@
         renderAll();
     };
 
-    const removeOption = (blockId, optionId) => {
-        const block = getBlockById(blockId);
+    const removeOption = (blockId, optionId, context = {}) => {
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1676,8 +1959,8 @@
         renderAll();
     };
 
-    const addOptionAction = (blockId, optionId) => {
-        const block = getBlockById(blockId);
+    const addOptionAction = (blockId, optionId, context = {}) => {
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1693,8 +1976,8 @@
         renderAll();
     };
 
-    const removeOptionAction = (blockId, optionId, actionId) => {
-        const block = getBlockById(blockId);
+    const removeOptionAction = (blockId, optionId, actionId, context = {}) => {
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1706,8 +1989,8 @@
         renderAll();
     };
 
-    const moveOptionAction = (blockId, optionId, actionId, direction) => {
-        const block = getBlockById(blockId);
+    const moveOptionAction = (blockId, optionId, actionId, direction, context = {}) => {
+        const block = resolveActionBlock(blockId, context);
         if (!block || block.action.type !== "show-choice") {
             return;
         }
@@ -1818,6 +2101,13 @@
             amount: normalizeNumber(action.amount, DEFAULT_NUMERIC_VALUE),
         };
     };
+
+    const sanitizeActionList = (actionBlocks) =>
+        Array.isArray(actionBlocks)
+            ? actionBlocks
+                .map((entry) => sanitizeAction(entry?.action ?? entry))
+                .filter(Boolean)
+            : [];
 
     const clearValidationState = () => {
         macroModal.querySelectorAll(".is-invalid").forEach((element) => {
@@ -2180,6 +2470,30 @@
                 );
                 return;
             }
+            if (block.type === "branch") {
+                validateConditionScope(
+                    block.conditions,
+                    block.id,
+                    `条件ブロック${blockIndex + 1}-`,
+                );
+                const thenActions = Array.isArray(block.then) ? block.then : [];
+                thenActions.forEach((actionBlock, actionIndex) => {
+                    validateAction(
+                        actionBlock.action,
+                        actionBlock.id,
+                        `条件ブロック${blockIndex + 1}-アクション${actionIndex + 1}: `,
+                    );
+                });
+                const elseActions = Array.isArray(block.else) ? block.else : [];
+                elseActions.forEach((actionBlock, actionIndex) => {
+                    validateAction(
+                        actionBlock.action,
+                        actionBlock.id,
+                        `条件ブロック${blockIndex + 1}-elseアクション${actionIndex + 1}: `,
+                    );
+                });
+                return;
+            }
             validateAction(block.action, block.id, `アクション${blockIndex + 1}: `);
         });
 
@@ -2194,6 +2508,14 @@
                     return {
                         type: "condition",
                         conditions: sanitizeConditions(block.conditions),
+                    };
+                }
+                if (block.type === "branch") {
+                    return {
+                        type: "branch",
+                        conditions: sanitizeConditions(block.conditions),
+                        then: sanitizeActionList(block.then),
+                        else: Array.isArray(block.else) ? sanitizeActionList(block.else) : undefined,
                     };
                 }
                 const sanitizedAction = sanitizeAction(block.action);
@@ -2235,6 +2557,12 @@
         if (!action) {
             return;
         }
+        const actionContext = button.dataset.branchId
+            ? {
+                branchId: button.dataset.branchId,
+                branchRole: button.dataset.branchRole === "else" ? "else" : "then",
+            }
+            : {};
         if (action === "add-condition") {
             addCondition(button.dataset.conditionScope, button.dataset.groupId);
             return;
@@ -2264,35 +2592,79 @@
             return;
         }
         if (action === "add-nested-action") {
+            const parentBlock = getBlockById(button.dataset.blockId);
+            if (parentBlock?.type === "branch") {
+                addBranchAction(parentBlock.id, "then");
+                return;
+            }
             addBlock("action", button.dataset.blockId);
             return;
         }
+        if (action === "add-branch-action") {
+            addBranchAction(button.dataset.branchId, button.dataset.branchRole);
+            return;
+        }
+        if (action === "add-branch-else") {
+            ensureBranchElse(button.dataset.branchId);
+            return;
+        }
         if (action === "move-block-up") {
+            if (button.dataset.branchId) {
+                moveBranchAction(
+                    button.dataset.branchId,
+                    button.dataset.branchRole,
+                    button.dataset.blockId,
+                    -1,
+                );
+                return;
+            }
             moveBlock(button.dataset.blockId, -1);
             return;
         }
         if (action === "move-block-down") {
+            if (button.dataset.branchId) {
+                moveBranchAction(
+                    button.dataset.branchId,
+                    button.dataset.branchRole,
+                    button.dataset.blockId,
+                    1,
+                );
+                return;
+            }
             moveBlock(button.dataset.blockId, 1);
             return;
         }
         if (action === "remove-block") {
+            if (button.dataset.branchId) {
+                removeBranchAction(
+                    button.dataset.branchId,
+                    button.dataset.branchRole,
+                    button.dataset.blockId,
+                );
+                return;
+            }
             removeBlock(button.dataset.blockId);
             return;
         }
         if (action === "add-option") {
-            addOption(button.dataset.blockId);
+            addOption(button.dataset.blockId, actionContext);
             return;
         }
         if (action === "remove-option") {
-            removeOption(button.dataset.blockId, button.dataset.optionId);
+            removeOption(button.dataset.blockId, button.dataset.optionId, actionContext);
             return;
         }
         if (action === "add-option-action") {
-            addOptionAction(button.dataset.blockId, button.dataset.optionId);
+            addOptionAction(button.dataset.blockId, button.dataset.optionId, actionContext);
             return;
         }
         if (action === "remove-option-action") {
-            removeOptionAction(button.dataset.blockId, button.dataset.optionId, button.dataset.optionActionId);
+            removeOptionAction(
+                button.dataset.blockId,
+                button.dataset.optionId,
+                button.dataset.optionActionId,
+                actionContext,
+            );
             return;
         }
         if (action === "move-option-action-up") {
@@ -2301,6 +2673,7 @@
                 button.dataset.optionId,
                 button.dataset.optionActionId,
                 -1,
+                actionContext,
             );
             return;
         }
@@ -2310,6 +2683,7 @@
                 button.dataset.optionId,
                 button.dataset.optionActionId,
                 1,
+                actionContext,
             );
         }
     };
@@ -2319,6 +2693,12 @@
         if (!(target instanceof HTMLElement)) {
             return;
         }
+        const actionContext = target.dataset.branchId
+            ? {
+                branchId: target.dataset.branchId,
+                branchRole: target.dataset.branchRole === "else" ? "else" : "then",
+            }
+            : {};
         clearFieldValidation(target);
         if (target.matches("[data-condition-target]")) {
             const scope = target.dataset.conditionScope;
@@ -2356,7 +2736,7 @@
         }
         if (target.matches("[data-action-type]")) {
             const blockId = target.dataset.blockId;
-            const block = getBlockById(blockId);
+            const block = resolveActionBlock(blockId, actionContext);
             if (!block || block.type !== "action") {
                 return;
             }
@@ -2371,27 +2751,43 @@
             return;
         }
         if (target.matches("[data-action-target]")) {
-            updateAction(target.dataset.blockId, { target: parseTargetValue(target.value, currentTargets) });
+            updateAction(
+                target.dataset.blockId,
+                { target: parseTargetValue(target.value, currentTargets) },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-action-amount]")) {
-            updateAction(target.dataset.blockId, { amount: normalizeNumber(target.value) });
+            updateAction(
+                target.dataset.blockId,
+                { amount: normalizeNumber(target.value) },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-action-value]")) {
-            updateAction(target.dataset.blockId, { value: normalizeNumber(target.value) });
+            updateAction(
+                target.dataset.blockId,
+                { value: normalizeNumber(target.value) },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-action-text]")) {
-            updateAction(target.dataset.blockId, { text: target.value, value: target.value });
+            updateAction(
+                target.dataset.blockId,
+                { text: target.value, value: target.value },
+                actionContext,
+            );
             return;
         }
         if (target.matches("[data-choice-question]")) {
-            updateAction(target.dataset.blockId, { question: target.value });
+            updateAction(target.dataset.blockId, { question: target.value }, actionContext);
             return;
         }
         if (target.matches("[data-choice-option-label]")) {
-            const block = getBlockById(target.dataset.blockId);
+            const block = resolveActionBlock(target.dataset.blockId, actionContext);
             if (!block || block.action.type !== "show-choice") {
                 return;
             }
@@ -2400,7 +2796,7 @@
                 return;
             }
             option.label = target.value;
-            updateActionOverview(target.dataset.blockId);
+            updateActionOverview(target.dataset.blockId, actionContext);
             return;
         }
         if (target.matches("[data-option-action-type]")) {
@@ -2411,6 +2807,7 @@
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 nextAction,
+                actionContext,
             );
             renderAll();
             return;
@@ -2421,6 +2818,7 @@
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { target: parseTargetValue(target.value, currentTargets) },
+                actionContext,
             );
             return;
         }
@@ -2430,6 +2828,7 @@
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { amount: normalizeNumber(target.value) },
+                actionContext,
             );
             return;
         }
@@ -2439,6 +2838,7 @@
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { value: normalizeNumber(target.value) },
+                actionContext,
             );
             return;
         }
@@ -2448,6 +2848,7 @@
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { text: target.value, value: target.value },
+                actionContext,
             );
             return;
         }
@@ -2457,6 +2858,7 @@
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { question: target.value },
+                actionContext,
             );
         }
     };
