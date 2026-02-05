@@ -1142,8 +1142,9 @@
                 <div class="block-item">
                     <div class="block__row">
                         <span class="block__text">追加値：</span>
-                        <input type="number" class="block__input" value="${action.value ?? DEFAULT_NUMERIC_VALUE}"
+                        <input type="text" class="block__input" value="${action.value ?? DEFAULT_NUMERIC_VALUE}"
                             style="max-width: 80px;" data-action-value ${actionContext}>
+>>>>>>> 5d283bbb56a51ac2308b9334ffade3fcd0d56246
                     </div>
                 </div>
             `;
