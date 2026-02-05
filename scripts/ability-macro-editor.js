@@ -58,6 +58,13 @@
         ability: "アビリティ",
     });
 
+    const COMMAND_TARGETS = Object.freeze([
+        { kind: "judge", id: "judge", label: "判定" },
+        { kind: "damage", id: "damage", label: "ダメージ" },
+    ]);
+    const COMMAND_TARGET_LABEL = "適用先";
+    const DEFAULT_COMMAND_TARGET = COMMAND_TARGETS[0];
+
     const PREVIEW_TEXT = Object.freeze({
         usageHeader: "使用条件:",
         usageNone: "使用条件なし",
@@ -391,6 +398,28 @@
         };
     };
 
+    const buildCommandTargetValue = (target) => {
+        if (!target?.id) {
+            return "";
+        }
+        return target.id;
+    };
+
+    const parseCommandTargetValue = (value) => {
+        if (!value) {
+            return null;
+        }
+        const match = COMMAND_TARGETS.find((entry) => entry.id === value);
+        if (!match) {
+            return null;
+        }
+        return {
+            kind: match.kind,
+            id: match.id,
+            label: match.label,
+        };
+    };
+
     const findDefaultTarget = (targets) => {
         const kinds = Object.keys(TARGET_GROUP_LABELS);
         for (const kind of kinds) {
@@ -401,6 +430,13 @@
         }
         return null;
     };
+
+    const normalizeCommandTarget = (target) =>
+        parseCommandTargetValue(target?.id ?? target?.kind ?? "") ?? {
+            kind: DEFAULT_COMMAND_TARGET.kind,
+            id: DEFAULT_COMMAND_TARGET.id,
+            label: DEFAULT_COMMAND_TARGET.label,
+        };
 
     let macroState = null;
     let currentTargets = readTargetOptions();
@@ -501,6 +537,7 @@
         if (action.type === "add-judge-damage") {
             return {
                 type: "add-judge-damage",
+                target: normalizeCommandTarget(action.target),
                 value: normalizeActionValueText(action.value),
             };
         }
@@ -513,7 +550,7 @@
         if (action.type === "change") {
             return {
                 type: "change",
-                target: normalizeTarget(action.target) ?? defaultTarget,
+                target: normalizeCommandTarget(action.target),
                 value: action.value ?? "",
             };
         }
@@ -650,6 +687,12 @@
         return options;
     };
 
+    const buildCommandTargetOptionsMarkup = (selectedValue) =>
+        COMMAND_TARGETS.map((target) => {
+            const isSelected = target.id === selectedValue ? "selected" : "";
+            return `<option value="${target.id}" ${isSelected}>${target.label}</option>`;
+        }).join("");
+
     const buildComparatorOptionsMarkup = (selected) =>
         COMPARATORS.map((option) => {
             const isSelected = option.value === selected ? "selected" : "";
@@ -778,7 +821,8 @@
         }
         if (action.type === "add-judge-damage") {
             const value = action.value ?? "";
-            return [`${indent}${ACTION_LABELS[action.type]}：${value}`];
+            const label = resolveTargetLabel(action.target);
+            return [`${indent}${ACTION_LABELS[action.type]}（${label}）：${value}`];
         }
         if (action.type === "change") {
             const label = resolveTargetLabel(action.target);
@@ -905,7 +949,8 @@
             return `${ACTION_LABELS[action.type]}`;
         }
         if (action.type === "add-judge-damage") {
-            return `${ACTION_LABELS[action.type]} ${action.value ?? ""}`;
+            const label = action?.target?.label || action?.target?.id || "対象なし";
+            return `${ACTION_LABELS[action.type]} ${label} ${action.value ?? ""}`;
         }
         if (action.type === "change") {
             const label = action?.target?.label || action?.target?.id || "対象なし";
@@ -1145,10 +1190,15 @@
         }
 
         if (action.type === "add-judge-damage") {
+            const commandTargetValue = buildCommandTargetValue(action.target);
             return `
                 ${typeSelect}
                 <div class="block-item">
                     <div class="block__row">
+                        <span class="block__text">${COMMAND_TARGET_LABEL}：</span>
+                        <select class="block__select" data-action-command-target ${actionContext}>
+                            ${buildCommandTargetOptionsMarkup(commandTargetValue)}
+                        </select>
                         <span class="block__text">追加値：</span>
                         <input type="text" class="block__input" value="${action.value ?? DEFAULT_NUMERIC_VALUE}"
                             style="max-width: 80px;" data-action-value ${actionContext}>
@@ -1158,14 +1208,14 @@
         }
 
         if (action.type === "change") {
-            const targetValue = buildTargetValue(action.target);
+            const commandTargetValue = buildCommandTargetValue(action.target);
             return `
                 ${typeSelect}
                 <div class="block-item">
                     <div class="block__row">
-                        <span class="block__text">対象：</span>
-                        <select class="block__select" data-action-target ${actionContext}>
-                            ${buildTargetOptionsMarkup(targetValue)}
+                        <span class="block__text">${COMMAND_TARGET_LABEL}：</span>
+                        <select class="block__select" data-action-command-target ${actionContext}>
+                            ${buildCommandTargetOptionsMarkup(commandTargetValue)}
                         </select>
                         <input class="block__textbox" value="${action.value ?? ""}" data-action-text
                             ${actionContext}>
@@ -1228,10 +1278,16 @@
         }
 
         if (action.type === "add-judge-damage") {
+            const commandTargetValue = buildCommandTargetValue(action.target);
             return `
                 ${typeSelect}
                 <div class="block-item">
                     <div class="block__row">
+                        <span class="block__text">${COMMAND_TARGET_LABEL}：</span>
+                        <select class="block__select" data-option-action-command-target
+                            ${actionContext} data-option-id="${optionId}" data-option-action-id="${action.id}">
+                            ${buildCommandTargetOptionsMarkup(commandTargetValue)}
+                        </select>
                         <span class="block__text">追加値：</span>
                         <input type="text" class="block__input" value="${action.value ?? DEFAULT_NUMERIC_VALUE}"
                             style="max-width: 80px;" data-option-action-value
@@ -1242,15 +1298,15 @@
         }
 
         if (action.type === "change") {
-            const targetValue = buildTargetValue(action.target);
+            const commandTargetValue = buildCommandTargetValue(action.target);
             return `
                 ${typeSelect}
                 <div class="block-item">
                     <div class="block__row">
-                        <span class="block__text">対象：</span>
-                        <select class="block__select" data-option-action-target ${actionContext}
+                        <span class="block__text">${COMMAND_TARGET_LABEL}：</span>
+                        <select class="block__select" data-option-action-command-target ${actionContext}
                             data-option-id="${optionId}" data-option-action-id="${action.id}">
-                            ${buildTargetOptionsMarkup(targetValue)}
+                            ${buildCommandTargetOptionsMarkup(commandTargetValue)}
                         </select>
                         <input class="block__textbox" value="${action.value ?? ""}" data-option-action-text
                             ${actionContext} data-option-id="${optionId}" data-option-action-id="${action.id}">
@@ -2079,19 +2135,18 @@
         if (action.type === "add-judge-damage") {
             return {
                 type: "add-judge-damage",
+                target: normalizeCommandTarget(action.target),
                 value: normalizeActionValueText(action.value),
             };
         }
         if (action.type === "change") {
-            if (!action.target?.id) {
-                return null;
-            }
+            const commandTarget = normalizeCommandTarget(action.target);
             return {
                 type: "change",
                 target: {
-                    kind: action.target.kind,
-                    id: action.target.id,
-                    label: action.target.label ?? "",
+                    kind: commandTarget.kind,
+                    id: commandTarget.id,
+                    label: commandTarget.label,
                 },
                 value: action.value ?? "",
             };
@@ -2180,13 +2235,18 @@
         return raw;
     };
 
-    const validateTargetSelection = (errors, select, messagePrefix) => {
+    const validateTargetSelection = (
+        errors,
+        select,
+        messagePrefix,
+        parser = (value) => parseTargetValue(value, currentTargets),
+    ) => {
         const value = select?.value ?? "";
         if (!value) {
             addValidationError(errors, select, `${messagePrefix}${VALIDATION_TEXT.missingTarget}`);
             return null;
         }
-        const parsed = parseTargetValue(value, currentTargets);
+        const parsed = parser(value);
         if (!parsed) {
             addValidationError(errors, select, `${messagePrefix}${VALIDATION_TEXT.missingTarget}`);
             return null;
@@ -2290,6 +2350,11 @@
                 return;
             }
             if (actionType === "add-judge-damage") {
+                const targetSelect = macroModal.querySelector(
+                    `[data-option-action-command-target][data-block-id="${blockId}"]` +
+                        `[data-option-id="${optionId}"][data-option-action-id="${action.id}"]`,
+                );
+                validateTargetSelection(errors, targetSelect, messagePrefix, parseCommandTargetValue);
                 const valueInput = macroModal.querySelector(
                     `[data-option-action-value][data-block-id="${blockId}"]` +
                         `[data-option-id="${optionId}"][data-option-action-id="${action.id}"]`,
@@ -2304,10 +2369,10 @@
             }
             if (actionType === "change") {
                 const targetSelect = macroModal.querySelector(
-                    `[data-option-action-target][data-block-id="${blockId}"]` +
+                    `[data-option-action-command-target][data-block-id="${blockId}"]` +
                         `[data-option-id="${optionId}"][data-option-action-id="${action.id}"]`,
                 );
-                const target = validateTargetSelection(errors, targetSelect, messagePrefix);
+                validateTargetSelection(errors, targetSelect, messagePrefix, parseCommandTargetValue);
                 const valueInput = macroModal.querySelector(
                     `[data-option-action-text][data-block-id="${blockId}"]` +
                         `[data-option-id="${optionId}"][data-option-action-id="${action.id}"]`,
@@ -2320,28 +2385,6 @@
                         `${messagePrefix}${VALIDATION_TEXT.missingText}`,
                     );
                     return;
-                }
-                if (
-                    target?.kind === "buff" ||
-                    target?.kind === "resource" ||
-                    target?.kind === "ability"
-                ) {
-                    const parsed = Number(rawValue);
-                    if (!Number.isFinite(parsed)) {
-                        addValidationError(
-                            errors,
-                            valueInput,
-                            `${messagePrefix}${VALIDATION_TEXT.invalidNumber}`,
-                        );
-                        return;
-                    }
-                    if (!isNumberInRange(parsed)) {
-                        addValidationError(
-                            errors,
-                            valueInput,
-                            `${messagePrefix}${VALIDATION_TEXT.rangeError}`,
-                        );
-                    }
                 }
                 return;
             }
@@ -2426,6 +2469,10 @@
                 return;
             }
             if (actionType === "add-judge-damage") {
+                const targetSelect = macroModal.querySelector(
+                    `[data-action-command-target][data-block-id="${blockId}"]`,
+                );
+                validateTargetSelection(errors, targetSelect, messagePrefix, parseCommandTargetValue);
                 const valueInput = macroModal.querySelector(
                     `[data-action-value][data-block-id="${blockId}"]`,
                 );
@@ -2439,9 +2486,9 @@
             }
             if (actionType === "change") {
                 const targetSelect = macroModal.querySelector(
-                    `[data-action-target][data-block-id="${blockId}"]`,
+                    `[data-action-command-target][data-block-id="${blockId}"]`,
                 );
-                const target = validateTargetSelection(errors, targetSelect, messagePrefix);
+                validateTargetSelection(errors, targetSelect, messagePrefix, parseCommandTargetValue);
                 const valueInput = macroModal.querySelector(
                     `[data-action-text][data-block-id="${blockId}"]`,
                 );
@@ -2453,28 +2500,6 @@
                         `${messagePrefix}${VALIDATION_TEXT.missingText}`,
                     );
                     return;
-                }
-                if (
-                    target?.kind === "buff" ||
-                    target?.kind === "resource" ||
-                    target?.kind === "ability"
-                ) {
-                    const parsed = Number(rawValue);
-                    if (!Number.isFinite(parsed)) {
-                        addValidationError(
-                            errors,
-                            valueInput,
-                            `${messagePrefix}${VALIDATION_TEXT.invalidNumber}`,
-                        );
-                        return;
-                    }
-                    if (!isNumberInRange(parsed)) {
-                        addValidationError(
-                            errors,
-                            valueInput,
-                            `${messagePrefix}${VALIDATION_TEXT.rangeError}`,
-                        );
-                    }
                 }
                 return;
             }
@@ -2785,6 +2810,14 @@
             );
             return;
         }
+        if (target.matches("[data-action-command-target]")) {
+            updateAction(
+                target.dataset.blockId,
+                { target: parseCommandTargetValue(target.value) },
+                actionContext,
+            );
+            return;
+        }
         if (target.matches("[data-action-amount]")) {
             updateAction(
                 target.dataset.blockId,
@@ -2845,6 +2878,16 @@
                 target.dataset.optionId,
                 target.dataset.optionActionId,
                 { target: parseTargetValue(target.value, currentTargets) },
+                actionContext,
+            );
+            return;
+        }
+        if (target.matches("[data-option-action-command-target]")) {
+            updateOptionAction(
+                target.dataset.blockId,
+                target.dataset.optionId,
+                target.dataset.optionActionId,
+                { target: parseCommandTargetValue(target.value) },
                 actionContext,
             );
             return;
