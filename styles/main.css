@@ -1813,7 +1813,7 @@ details:not([open]) summary {
 .trait-area {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px 6px;
+    gap: 16px 4px;
     width: 100%;
 }
 
