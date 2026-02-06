@@ -371,6 +371,10 @@ nav {
     .dialog__preview--macro {
         display: none;
     }
+
+    .dialog__header--macro {
+        flex-direction: column;
+    }
 }
 
 @media screen and (width > 900px) {
@@ -389,6 +393,10 @@ nav {
 
     .dialog__preview--macro {
         display: flex;
+    }
+
+    .dialog__header--macro {
+        flex-direction: column;
     }
 }
 
@@ -1126,7 +1134,7 @@ dialog h3 {
 
 .dialog__header--macro {
     padding: 16px;
-    height: 100%;
+    height: fit-content;
 }
 
 .dialog__header button {
