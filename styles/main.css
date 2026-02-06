@@ -774,11 +774,20 @@ section {
     outline: none;
 }
 
+
 .context-menu__item:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
+.context-menu--resource  {
+    min-width: 24px;
+    justify-content: space-between;
+}
+
+.context-menu__item--resource {
+    font-size: 24px;
+}
 
 .buff-area {
     display: flex;
