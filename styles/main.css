@@ -1850,23 +1850,7 @@ details:not([open]) summary {
     margin-left: auto;
 }
 
-.resource__control--calc {
-    display: none;
-}
-
-.resource__control--calc button {
-    margin-top: 4px;
-    padding: 2px 4px;
-    aspect-ratio: 1/2;
-    height: 24px;
-    width: 48px;
-}
-
 .resource__control--list {
-    display: flex;
-}
-
-.resource__group:hover .resource__control--calc {
     display: flex;
 }
 

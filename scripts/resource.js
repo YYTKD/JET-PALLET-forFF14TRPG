@@ -3,6 +3,11 @@ const RESOURCE_EVENT_NAMES = Object.freeze({
     updated: "resource:updated",
 });
 
+const RESOURCE_CONTEXT_ACTIONS = Object.freeze({
+    increment: "increment",
+    decrement: "decrement",
+});
+
 // Share resource event names globally to avoid duplicate global declarations.
 if (typeof window !== "undefined") {
     window.ResourceEvents = Object.freeze({
@@ -316,7 +321,7 @@ const createResourceIcon = (resource) => {
 };
 
 // Build the interactive resource group for the main display.
-const createResourceGroup = (resource, onChange) => {
+const createResourceGroup = (resource) => {
     const group = document.createElement("div");
     group.className = "resource__group";
     group.dataset.resourceId = resource.id;
@@ -327,29 +332,8 @@ const createResourceGroup = (resource, onChange) => {
 
     const icon = createResourceIcon(resource);
 
-    const control = document.createElement("div");
-    control.className = "resource__control resource__control--calc";
-
-    const decrementButton = document.createElement("button");
-    decrementButton.className = "resource__btn material-symbols-rounded";
-    decrementButton.type = "button";
-    decrementButton.textContent = "remove";
-    decrementButton.setAttribute("aria-label", `${resource.name ?? ""}を減らす`);
-    decrementButton.addEventListener("click", () => onChange?.(resource.id, -1));
-
-    const incrementButton = document.createElement("button");
-    incrementButton.className = "resource__btn material-symbols-rounded";
-    incrementButton.type = "button";
-    incrementButton.textContent = "add";
-    incrementButton.setAttribute("aria-label", `${resource.name ?? ""}を増やす`);
-    incrementButton.addEventListener("click", () => onChange?.(resource.id, 1));
-
-    control.appendChild(decrementButton);
-    control.appendChild(incrementButton);
-
     group.appendChild(label);
     group.appendChild(icon);
-    group.appendChild(control);
 
     return group;
 };
@@ -366,7 +350,7 @@ const getResourceGroupById = (root, resourceId) => {
     return root.querySelector(`[data-resource-id="${safeId}"]`);
 };
 
-// Refresh label, controls, and icon for a single resource group.
+// Refresh label and icon for a single resource group.
 const updateResourceGroupDisplay = (group, resource) => {
     if (!group || !resource) {
         return;
@@ -376,28 +360,33 @@ const updateResourceGroupDisplay = (group, resource) => {
         label.textContent = resource.name ?? "";
     }
 
-    const control = group.querySelector(".resource__control");
-    if (control) {
-        const decrementButton = control.querySelector("button:nth-of-type(1)");
-        const incrementButton = control.querySelector("button:nth-of-type(2)");
-        if (decrementButton) {
-            decrementButton.setAttribute("aria-label", `${resource.name ?? ""}を減らす`);
-        }
-        if (incrementButton) {
-            incrementButton.setAttribute("aria-label", `${resource.name ?? ""}を増やす`);
-        }
-    }
-
     const existingIcon = group.querySelector(".resource__icon");
     const nextIcon = createResourceIcon(resource);
     if (existingIcon) {
         existingIcon.replaceWith(nextIcon);
-    } else if (control) {
-        group.insertBefore(nextIcon, control);
     } else {
         group.appendChild(nextIcon);
     }
     injectSvgIcons(group);
+};
+
+// Apply a +/- delta to a resource while preserving clamping behavior.
+const applyResourceDelta = (resourceId, delta) => {
+    if (!resourceId || !Number.isFinite(delta)) {
+        return;
+    }
+    const resources = readResources();
+    const target = resources.find((entry) => entry.id === resourceId);
+    if (!target) {
+        return;
+    }
+    const currentValue = Number(target.current);
+    const nextValue = Number.isFinite(currentValue)
+        ? currentValue + delta
+        : delta > 0
+            ? target.max
+            : RESOURCE_DEFAULTS.min;
+    updateResource(resourceId, { current: nextValue });
 };
 
 // Refresh a specific resource group by id after a change.
@@ -422,23 +411,7 @@ const renderResources = (root) => {
     const resources = readResources();
     root.innerHTML = "";
     resources.forEach((resource) => {
-        root.appendChild(
-            createResourceGroup(resource, (id, delta) => {
-                const nextResources = readResources();
-                const target = nextResources.find((entry) => entry.id === id);
-                if (!target) {
-                    return;
-                }
-                const currentValue = Number(target.current);
-                const nextValue = Number.isFinite(currentValue)
-                    ? currentValue + delta
-                    : delta > 0
-                        ? target.max
-                        : RESOURCE_DEFAULTS.min;
-                updateResource(id, { current: nextValue });
-                updateResourceDisplayById(root, id);
-            }),
-        );
+        root.appendChild(createResourceGroup(resource));
     });
     injectSvgIcons(root);
 };
@@ -828,6 +801,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
     refreshResourceDisplays();
 
+    const resourceContextMenu = document.getElementById("resourceContextMenu");
+    let contextMenuResourceId = null;
+
+    // Keep context menus on-screen to avoid clipped actions on narrow layouts.
+    const positionContextMenu = (menu, x, y) => {
+        if (!menu) {
+            return;
+        }
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const { width, height } = menu.getBoundingClientRect();
+        const nextX = Math.min(Math.max(0, x), Math.max(0, viewportWidth - width));
+        const nextY = Math.min(Math.max(0, y), Math.max(0, viewportHeight - height));
+        menu.style.left = `${nextX}px`;
+        menu.style.top = `${nextY}px`;
+    };
+
+    const closeResourceContextMenu = () => {
+        if (!resourceContextMenu) {
+            return;
+        }
+        resourceContextMenu.classList.remove("is-open");
+        resourceContextMenu.setAttribute("aria-hidden", "true");
+        contextMenuResourceId = null;
+    };
+
+    const openResourceContextMenu = (resourceId, x, y) => {
+        if (!resourceContextMenu || !resourceId) {
+            return;
+        }
+        contextMenuResourceId = resourceId;
+        resourceContextMenu.classList.add("is-open");
+        resourceContextMenu.setAttribute("aria-hidden", "false");
+        positionContextMenu(resourceContextMenu, x, y);
+    };
+
+    const executeResourceContextAction = (action) => {
+        if (!contextMenuResourceId) {
+            return;
+        }
+        const deltaByAction = {
+            [RESOURCE_CONTEXT_ACTIONS.increment]: 1,
+            [RESOURCE_CONTEXT_ACTIONS.decrement]: -1,
+        };
+        const delta = deltaByAction[action];
+        if (!Number.isFinite(delta)) {
+            return;
+        }
+        applyResourceDelta(contextMenuResourceId, delta);
+        updateResourceDisplayById(document, contextMenuResourceId);
+    };
+
     const resourceListRoot = document.querySelector(resourceSelectors.list);
     let editingResourceId = null;
 
@@ -859,7 +884,56 @@ document.addEventListener("DOMContentLoaded", () => {
         handleEdit(targetResource, options);
     };
 
-    // Parse numeric input with a fallback to avoid NaN propagation.
+    document.addEventListener("contextmenu", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const resourceGroup = target.closest("[data-trait-resource-root] .resource__group");
+        if (!resourceGroup) {
+            closeResourceContextMenu();
+            return;
+        }
+        const resourceId = resourceGroup.dataset.resourceId;
+        if (!resourceId) {
+            closeResourceContextMenu();
+            return;
+        }
+        event.preventDefault();
+        openResourceContextMenu(resourceId, event.clientX, event.clientY);
+    });
+
+    resourceContextMenu?.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const actionButton = target.closest("[data-resource-action]");
+        if (!actionButton) {
+            return;
+        }
+        const action = actionButton.dataset.resourceAction;
+        if (!action) {
+            return;
+        }
+        executeResourceContextAction(action);
+        closeResourceContextMenu();
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!resourceContextMenu?.classList.contains("is-open")) {
+            return;
+        }
+        if (event.target instanceof Element && resourceContextMenu.contains(event.target)) {
+            return;
+        }
+        closeResourceContextMenu();
+    });
+
+    window.addEventListener("scroll", closeResourceContextMenu, true);
+    window.addEventListener("resize", closeResourceContextMenu);
+
+// Parse numeric input with a fallback to avoid NaN propagation.
     const parseNumberInput = (value, fallback) => {
         const parsed = Number(value);
         return Number.isFinite(parsed) ? parsed : fallback;
