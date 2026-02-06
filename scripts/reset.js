@@ -8,7 +8,7 @@
         "jet-pallet-active-buffs",
         "jet-pallet-resources",
         storageKeys?.characterMacros ?? "jet-pallet-character-macros",
-+       storageKeys?.characterMeta ?? "jet-pallet-character-meta",
+        storageKeys?.characterMeta ?? "jet-pallet-character-meta",
     ];
 
     const RESET_TEXT = {
